@@ -58,6 +58,7 @@ class TicketAttachmentInline(admin.TabularInline):
                 obj.file.url,
             )
         return "-"
+
     file_link.short_description = "فایل"
 
     def has_add_permission(self, request, obj=None):
@@ -95,6 +96,7 @@ class TicketMessageInline(admin.TabularInline):
                 )
             )
         return format_html(" ".join(str(link) for link in links))
+
     attachments_display.short_description = "پیوست‌ها"
 
     def has_add_permission(self, request, obj=None):
@@ -313,7 +315,8 @@ class TicketAdmin(admin.ModelAdmin):
             "attachments"
         ).order_by("created_at")
 
-        html = ['<div style="max-height: 500px; overflow-y: auto; padding: 10px; background: #f9f9f9; border-radius: 8px;">']
+        html = [
+            '<div style="max-height: 500px; overflow-y: auto; padding: 10px; background: #f9f9f9; border-radius: 8px;">']
 
         for msg in messages_list:
             is_customer = msg.sender == obj.user
@@ -379,6 +382,7 @@ class TicketAdmin(admin.ModelAdmin):
             '<span style="font-weight: bold; font-size: 1.1em;">{}</span>',
             obj.tracking_code,
         )
+
     tracking_code_display.short_description = "کد پیگیری"
     tracking_code_display.admin_order_field = "tracking_code"
 
@@ -399,6 +403,7 @@ class TicketAdmin(admin.ModelAdmin):
             color,
             obj.get_status_display(),
         )
+
     status_display.short_description = "وضعیت"
     status_display.admin_order_field = "status"
 
@@ -409,6 +414,7 @@ class TicketAdmin(admin.ModelAdmin):
             '<span style="font-size: 0.9em;">{} پیام</span>',
             count,
         )
+
     message_count.short_description = "تعداد پیام‌ها"
 
     def save_model(self, request, obj, form, change):
@@ -483,12 +489,14 @@ class TicketMessageAdmin(admin.ModelAdmin):
     def ticket_tracking_code(self, obj):
         """Display the ticket tracking code."""
         return obj.ticket.tracking_code
+
     ticket_tracking_code.short_description = "کد پیگیری"
     ticket_tracking_code.admin_order_field = "ticket__tracking_code"
 
     def short_preview_display(self, obj):
         """Display a short preview of the message."""
         return obj.short_preview
+
     short_preview_display.short_description = "پیش‌نمایش پیام"
 
     def attachment_count(self, obj):
@@ -500,6 +508,7 @@ class TicketMessageAdmin(admin.ModelAdmin):
                 count,
             )
         return "-"
+
     attachment_count.short_description = "پیوست‌ها"
 
 
@@ -533,6 +542,7 @@ class TicketAttachmentAdmin(admin.ModelAdmin):
     def ticket_tracking_code(self, obj):
         """Display the ticket tracking code."""
         return obj.message.ticket.tracking_code
+
     ticket_tracking_code.short_description = "کد پیگیری"
 
     def file_link(self, obj):
@@ -543,4 +553,5 @@ class TicketAttachmentAdmin(admin.ModelAdmin):
                 obj.file.url,
             )
         return "-"
+
     file_link.short_description = "فایل"

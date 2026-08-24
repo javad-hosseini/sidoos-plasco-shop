@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
+{% load support_extras %}
+
 
 {% block title %}پشتیبانی | سیدوس{% endblock %}
 
@@ -327,7 +329,7 @@
 
 <div class="support-page">
     <div class="support-container">
-        
+
         <!-- Page Header -->
         <header class="support-header">
             <h1 class="support-header__title">پشتیبانی</h1>
@@ -344,12 +346,12 @@
         {% if tickets %}
             <div class="ticket-list">
                 {% for ticket in tickets %}
-                    <a href="{% url 'support:ticket_detail' tracking_code=ticket.tracking_code %}" 
+                    <a href="{% url 'support:ticket_detail' tracking_code=ticket.tracking_code %}"
                        class="ticket-card">
-                        
+
                         <div class="ticket-card__top">
                             <span class="ticket-card__tracking">#{{ ticket.tracking_code }}</span>
-                            
+
                             {% if ticket.status == 'WAITING_FOR_SUPPORT' %}
                                 <span class="ticket-card__status ticket-card__status--waiting-support">
                                     در انتظار پاسخ پشتیبانی
@@ -366,7 +368,7 @@
                         </div>
 
                         <h2 class="ticket-card__title">{{ ticket.title }}</h2>
-                        
+
                         {% if ticket.latest_message %}
                             <p class="ticket-card__preview">
                                 {{ ticket.latest_message }}
@@ -375,9 +377,9 @@
 
                         <div class="ticket-card__bottom">
                             <span class="ticket-card__date">
-                                {{ ticket.created_at|date:"Y/m/d" }}
+                                {{ ticket.created_at|jalali_date }}
                             </span>
-                            
+
                             <span class="ticket-card__action">
                                 <span>مشاهده گفتگو</span>
                                 <span class="ticket-card__action-arrow">←</span>
@@ -391,7 +393,7 @@
             {% if is_paginated %}
                 <nav class="pagination" aria-label="صفحه‌بندی">
                     {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}" 
+                        <a href="?page={{ page_obj.previous_page_number }}"
                            class="pagination__link">
                             قبلی
                         </a>
@@ -414,7 +416,7 @@
                     {% endfor %}
 
                     {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}" 
+                        <a href="?page={{ page_obj.next_page_number }}"
                            class="pagination__link">
                             بعدی
                         </a>
@@ -431,9 +433,9 @@
             <div class="empty-state">
                 <div class="empty-state__icon">
                     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M32 56C45.2548 56 56 45.2548 56 32C56 18.7452 45.2548 8 32 8C18.7452 8 8 18.7452 8 32C8 45.2548 18.7452 56 32 56Z" 
+                        <path d="M32 56C45.2548 56 56 45.2548 56 32C56 18.7452 45.2548 8 32 8C18.7452 8 8 18.7452 8 32C8 45.2548 18.7452 56 32 56Z"
                               fill="currentColor" opacity="0.2"/>
-                        <path d="M24 28C24 26.3431 25.3431 25 27 25H37C38.6569 25 40 26.3431 40 28V32C40 33.6569 38.6569 35 37 35H27C25.3431 35 24 33.6569 24 32V28Z" 
+                        <path d="M24 28C24 26.3431 25.3431 25 27 25H37C38.6569 25 40 26.3431 40 28V32C40 33.6569 38.6569 35 37 35H27C25.3431 35 24 33.6569 24 32V28Z"
                               fill="currentColor" opacity="0.5"/>
                         <path d="M28 39H36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>

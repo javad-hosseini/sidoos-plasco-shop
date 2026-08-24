@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load support_extras %}
 
 {% block title %}گفتگوی تیکت | سیدوس{% endblock %}
 
@@ -546,7 +547,7 @@
                 </span>
                 <span class="ticket-header__meta-item">
                     <span class="ticket-header__meta-label">تاریخ ایجاد:</span>
-                    <span>{{ ticket.created_at|date:"Y/m/d" }}</span>
+                    <span>{{ ticket.created_at|jalali_date }}</span>
                 </span>
             </div>
 
@@ -594,7 +595,7 @@
                                 </div>
                             {% endif %}
                         </div>
-                        <span class="message__time">{{ message.created_at|date:"Y/m/d H:i" }}</span>
+                        <span class="message__time">{{ message.created_at|jalali_datetime }}</span>
                     </div>
                 </div>
             {% endfor %}
