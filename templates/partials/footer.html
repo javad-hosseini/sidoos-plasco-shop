@@ -146,18 +146,9 @@
         transition: grid-template-rows var(--transition-base), opacity var(--transition-base);
     }
     .about-text__more > * { min-height: 0; }
-    .about-text__more::before { content: ""; display: block; height: 0; }
-    .about-text__more {
-        display: grid;
-    }
-    .about-text__more-inner-wrap { overflow: hidden; }
     .about-text.is-expanded .about-text__more {
         grid-template-rows: 1fr;
         opacity: 1;
-    }
-    /* Grid-rows animation needs a wrapping element with overflow hidden */
-    .about-text__more {
-        grid-template-rows: 0fr;
     }
     .about-text__more > p:first-child { margin-top: 0; }
 
