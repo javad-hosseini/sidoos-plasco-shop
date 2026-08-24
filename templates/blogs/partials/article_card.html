@@ -1,0 +1,62 @@
+{% load blog_extras %}
+{#
+  Article card partial.
+  Expects a single `article` object in context (an Article instance
+  with .title, .summary, .featured_image, .reading_time, .published_at,
+  .tags, .slug annotated/prefetched by the view).
+
+  {% url 'blogs:article_detail' ... as article_url %} uses the "as" form
+  so this partial does not raise NoReverseMatch before the detail page
+  exists — see apps/blogs/urls.py for details.
+#}
+{% url 'blogs:article_detail' article.Slug as article_url %}
+<article class="article-card">
+    <a href="{{ article_url|default:'#' }}" class="article-card__media" aria-hidden="true" tabindex="-1">
+        {% if article.featured_image %}
+            <img
+                src="{{ article.featured_image.url }}"
+                alt="{{ article.title }}"
+                loading="lazy"
+                class="article-card__image"
+            >
+        {% else %}
+            <span class="article-card__image article-card__image--fallback">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="14" rx="2"/>
+                    <circle cx="8.5" cy="10" r="1.5"/>
+                    <path d="M21 15l-5-5-9 9"/>
+                </svg>
+            </span>
+        {% endif %}
+    </a>
+
+    <div class="article-card__body">
+        <div class="article-card__meta">
+            <span class="article-card__date">{{ article.published_at|jalali_date }}</span>
+            <span class="article-card__meta-dot" aria-hidden="true">·</span>
+            <span class="article-card__reading-time">{{ article.reading_time|persian_digits }} دقیقه مطالعه</span>
+        </div>
+
+        <h2 class="article-card__title">
+            <a href="{{ article_url|default:'#' }}">{{ article.title }}</a>
+        </h2>
+
+        <p class="article-card__summary">{{ article.summary }}</p>
+
+        {% if article.tags.all %}
+            <ul class="article-card__tags">
+                {% for tag in article.tags.all|slice:":3" %}
+                    <li class="article-card__tag">{{ tag.name }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <a href="{{ article_url|default:'#' }}" class="article-card__cta">
+            <span>ادامه مطلب</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="article-card__cta-arrow">
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
+            </svg>
+        </a>
+    </div>
+</article>

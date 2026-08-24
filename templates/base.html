@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}سیدوس | فروش عمده محصولات پلاستیکی، باغبانی و لوازم خانگی{% endblock %}">
+    <meta name="theme-color" content="#245C43">
+
+    <title>{% block title %}سیدوس{% endblock %}</title>
+
+    <!-- ==========================================================
+         Design System — CSS Custom Properties
+         Palette is fixed per brand guidelines. Do not add new colors
+         without design approval.
+    ========================================================== -->
+    <style>
+        :root {
+            /* Colors */
+            --color-primary: #245C43;
+            --color-primary-dark: #173D2D;
+            --color-accent: #A8C66C;
+            --color-background: #F7F7F2;
+            --color-surface: #FFFFFF;
+            --color-text: #202522;
+            --color-text-muted: #6E756F;
+            --color-sale: #E87932;
+
+            /* Typography */
+            --font-family-base: "Vazirmatn", "IRANSans", "Tahoma", system-ui, -apple-system, sans-serif;
+            --font-size-base: 16px;
+            --font-size-lg: 18px;
+            --font-size-sm: 14px;
+            --line-height-base: 1.7;
+
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 20px;
+            --space-lg: 32px;
+            --space-xl: 48px;
+
+            /* Shape */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+
+            /* Elevation */
+            --shadow-sm: 0 1px 3px rgba(23, 61, 45, 0.08);
+            --shadow-md: 0 4px 16px rgba(23, 61, 45, 0.10);
+
+            /* Motion */
+            --transition-fast: 150ms ease;
+            --transition-base: 220ms ease;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font-family-base);
+            font-size: var(--font-size-base);
+            line-height: var(--line-height-base);
+            color: var(--color-text);
+            background-color: var(--color-background);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        main {
+            min-height: 60vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin-inline: auto;
+            padding-inline: var(--space-md);
+        }
+
+        /* Base button styles — pages/components can extend these */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-xs);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: background-color var(--transition-fast), transform var(--transition-fast);
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: var(--color-surface);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+        }
+
+        /* Accessible focus state — never remove without replacement */
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible {
+            outline: 3px solid var(--color-accent);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --space-lg: 24px;
+                --space-xl: 32px;
+            }
+        }
+
+        {% block extra_css_vars %}{% endblock %}
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    {% include "partials/navbar.html" %}
+
+    <main>
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    {% include "partials/footer.html" %}
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

@@ -12,9 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from pathlib import Path
-from django.utils.translation import gettext_lazy as _
 
 from decouple import Config, RepositoryEnv
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -51,18 +51,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Third-party apps
+    'taggit',
+    'django_ckeditor_5',
+
     # local apps
     'apps.accounts.apps.AccountsConfig',
     'apps.blogs.apps.BlogsConfig',
     'apps.home.apps.HomeConfig',
     'apps.products.apps.ProductsConfig',
     'apps.support.apps.SupportConfig',
-    'django_ckeditor_5',
 ]
 
 # CKEditor config
 CKEDITOR_5_CONFIGS = {
-    "full": {
+    "default": {
         "language": "fa",
         "toolbar": {
             "items": [
@@ -108,7 +111,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
