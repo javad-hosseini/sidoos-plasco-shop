@@ -5,11 +5,12 @@
 The `support` app implements a ticket-based customer support system for Sidoos. Authenticated users can create support tickets, view their ticket history, and converse with support staff. The system enforces a strict turn‑based messaging rule: a customer cannot send consecutive messages without a support reply.
 
 Key features:
+
 - Unique 6‑digit tracking codes.
 - Server‑side message‑turn enforcement.
 - Secure file attachments (images and PDF only, size‑limited).
 - Owner‑based authorization.
-- Admin interface for support staff.
+- Chat-like admin interface for support staff with reply, close, and reopen functionality.
 
 ---
 
@@ -23,7 +24,7 @@ Key features:
 | `forms.py` | Forms for creating tickets and sending messages, including multi‑file upload handling. |
 | `urls.py` | URL patterns with a custom converter for 6‑digit tracking codes. |
 | `validators.py` | File validation helpers (extension, MIME, size, image content). |
-| `admin.py` | Admin configuration for tickets, messages, and attachments. |
+| `admin.py` | Admin configuration with chat interface, reply form, and status management. |
 | `apps.py` | Django app configuration. |
 | `tests.py` | Unit tests covering business logic, authorization, and validation. |
 
@@ -45,6 +46,7 @@ Contains the core data entities for the support system.
 
 - `Ticket.can_customer_send_message` – Returns `True` if the ticket status allows customer replies.
 - `Ticket.can_support_send_message` – Returns `True` if the ticket is waiting for support.
+- `Ticket.is_closed` – Returns `True` if the ticket is closed.
 - `TicketMessage.short_preview` – Returns a truncated message preview for admin display.
 
 ### `services.py`
@@ -109,15 +111,36 @@ Provides secure file validation.
 
 ### `admin.py`
 
-Configures the Django admin interface.
+Configures the Django admin interface with a chat-like experience for support staff.
 
 **Classes:**
 
-- `TicketMessageInline` – Tabular inline for messages within a ticket.
+- `SupportReplyForm` – Form for support staff to reply to a ticket.
 - `TicketAttachmentInline` – Tabular inline for attachments within a message.
-- `TicketAdmin` – Admin for tickets with custom list display, filters, actions (close/reopen).
-- `TicketMessageAdmin` – Admin for messages.
-- `TicketAttachmentAdmin` – Admin for attachments.
+- `TicketMessageInline` – Tabular inline for messages within a ticket.
+- `TicketAdmin` – Admin for tickets with:
+  - Chat-like conversation display
+  - Reply form for support staff
+  - Close/reopen ticket actions
+  - Custom URLs for reply, close, and reopen
+  - Color-coded status badges
+  - Search by tracking code, title, user
+- `TicketMessageAdmin` – Admin for messages with preview and attachment count.
+- `TicketAttachmentAdmin` – Admin for attachments with download links.
+
+**Key admin methods:**
+
+- `TicketAdmin.reply_view` – Handles support staff replies via POST.
+- `TicketAdmin.close_view` – Closes a ticket.
+- `TicketAdmin.reopen_view` – Reopens a closed ticket.
+- `TicketAdmin.conversation_display` – Renders the chat-like conversation HTML.
+- `TicketAdmin.status_display` – Shows color-coded status badge.
+- `TicketAdmin.tracking_code_display` – Highlights tracking code.
+- `TicketAdmin.message_count` – Shows number of messages.
+
+**Custom admin template:**
+
+- `templates/admin/support/ticket_change_form.html` – Adds reply form, close/reopen buttons, and chat display.
 
 ### `apps.py`
 
@@ -130,6 +153,7 @@ Defines the Django app configuration.
 ### `tests.py`
 
 Comprehensive unit tests covering:
+
 - Tracking code generation (length, uniqueness)
 - Ticket creation
 - Authorization (ownership enforcement)
@@ -155,8 +179,8 @@ Comprehensive unit tests covering:
 
 **Choices:**
 
-- `Subject`: ORDER, PAYMENT, SHIPPING, PRODUCT, RETURN, ACCOUNT, WEBSITE, OTHER
-- `Status`: WAITING_FOR_SUPPORT, WAITING_FOR_USER, CLOSED
+- `Subject`: `ORDER`, `PAYMENT`, `SHIPPING`, `PRODUCT`, `RETURN`, `ACCOUNT`, `WEBSITE`, `OTHER`
+- `Status`: `WAITING_FOR_SUPPORT`, `WAITING_FOR_USER`, `CLOSED`
 
 ### `TicketMessage`
 
@@ -205,12 +229,36 @@ Comprehensive unit tests covering:
 
 ---
 
+## Admin Workflow
+
+### Support staff can:
+
+1. **View all tickets** in the admin list.
+2. **Search** by tracking code, title, or user.
+3. **Filter** by status, subject, or date.
+4. **Open a ticket** to see the full conversation in a chat-like display.
+5. **Reply** to a ticket when status is `WAITING_FOR_SUPPORT`.
+6. **Close** a ticket to prevent further customer messages.
+7. **Reopen** a closed ticket (sets status to `WAITING_FOR_USER`).
+8. **See attachments** with download links.
+
+### Customer sees:
+
+- Ticket list with status badges and tracking codes.
+- Ticket detail with chat-style messages.
+- Reply form only when status is `WAITING_FOR_USER`.
+- Waiting notice when status is `WAITING_FOR_SUPPORT`.
+- Closed notice when status is `CLOSED`.
+
+---
+
 ## Dependencies / Assumptions
 
 - Uses `Pillow` for image content validation.
 - Uses Django’s built‑in authentication (`AUTH_USER_MODEL` from settings).
 - Uses PostgreSQL in production, but SQLite is fine for testing.
 - Does **not** use `django-taggit` (tags are not part of the support system).
+- Admin replies are handled via custom URLs in `TicketAdmin.get_urls()`.
 
 ---
 
