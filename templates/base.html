@@ -1,174 +1,202 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block meta_description %}سیدوس | فروش عمده محصولات پلاستیکی، باغبانی و لوازم خانگی{% endblock %}">
-    <meta name="theme-color" content="#245C43">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}سیدوس | تولید و پخش عمده محصولات پلاستیکی و خانگی{% endblock %}</title>
+<meta name="description" content="{% block meta_description %}سیدوس، تأمین‌کننده عمده گلدان، شیلنگ، لوازم باغبانی و محصولات پلاستیکی خانگی برای فروشگاه‌ها و عمده‌فروشان سراسر کشور.{% endblock %}">
 
-    <title>{% block title %}سیدوس{% endblock %}</title>
+<!--{# ============================================================-->
+<!--   فونت سایت-->
+<!--   TODO: اینجا لینک فونت وزیرمتن (یا فونت انتخابی) رو به‌صورت-->
+<!--   static اضافه کن، مثلاً:-->
+<!--   تا اون موقع، از فونت‌های سیستمی فارسی‌دوست به‌عنوان فال‌بک استفاده می‌کنیم.-->
+<!--   ============================================================ #}-->
+    <link rel="stylesheet" href="{% static 'fonts/vazirmatn/vazirmatn.css' %}">
 
-    <!-- ==========================================================
-         Design System — CSS Custom Properties
-         Palette is fixed per brand guidelines. Do not add new colors
-         without design approval.
-    ========================================================== -->
-    <style>
-        :root {
-            /* Colors */
-            --color-primary: #245C43;
-            --color-primary-dark: #173D2D;
-            --color-accent: #A8C66C;
-            --color-background: #F7F7F2;
-            --color-surface: #FFFFFF;
-            --color-text: #202522;
-            --color-text-muted: #6E756F;
-            --color-sale: #E87932;
+{% block fonts %}
+<!-- TODO: لینک فونت استاتیک اینجا اضافه شود -->
+{% endblock %}
 
-            /* Typography */
-            --font-family-base: "Vazirmatn", "IRANSans", "Tahoma", system-ui, -apple-system, sans-serif;
-            --font-size-base: 16px;
-            --font-size-lg: 18px;
-            --font-size-sm: 14px;
-            --line-height-base: 1.7;
+<style>
+  /* ============================================================
+     Design tokens — Sidoos
+     ============================================================ */
+  :root {
+    /* Brand palette (do not introduce new hues without flagging) */
+    --color-primary: #245C43;
+    --color-primary-dark: #173D2D;
+    --color-accent: #A8C66C;
+    --color-background: #F7F7F2;
+    --color-surface: #FFFFFF;
+    --color-text: #202522;
+    --color-text-muted: #6E756F;
+    --color-sale: #E87932;
 
-            /* Spacing */
-            --space-xs: 8px;
-            --space-sm: 12px;
-            --space-md: 20px;
-            --space-lg: 32px;
-            --space-xl: 48px;
+    /* Derived neutrals for depth/hierarchy */
+    --color-border: #E3E1D9;
+    --color-border-strong: #CFCDC1;
+    --color-surface-sunken: #F1F0E9;
+    --color-primary-tint: #EAF1EC;
+    --color-focus-ring: #2E7EF7;
 
-            /* Shape */
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 20px;
+    /* Type scale */
+    --font-body: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+    --fs-xs: 0.8125rem;   /* 13px */
+    --fs-sm: 0.9375rem;   /* 15px */
+    --fs-base: 1rem;      /* 16px */
+    --fs-md: 1.125rem;    /* 18px */
+    --fs-lg: 1.375rem;    /* 22px */
+    --fs-xl: 1.75rem;     /* 28px */
+    --fs-2xl: 2.25rem;    /* 36px */
 
-            /* Elevation */
-            --shadow-sm: 0 1px 3px rgba(23, 61, 45, 0.08);
-            --shadow-md: 0 4px 16px rgba(23, 61, 45, 0.10);
+    /* Spacing scale */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+    --space-8: 4rem;
 
-            /* Motion */
-            --transition-fast: 150ms ease;
-            --transition-base: 220ms ease;
-        }
+    /* Elevation */
+    --shadow-sm: 0 1px 2px rgba(23, 61, 45, 0.06);
+    --shadow-md: 0 4px 16px rgba(23, 61, 45, 0.08);
+    --shadow-lg: 0 12px 32px rgba(23, 61, 45, 0.12);
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
+    /* Motion */
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 150ms;
+    --duration-base: 220ms;
 
-        html {
-            scroll-behavior: smooth;
-        }
+    /* Layout */
+    --container-max: 1280px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
 
-        body {
-            margin: 0;
-            font-family: var(--font-family-base);
-            font-size: var(--font-size-base);
-            line-height: var(--line-height-base);
-            color: var(--color-text);
-            background-color: var(--color-background);
-            -webkit-font-smoothing: antialiased;
-        }
+    /* Sticky header heights, kept in sync via JS if utility bar hides on scroll */
+    --header-height: 132px;
+  }
 
-        img {
-            max-width: 100%;
-            display: block;
-        }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
+  *, *::before, *::after { box-sizing: border-box; }
 
-        button {
-            font-family: inherit;
-        }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: var(--header-height);
+  }
 
-        main {
-            min-height: 60vh;
-        }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    line-height: 1.7;
+    color: var(--color-text);
+    background: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin-inline: auto;
-            padding-inline: var(--space-md);
-        }
+  img { max-width: 100%; display: block; }
 
-        /* Base button styles — pages/components can extend these */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-xs);
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            padding: var(--space-sm) var(--space-lg);
-            border-radius: var(--radius-sm);
-            border: none;
-            cursor: pointer;
-            transition: background-color var(--transition-fast), transform var(--transition-fast);
-        }
+  a { color: inherit; text-decoration: none; }
 
-        .btn-primary {
-            background-color: var(--color-primary);
-            color: var(--color-surface);
-        }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
 
-        .btn-primary:hover {
-            background-color: var(--color-primary-dark);
-        }
+  ul { margin: 0; padding: 0; list-style: none; }
 
-        /* Accessible focus state — never remove without replacement */
-        a:focus-visible,
-        button:focus-visible,
-        input:focus-visible,
-        select:focus-visible,
-        textarea:focus-visible {
-            outline: 3px solid var(--color-accent);
-            outline-offset: 2px;
-        }
+  /* ============================================================
+     Accessibility — focus visibility
+     ============================================================ */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
 
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.001ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.001ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
+  /* Remove default focus ring only when focus-visible is supported and not active */
+  a:focus:not(:focus-visible),
+  button:focus:not(:focus-visible) {
+    outline: none;
+  }
 
-        @media (max-width: 768px) {
-            :root {
-                --space-lg: 24px;
-                --space-xl: 32px;
-            }
-        }
+  .skip-link {
+    position: absolute;
+    right: var(--space-4);
+    top: -100px;
+    background: var(--color-primary-dark);
+    color: #fff;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-sm);
+    z-index: 1000;
+    transition: top var(--duration-base) var(--ease-standard);
+    font-size: var(--fs-sm);
+  }
 
-        {% block extra_css_vars %}{% endblock %}
-    </style>
+  .skip-link:focus {
+    top: var(--space-3);
+  }
 
-    {% block extra_css %}{% endblock %}
+  .container {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+  }
+
+  @media (max-width: 480px) {
+    .container { padding-inline: var(--space-4); }
+  }
+
+  main {
+    min-height: 40vh;
+  }
+
+  /* Visually-hidden but screen-reader accessible */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  {% block base_extra_style %}{% endblock %}
+</style>
+
+{% block extra_css %}{% endblock %}
 </head>
 <body>
 
-    {% include "partials/navbar.html" %}
+<a href="#main-content" class="skip-link">رفتن به محتوای اصلی</a>
 
-    <main>
-        <div class="container">
-            {% block content %}
-            {% endblock %}
-        </div>
-    </main>
+{% include 'partials/navbar.html' %}
 
-    {% include "partials/footer.html" %}
+<main id="main-content">
+  {% block breadcrumb %}{% endblock %}
+  {% block content %}{% endblock %}
+</main>
 
-    {% block extra_js %}{% endblock %}
+{% include 'partials/footer.html' %}
+
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>
