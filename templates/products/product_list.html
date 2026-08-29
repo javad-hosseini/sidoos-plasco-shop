@@ -4,7 +4,17 @@
 
 {% block content %}
 <div class="container">
-    <h1>Products</h1>
+    <h1>
+        {% if selected_category %}
+            Products in {{ selected_category.name }}
+        {% else %}
+            Products
+        {% endif %}
+    </h1>
+    <p>
+        <a href="{% url 'products:category_list' %}">Browse Categories</a>
+        {% if user.is_authenticated %}| <a href="{% url 'products:category_create' %}">Create Category</a>{% endif %}
+    </p>
     
     <div class="products-grid">
         {% for product in products %}
@@ -16,6 +26,12 @@
             {% endif %}
             
             <h3><a href="{% url 'products:product_detail' product.slug %}">{{ product.name }}</a></h3>
+            {% if product.category %}
+                <p class="category">
+                    Category:
+                    <a href="{% url 'products:category_products' product.category.slug %}">{{ product.category.name }}</a>
+                </p>
+            {% endif %}
             
             {% if product.call_for_price %}
                 <p class="price call-for-price">Call for Price</p>
@@ -84,6 +100,11 @@
         font-size: 18px;
         font-weight: bold;
         color: #333;
+    }
+
+    .category {
+        margin: 8px 0;
+        font-size: 14px;
     }
     
     .sale-price {

@@ -191,7 +191,7 @@
 
   <ul class="cat-list">
     {% for cat in categories %}
-      <li><a href="#">{{ cat.name }}</a></li>
+      <li><a href="{% url 'products:category_products' cat.slug %}">{{ cat.name }}</a></li>
     {% empty %}
       <li><a href="#">سرامیک</a></li>
       <li><a href="#">فلزی</a></li>

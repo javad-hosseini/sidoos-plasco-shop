@@ -5,6 +5,7 @@
 The `products` app manages the e-commerce product catalog for the Sidoos Plasco Shop. It provides:
 
 - A `Product` model storing product details, pricing, media, and availability status.
+- A hierarchical `Category` model (categories + subcategories) for product classification.
 - `ProductImage` model for managing a gallery of product images.
 - `ProductSave` and `ProductLike` models for tracking user interactions (save/like functionality).
 - Comprehensive admin interface for non-technical staff to manage products.
@@ -16,7 +17,7 @@ The `products` app manages the e-commerce product catalog for the Sidoos Plasco 
 
 | File | Purpose |
 |------|---------|
-| `models.py` | Defines `Product`, `ProductImage`, `ProductSave`, and `ProductLike` models. |
+| `models.py` | Defines `Category`, `Product`, `ProductImage`, `ProductSave`, and `ProductLike` models. |
 | `admin.py` | Django admin configuration with custom displays, filters, and inlines. |
 | `views.py` | Product listing, detail, and special sales views. |
 | `urls.py` | URL patterns: `/`, `/product/<slug>/`, `/special-sales/`. |
@@ -31,11 +32,12 @@ The `products` app manages the e-commerce product catalog for the Sidoos Plasco 
 
 ### `models.py`
 
-Contains four core models: `Product`, `ProductImage`, `ProductSave`, and `ProductLike`.
+Contains five core models: `Category`, `Product`, `ProductImage`, `ProductSave`, and `ProductLike`.
 
 **Key classes:**
 
 - `class Product(models.Model)` – Main product entity with pricing, media, status flags, and user relationships.
+- `class Category(models.Model)` – Hierarchical category tree with optional parent for nested subcategories.
 - `class ProductImage(models.Model)` – Gallery image for products with ordering support.
 - `class ProductSave(models.Model)` – Tracks products saved by users (many-to-many with constraints).
 - `class ProductLike(models.Model)` – Tracks products liked by users (many-to-many with constraints).
@@ -69,8 +71,11 @@ Defines URL patterns for the app.
 **Key routes:**
 
 - `''` → `product_list` – All published products
-- `'product/<slug>/'` → `product_detail` – Individual product page
 - `'special-sales/'` → `special_sales` – Featured sale products
+- `'categories/'` → `category_list` – All categories and subcategories
+- `'categories/new/'` → `category_create` – Create a category or subcategory
+- `'categories/<slug>/'` → `category_products` – Products in category + descendants
+- `'<slug>/'` → `product_detail` – Individual product page
 
 ### `apps.py`
 

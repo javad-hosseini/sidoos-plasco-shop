@@ -5,7 +5,11 @@
 {% block content %}
 <div class="container">
     <div class="breadcrumb">
-        <a href="{% url 'products:product_list' %}">Products</a> / {{ product.name }}
+        <a href="{% url 'products:product_list' %}">Products</a>
+        {% if product.category %}
+            / <a href="{% url 'products:category_products' product.category.slug %}">{{ product.category.name }}</a>
+        {% endif %}
+        / {{ product.name }}
     </div>
     
     <div class="product-detail">
@@ -27,6 +31,13 @@
         <!-- Product Info -->
         <div class="product-info">
             <h1>{{ product.name }}</h1>
+
+            {% if product.category %}
+            <p>
+                <strong>Category:</strong>
+                <a href="{% url 'products:category_products' product.category.slug %}">{{ product.category.name }}</a>
+            </p>
+            {% endif %}
             
             <!-- Pricing -->
             <div class="pricing">

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Product, ProductImage, ProductSave, ProductLike
+from .models import Category, Product, ProductImage, ProductSave, ProductLike
 
 
 class ProductImageInline(admin.TabularInline):
@@ -19,11 +19,13 @@ class ProductAdmin(admin.ModelAdmin):
         'call_for_price',
         'published',
         'featured_in_special_sales',
+        'category',
         'created_at'
     )
     list_filter = (
         'published',
         'featured_in_special_sales',
+        'category',
         'call_for_price',
         'created_at'
     )
@@ -44,8 +46,8 @@ class ProductAdmin(admin.ModelAdmin):
         ('Status & Visibility', {
             'fields': ('published', 'featured_in_special_sales')
         }),
-        ('Tags & Creator', {
-            'fields': ('tags', 'creator')
+        ('Category, Tags & Creator', {
+            'fields': ('category', 'tags', 'creator')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -75,6 +77,15 @@ class ProductAdmin(admin.ModelAdmin):
         discount = obj.get_discount_percentage()
         return f"{discount}%" if discount else "No sale price set"
     discount_percentage.short_description = 'Discount Percentage'
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'parent', 'creator', 'created_at')
+    list_filter = ('parent', 'created_at')
+    search_fields = ('name', 'parent__name', 'creator__username')
+    readonly_fields = ('slug', 'created_at', 'updated_at')
+    fields = ('name', 'slug', 'parent', 'creator', 'created_at', 'updated_at')
 
 
 @admin.register(ProductImage)
