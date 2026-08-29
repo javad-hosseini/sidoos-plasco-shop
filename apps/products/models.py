@@ -10,21 +10,17 @@ class Product(models.Model):
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     description = CKEditor5Field(help_text="Product description with rich text formatting")
-    
+
     # Pricing
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    price = models.IntegerField(
         validators=[MinValueValidator(0)],
-        help_text="Regular price of the product"
+        help_text="Regular price of the product in Toman"
     )
-    on_sale_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    on_sale_price = models.IntegerField(
         null=True,
         blank=True,
         validators=[MinValueValidator(0)],
-        help_text="Sale price (optional). If set, discount % is calculated automatically"
+        help_text="Sale price in Toman (optional). If set, discount % is calculated automatically"
     )
     
     # Media
