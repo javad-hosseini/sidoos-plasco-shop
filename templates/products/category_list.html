@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Categories - Sidoos Plasco Shop{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Product Categories</h1>
+    {% if user.is_authenticated %}
+        <p><a href="{% url 'products:category_create' %}">Create Category / Subcategory</a></p>
+    {% endif %}
+
+    <ul>
+        {% for category in categories %}
+            <li>
+                <a href="{% url 'products:category_products' category.slug %}">{{ category.name }}</a>
+                ({{ category.product_count }} products)
+
+                {% if category.children.all %}
+                    <ul>
+                        {% for subcategory in category.children.all %}
+                            <li>
+                                <a href="{% url 'products:category_products' subcategory.slug %}">{{ subcategory.name }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>No categories created yet.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
