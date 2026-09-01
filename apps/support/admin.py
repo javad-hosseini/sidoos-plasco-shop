@@ -12,9 +12,13 @@ from django.contrib import admin
 from django.contrib import messages as django_messages
 from django.shortcuts import redirect
 from django.utils.html import format_html
+from django.core.exceptions import ValidationError
+import logging
 
 from .models import Ticket, TicketMessage, TicketAttachment
 from .services import send_support_message, close_ticket, reopen_ticket
+
+logger = logging.getLogger(__name__)
 
 
 class SupportReplyForm(forms.Form):
@@ -254,8 +258,11 @@ class TicketAdmin(admin.ModelAdmin):
                         'admin:support_ticket_change',
                         object_id=object_id,
                     )
-                except Exception as e:
-                    django_messages.error(request, f"خطا در ارسال پاسخ: {str(e)}")
+                except ValidationError as exc:
+                    django_messages.error(request, exc.messages[0] if exc.messages else "درخواست نامعتبر است.")
+                except Exception:
+                    logger.exception("Unexpected error while sending support admin reply")
+                    django_messages.error(request, "خطایی در ارسال پاسخ رخ داد. لطفاً دوباره تلاش کنید.")
             else:
                 for field, errors in form.errors.items():
                     for error in errors:
@@ -302,76 +309,74 @@ class TicketAdmin(admin.ModelAdmin):
         return redirect('admin:support_ticket_change', object_id=object_id)
 
     def conversation_display(self, obj):
-        """
-        Display the full conversation in chat-like format.
-
-        Args:
-            obj: The Ticket instance.
-
-        Returns:
-            HTML formatted conversation.
-        """
-        messages_list = obj.messages.select_related("sender").prefetch_related(
-            "attachments"
-        ).order_by("created_at")
+        """Display the full conversation in a safely escaped chat-like format."""
+        messages_list = (
+            obj.messages.select_related("sender")
+            .prefetch_related("attachments")
+            .order_by("created_at")
+        )
 
         html = [
-            '<div style="max-height: 500px; overflow-y: auto; padding: 10px; background: #f9f9f9; border-radius: 8px;">']
+            '<div style="max-height: 500px; overflow-y: auto; padding: 10px; '
+            'background: #f9f9f9; border-radius: 8px;">'
+        ]
 
         for msg in messages_list:
             is_customer = msg.sender == obj.user
+            sender_name = msg.sender.get_full_name() or msg.sender.username
+            message_style = (
+                "background: #E8F5E9; border-radius: 12px; padding: 10px 15px; "
+                "border-top-right-radius: 4px;"
+                if is_customer
+                else "background: #245C43; color: white; border-radius: 12px; "
+                "padding: 10px 15px; border-top-left-radius: 4px;"
+            )
+            side = "flex-start" if is_customer else "flex-end"
+            sender_label = "کاربر:" if is_customer else "پشتیبانی:"
+            extra_message_style = "" if is_customer else "color: white;"
 
-            if is_customer:
-                # Customer message - right side (RTL)
-                html.append(f'''
-                    <div style="display: flex; justify-content: flex-start; margin-bottom: 15px;">
-                        <div style="max-width: 70%;">
-                            <div style="background: #E8F5E9; border-radius: 12px; padding: 10px 15px; border-top-right-radius: 4px;">
-                                <div style="font-size: 0.8em; color: #666; margin-bottom: 5px;">
-                                    <strong>کاربر:</strong> {msg.sender.get_full_name() or msg.sender.username}
-                                </div>
-                                <div style="color: #202522; line-height: 1.6; white-space: pre-wrap;">{msg.message}</div>
-                            </div>
-                            <div style="font-size: 0.75em; color: #999; margin-top: 5px; padding-right: 5px;">
-                                {msg.created_at.strftime("%Y/%m/%d %H:%M")}
-                            </div>
-                        </div>
-                    </div>
-                ''')
-            else:
-                # Support message - left side
-                html.append(f'''
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-                        <div style="max-width: 70%;">
-                            <div style="background: #245C43; color: white; border-radius: 12px; padding: 10px 15px; border-top-left-radius: 4px;">
-                                <div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 5px;">
-                                    <strong>پشتیبانی:</strong> {msg.sender.get_full_name() or msg.sender.username}
-                                </div>
-                                <div style="line-height: 1.6; white-space: pre-wrap;">{msg.message}</div>
-                            </div>
-                            <div style="font-size: 0.75em; color: #999; margin-top: 5px; padding-left: 5px; text-align: left;">
-                                {msg.created_at.strftime("%Y/%m/%d %H:%M")}
-                            </div>
-                        </div>
-                    </div>
-                ''')
+            html.append(
+                format_html(
+                    '<div style="display: flex; justify-content: {}; margin-bottom: 15px;">'
+                    '<div style="max-width: 70%;">'
+                    '<div style="{}">'
+                    '<div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 5px;">'
+                    '<strong>{}</strong> {}</div>'
+                    '<div style="line-height: 1.6; white-space: pre-wrap; {}">{}</div>'
+                    '</div>'
+                    '<div style="font-size: 0.75em; color: #999; margin-top: 5px; '
+                    'padding-right: 5px;">{}</div>'
+                    '</div></div>',
+                    side,
+                    message_style,
+                    sender_label,
+                    sender_name,
+                    extra_message_style,
+                    msg.message,
+                    msg.created_at.strftime("%Y/%m/%d %H:%M"),
+                )
+            )
 
-            # Display attachments
             attachments = msg.attachments.all()
             if attachments:
-                html.append('<div style="margin: 5px 0 15px 0; padding-right: 20px;">')
+                html.append(
+                    '<div style="margin: 5px 0 15px 0; padding-right: 20px;">'
+                )
                 for att in attachments:
                     html.append(
-                        f'<a href="{att.file.url}" target="_blank" '
-                        f'style="display: inline-block; margin-left: 10px; padding: 5px 10px; '
-                        f'background: #fff; border: 1px solid #ddd; border-radius: 6px; '
-                        f'color: #245C43; text-decoration: none; font-size: 0.85em;">'
-                        f'📎 {att.original_name}</a>'
+                        format_html(
+                            '<a href="{}" target="_blank" rel="noopener noreferrer" '
+                            'style="display: inline-block; margin-left: 10px; padding: 5px 10px; '
+                            'background: #fff; border: 1px solid #ddd; border-radius: 6px; '
+                            'color: #245C43; text-decoration: none; font-size: 0.85em;">'
+                            '📎 {}</a>',
+                            att.file.url,
+                            att.original_name,
+                        )
                     )
-                html.append('</div>')
+                html.append("</div>")
 
-        html.append('</div>')
-
+        html.append("</div>")
         return format_html("".join(html))
 
     conversation_display.short_description = "گفتگو"

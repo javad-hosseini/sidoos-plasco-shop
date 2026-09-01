@@ -195,6 +195,18 @@ class TicketMessageFlowTests(TestCase):
                 message_text="Second message",
             )
 
+    def test_non_staff_cannot_send_support_message(self):
+        non_staff = User.objects.create_user(
+            username="notstaff",
+            password="testpass123",
+        )
+        with self.assertRaises(ValidationError):
+            send_support_message(
+                ticket=self.ticket,
+                user=non_staff,
+                message_text="Unauthorized support reply",
+            )
+
     def test_support_can_reply(self):
         """Test that support can reply to waiting ticket."""
         message = send_support_message(

@@ -1,3 +1,55 @@
+
+
+class ProductPricingValidationTests(TestCase):
+    @staticmethod
+    def _image_file():
+        return SimpleUploadedFile(
+            name='pricing-test.gif',
+            content=(
+                b'GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00'
+                b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00'
+                b'\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+            ),
+            content_type='image/gif',
+        )
+
+    def test_sale_price_cannot_exceed_base_price(self):
+        from django.core.exceptions import ValidationError
+
+        product = Product(
+            name='Invalid Sale Price',
+            description='test',
+            price=100,
+            on_sale_price=101,
+            cover_image=self._image_file(),
+        )
+        with self.assertRaises(ValidationError):
+            product.full_clean()
+
+    def test_call_for_price_cannot_have_sale_price(self):
+        from django.core.exceptions import ValidationError
+
+        product = Product(
+            name='Call For Price',
+            description='test',
+            price=0,
+            on_sale_price=50,
+            call_for_price=True,
+            cover_image=self._image_file(),
+        )
+        with self.assertRaises(ValidationError):
+            product.full_clean()
+
+    def test_call_for_price_normalizes_price_to_zero(self):
+        product = Product(
+            name='Call For Price Normalized',
+            description='test',
+            price=500,
+            call_for_price=True,
+            cover_image=self._image_file(),
+        )
+        product.full_clean()
+        self.assertEqual(product.price, 0)
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client

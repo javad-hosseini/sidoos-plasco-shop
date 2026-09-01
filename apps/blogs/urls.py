@@ -43,7 +43,7 @@ from apps.blogs.converters import UnicodeSlugConverter
 
 register_converter(UnicodeSlugConverter, "unicode_slug")
 
-app_name = "blogs_app"
+app_name = "blogs"
 
 urlpatterns = [
     path("", views.article_list, name="article_list"),

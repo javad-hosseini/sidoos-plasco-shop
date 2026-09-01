@@ -9,7 +9,7 @@
   so this partial does not raise NoReverseMatch before the detail page
   exists — see apps/blogs/urls.py for details.
 #}
-{% url 'blogs:article_detail' article.Slug as article_url %}
+{% url 'blogs:article_detail' article.slug as article_url %}
 <article class="article-card">
     <a href="{{ article_url|default:'#' }}" class="article-card__media" aria-hidden="true" tabindex="-1">
         {% if article.featured_image %}

@@ -12,16 +12,19 @@ All views enforce authentication and ticket ownership.
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views import View
 from django.views.generic import ListView
 from django.contrib import messages
-from django.db import transaction
 
 from .forms import TicketCreateForm, TicketMessageForm
 from .models import Ticket
 from .services import create_ticket, send_customer_message
+
+logger = logging.getLogger(__name__)
 
 
 class TicketListView(LoginRequiredMixin, ListView):
@@ -101,8 +104,11 @@ class TicketCreateView(LoginRequiredMixin, View):
                     tracking_code=ticket.tracking_code,
                 )
 
-            except Exception as e:
-                messages.error(request, f"خطا در ایجاد تیکت: {str(e)}")
+            except ValidationError as exc:
+                form.add_error(None, exc)
+            except Exception:
+                logger.exception("Unexpected error while creating support ticket")
+                messages.error(request, "خطایی در ثبت تیکت رخ داد. لطفاً دوباره تلاش کنید.")
 
         return render(request, self.template_name, {"form": form})
 
@@ -195,8 +201,11 @@ class TicketDetailView(LoginRequiredMixin, View):
                     tracking_code=ticket.tracking_code,
                 )
 
-            except Exception as e:
-                messages.error(request, f"خطا در ارسال پیام: {str(e)}")
+            except ValidationError as exc:
+                form.add_error(None, exc)
+            except Exception:
+                logger.exception("Unexpected error while sending customer support message")
+                messages.error(request, "خطایی در ارسال پیام رخ داد. لطفاً دوباره تلاش کنید.")
 
         # If form is invalid, re-render the page with errors
         messages_list = (

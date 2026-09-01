@@ -31,6 +31,17 @@ class AuthenticationBackendTests(TestCase):
         self.assertIsNotNone(user)
         self.assertEqual(user.phone_number, '+1234567890')
 
+    def test_duplicate_email_is_not_ambiguous(self):
+        User.objects.create(
+            username='otheruser',
+            email='test@example.com',
+            phone_number='+0987654321',
+            password=make_password('testpass123'),
+            has_price_access=True,
+        )
+        user = authenticate(username='test@example.com', password='testpass123')
+        self.assertIsNone(user)
+
     def test_authenticate_with_wrong_password(self):
         user = authenticate(username='testuser', password='wrongpassword')
         self.assertIsNone(user)

@@ -12,10 +12,13 @@ business rule enforcement across views, forms, and admin actions.
 """
 
 import random
-from django.db import transaction
+import logging
+from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 
 from .models import Ticket, TicketMessage, TicketAttachment
+
+logger = logging.getLogger(__name__)
 
 
 def generate_tracking_code():
@@ -23,7 +26,7 @@ def generate_tracking_code():
     Generate a unique 6-digit tracking code for a support ticket.
 
     The code is generated randomly to prevent sequential guessing.
-    Collision handling is implemented by checking the database.
+    The database uniqueness constraint is the final authority; callers retry on collisions.
 
     Returns:
         str: A unique 6-digit numeric tracking code.
@@ -61,17 +64,25 @@ def create_ticket(user, title, subject, message_text, attachments=None):
         ValidationError: If validation fails.
         RuntimeError: If tracking code generation fails.
     """
-    # Generate unique tracking code
-    tracking_code = generate_tracking_code()
+    # The uniqueness constraint is the final authority. The retry loop
+    # handles the rare case where another request wins the same code race.
+    for _ in range(100):
+        tracking_code = generate_tracking_code()
+        try:
+            with transaction.atomic():
+                ticket = Ticket.objects.create(
+                    user=user,
+                    tracking_code=tracking_code,
+                    title=title,
+                    subject=subject,
+                    status=Ticket.Status.WAITING_FOR_SUPPORT,
+                )
+        except IntegrityError:
+            continue
+        break
+    else:
+        raise RuntimeError("Unable to create a unique support tracking code.")
 
-    # Create ticket
-    ticket = Ticket.objects.create(
-        user=user,
-        tracking_code=tracking_code,
-        title=title,
-        subject=subject,
-        status=Ticket.Status.WAITING_FOR_SUPPORT,
-    )
 
     # Create initial message
     message = TicketMessage.objects.create(
@@ -167,6 +178,10 @@ def send_support_message(ticket, user, message_text, attachments=None):
         ValidationError: If the ticket is closed or if the status
             doesn't allow support messages.
     """
+    # Authorization is part of the service boundary, not only the admin UI.
+    if not getattr(user, "is_staff", False):
+        raise ValidationError("شما مجاز به ارسال پیام پشتیبانی نیستید.")
+
     # Check if ticket is closed
     if ticket.is_closed:
         raise ValidationError("این تیکت بسته شده است و امکان ارسال پیام ندارد.")

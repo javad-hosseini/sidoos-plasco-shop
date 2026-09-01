@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.utils.text import slugify
 from taggit.managers import TaggableManager
@@ -136,7 +137,35 @@ class Product(models.Model):
             models.Index(fields=['featured_in_special_sales']),
             models.Index(fields=['slug']),
         ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(on_sale_price__isnull=True) | models.Q(on_sale_price__lte=models.F('price')),
+                name='product_sale_price_lte_price',
+            ),
+            models.CheckConstraint(
+                check=models.Q(call_for_price=False) | (
+                    models.Q(price=0) & models.Q(on_sale_price__isnull=True)
+                ),
+                name='product_call_for_price_invariants',
+            ),
+        ]
     
+    def clean(self):
+        super().clean()
+
+        if self.call_for_price:
+            # Call-for-price products have no public monetary price.
+            self.price = 0
+            if self.on_sale_price is not None:
+                raise ValidationError({
+                    'on_sale_price': 'برای محصول «تماس برای قیمت»، قیمت فروش ویژه نباید تعیین شود.'
+                })
+
+        if self.on_sale_price is not None and self.on_sale_price > self.price:
+            raise ValidationError({
+                'on_sale_price': 'قیمت فروش ویژه نمی‌تواند بیشتر از قیمت اصلی باشد.'
+            })
+
     def save(self, *args, **kwargs):
         # Auto-generate a unique slug when not provided.
         if not self.slug:
@@ -149,13 +178,10 @@ class Product(models.Model):
                 suffix += 1
 
             self.slug = candidate
-        
-        # If call_for_price is True, set price to 0
-        if self.call_for_price:
-            self.price = 0
-        
+
+        self.full_clean()
         super().save(*args, **kwargs)
-    
+
     def get_discount_percentage(self):
         """Calculate discount percentage if on_sale_price is set."""
         if self.on_sale_price and self.price and self.price > 0:
