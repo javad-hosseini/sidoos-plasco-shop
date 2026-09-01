@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 
-from .models import Category, Product
+from .models import Category, Product, ProductLike, ProductSave
 
 
 class ProductCategoryTests(TestCase):
@@ -82,3 +82,108 @@ class ProductCategoryTests(TestCase):
         self.assertIn(root_product, products)
         self.assertIn(nested_product, products)
         self.assertEqual(len(products), 2)
+
+    def test_product_generates_unicode_slug_on_create(self):
+        product = Product.objects.create(
+            name='گلدان پلاستیکی',
+            description='Unicode slug generation test',
+            price=100,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+        )
+
+        self.assertEqual(product.slug, 'گلدان-پلاستیکی')
+
+    def test_product_generates_fallback_unique_slug_when_slugify_empty(self):
+        first = Product.objects.create(
+            name='!!!',
+            description='Fallback slug test',
+            price=100,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+        )
+        second = Product.objects.create(
+            name='@@@',
+            description='Fallback slug uniqueness test',
+            price=120,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+        )
+
+        self.assertEqual(first.slug, 'product')
+        self.assertEqual(second.slug, 'product-2')
+
+    def test_product_detail_route_accepts_unicode_slug(self):
+        product = Product.objects.create(
+            name='سطل آشپزخانه',
+            description='Unicode route test',
+            price=100,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+        )
+
+        response = self.client.get(reverse('products:product_detail', args=[product.slug]))
+        self.assertEqual(response.status_code, 200)
+
+    def test_toggle_save_creates_and_deletes_save(self):
+        product = Product.objects.create(
+            name='Save Toggle Product',
+            description='Save toggle test',
+            price=100,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+        )
+
+        url = reverse('products:toggle_save', args=[product.id])
+        create_response = self.client.post(url)
+        self.assertEqual(create_response.status_code, 200)
+        self.assertJSONEqual(create_response.content, {'saved': True})
+        self.assertTrue(ProductSave.objects.filter(user=self.user, product=product).exists())
+
+        delete_response = self.client.post(url)
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertJSONEqual(delete_response.content, {'saved': False})
+        self.assertFalse(ProductSave.objects.filter(user=self.user, product=product).exists())
+
+    def test_toggle_like_creates_and_deletes_like(self):
+        product = Product.objects.create(
+            name='Like Toggle Product',
+            description='Like toggle test',
+            price=100,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+        )
+
+        url = reverse('products:toggle_like', args=[product.id])
+        create_response = self.client.post(url)
+        self.assertEqual(create_response.status_code, 200)
+        self.assertJSONEqual(create_response.content, {'liked': True})
+        self.assertTrue(ProductLike.objects.filter(user=self.user, product=product).exists())
+
+        delete_response = self.client.post(url)
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertJSONEqual(delete_response.content, {'liked': False})
+        self.assertFalse(ProductLike.objects.filter(user=self.user, product=product).exists())
+
+    def test_toggle_endpoints_require_authentication(self):
+        product = Product.objects.create(
+            name='Auth Required Product',
+            description='Auth test',
+            price=100,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+        )
+        anonymous_client = Client()
+
+        save_response = anonymous_client.post(reverse('products:toggle_save', args=[product.id]))
+        like_response = anonymous_client.post(reverse('products:toggle_like', args=[product.id]))
+
+        self.assertEqual(save_response.status_code, 302)
+        self.assertEqual(like_response.status_code, 302)

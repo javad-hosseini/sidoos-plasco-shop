@@ -33,14 +33,24 @@
                 </p>
             {% endif %}
             
-            {% if product.call_for_price %}
-                <p class="price call-for-price">Call for Price</p>
-            {% else %}
-                <p class="price">${{ product.price }}</p>
-                {% if product.on_sale_price %}
-                    <p class="sale-price">${{ product.on_sale_price }}</p>
-                    <p class="discount">-{{ product.get_discount_percentage }}%</p>
+            {% if can_view_price %}
+                {% if product.call_for_price %}
+                    <p class="price call-for-price">Call for Price</p>
+                {% else %}
+                    <p class="price">${{ product.price }}</p>
+                    {% if product.on_sale_price %}
+                        <p class="sale-price">${{ product.on_sale_price }}</p>
+                        <p class="discount">-{{ product.get_discount_percentage }}%</p>
+                    {% endif %}
                 {% endif %}
+            {% else %}
+                <p class="price-locked">
+                    {% if user.is_authenticated %}
+                        Price available for approved accounts.
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}">Login</a> to view prices.
+                    {% endif %}
+                </p>
             {% endif %}
             
             <div class="tags">
@@ -119,6 +129,12 @@
     
     .call-for-price {
         color: #e74c3c;
+    }
+
+    .price-locked {
+        color: #6E756F;
+        font-size: 14px;
+        margin-top: 8px;
     }
     
     .tags {

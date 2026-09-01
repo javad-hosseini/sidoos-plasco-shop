@@ -41,15 +41,26 @@
             
             <!-- Pricing -->
             <div class="pricing">
-                {% if product.call_for_price %}
-                    <p class="call-for-price">📞 Call for Price</p>
-                {% else %}
-                    <p class="price">${{ product.price }}</p>
-                    {% if product.on_sale_price %}
-                        <p class="original-price">${{ product.price }}</p>
-                        <p class="sale-price">${{ product.on_sale_price }}</p>
-                        <p class="discount-badge">{{ discount }}% OFF</p>
+                {% if can_view_price %}
+                    {% if product.call_for_price %}
+                        <p class="call-for-price">📞 Call for Price</p>
+                    {% else %}
+                        {% if product.on_sale_price %}
+                            <p class="original-price">${{ product.price }}</p>
+                            <p class="sale-price">${{ product.on_sale_price }}</p>
+                            <p class="discount-badge">{{ discount }}% OFF</p>
+                        {% else %}
+                            <p class="price">${{ product.price }}</p>
+                        {% endif %}
                     {% endif %}
+                {% else %}
+                    <p class="price-locked">
+                        {% if user.is_authenticated %}
+                            Price available for approved accounts.
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}">Login</a> to view prices.
+                        {% endif %}
+                    </p>
                 {% endif %}
             </div>
             
@@ -74,14 +85,14 @@
             <!-- Actions -->
             <div class="actions">
                 {% if user.is_authenticated %}
-                    <button class="btn {% if is_saved %}active{% endif %}" onclick="toggleSave({{ product.id }})">
+                    <button class="btn {% if is_saved %}active{% endif %}" onclick="toggleSave(event, {{ product.id }})">
                         💾 {% if is_saved %}Saved{% else %}Save{% endif %}
                     </button>
-                    <button class="btn {% if is_liked %}active{% endif %}" onclick="toggleLike({{ product.id }})">
+                    <button class="btn {% if is_liked %}active{% endif %}" onclick="toggleLike(event, {{ product.id }})">
                         ❤️ {% if is_liked %}Liked{% else %}Like{% endif %}
                     </button>
                 {% else %}
-                    <p><a href="#">Login</a> to save or like this product.</p>
+                    <p><a href="{% url 'accounts:login' %}">Login</a> to save or like this product.</p>
                 {% endif %}
             </div>
             
@@ -207,6 +218,12 @@
         margin-top: 10px;
         font-weight: bold;
     }
+
+    .price-locked {
+        color: #6E756F;
+        font-size: 14px;
+        margin: 0;
+    }
     
     .tags {
         margin: 20px 0;
@@ -299,43 +316,59 @@ function changeImage(imageSrc) {
     document.getElementById('main-image').src = imageSrc;
 }
 
-function toggleSave(productId) {
-    fetch(`/api/products/${productId}/save/`, {
+function toggleSave(event, productId) {
+    const button = event.currentTarget;
+    fetch(`/products/api/${productId}/save/`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to toggle save');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.saved) {
-            event.target.textContent = '💾 Saved';
-            event.target.classList.add('active');
+            button.textContent = '💾 Saved';
+            button.classList.add('active');
         } else {
-            event.target.textContent = '💾 Save';
-            event.target.classList.remove('active');
+            button.textContent = '💾 Save';
+            button.classList.remove('active');
         }
+    })
+    .catch(error => {
+        console.error(error);
     });
 }
 
-function toggleLike(productId) {
-    fetch(`/api/products/${productId}/like/`, {
+function toggleLike(event, productId) {
+    const button = event.currentTarget;
+    fetch(`/products/api/${productId}/like/`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to toggle like');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.liked) {
-            event.target.textContent = '❤️ Liked';
-            event.target.classList.add('active');
+            button.textContent = '❤️ Liked';
+            button.classList.add('active');
         } else {
-            event.target.textContent = '❤️ Like';
-            event.target.classList.remove('active');
+            button.textContent = '❤️ Like';
+            button.classList.remove('active');
         }
+    })
+    .catch(error => {
+        console.error(error);
     });
 }
 

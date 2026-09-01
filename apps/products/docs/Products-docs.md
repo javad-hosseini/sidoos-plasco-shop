@@ -18,9 +18,10 @@ The `products` app manages the e-commerce product catalog for the Sidoos Plasco 
 | File | Purpose |
 |------|---------|
 | `models.py` | Defines `Category`, `Product`, `ProductImage`, `ProductSave`, and `ProductLike` models. |
+| `converters.py` | Defines a Unicode-friendly slug converter for product detail URLs. |
 | `admin.py` | Django admin configuration with custom displays, filters, and inlines. |
 | `views.py` | Product listing, detail, and special sales views. |
-| `urls.py` | URL patterns: `/`, `/product/<slug>/`, `/special-sales/`. |
+| `urls.py` | URL patterns: `/`, `/<slug>/`, `/special-sales/`, and category routes. |
 | `templates/products/` | HTML templates for product pages (product_list, product_detail, special_sales). |
 | `apps.py` | Django app configuration class. |
 | `tests.py` | Unit tests for product models. |
@@ -60,9 +61,12 @@ Implements the public product listing, detail, and special sales pages.
 
 **Key functions:**
 
-- `def product_list(request)` – Renders `/products/` with all published products, paginated (12 per page).
-- `def product_detail(request, slug)` – Renders `/products/product/<slug>/` with full product details, gallery, tags, and user interaction status.
-- `def special_sales(request)` – Renders `/products/special-sales/` with featured sale products, paginated (12 per page).
+- `def product_list(request)` – Renders `/products/` with all published products, paginated (12 per page), and computes `can_view_price` for template price gating.
+- `def product_detail(request, slug)` – Renders `/products/<slug>/` with full product details, gallery, tags, user interaction status, and `can_view_price`.
+- `def special_sales(request)` – Renders `/products/special-sales/` with featured sale products, paginated (12 per page), and `can_view_price`.
+- `def category_products(request, slug)` – Renders category-filtered products (including descendants) with the same price-visibility rules.
+- `def toggle_save(request, product_id)` – Authenticated POST endpoint to toggle saved state and return JSON.
+- `def toggle_like(request, product_id)` – Authenticated POST endpoint to toggle liked state and return JSON.
 
 ### `urls.py`
 
@@ -75,7 +79,9 @@ Defines URL patterns for the app.
 - `'categories/'` → `category_list` – All categories and subcategories
 - `'categories/new/'` → `category_create` – Create a category or subcategory
 - `'categories/<slug>/'` → `category_products` – Products in category + descendants
-- `'<slug>/'` → `product_detail` – Individual product page
+- `'api/<int:product_id>/save/'` → `toggle_save` – Toggle save state (POST, login required)
+- `'api/<int:product_id>/like/'` → `toggle_like` – Toggle like state (POST, login required)
+- `'<unicode_slug:slug>/'` → `product_detail` – Individual product page (Unicode/Persian-safe)
 
 ### `apps.py`
 
@@ -99,7 +105,7 @@ Unit tests for product model behavior and constraints.
 |-------|------|-------------|
 | `id` | `BigAutoField (PK)` | Auto-incrementing primary key. |
 | `name` | `CharField(max_length=255, unique=True)` | Product name (must be unique). |
-| `slug` | `SlugField(max_length=255, unique=True, blank=True)` | URL-friendly slug; auto-generated from name using `slugify()`. |
+| `slug` | `SlugField(max_length=255, unique=True, blank=True, allow_unicode=True)` | URL-friendly slug; auto-generated from name using Unicode-aware `slugify()`. |
 | `description` | `CKEditor5Field` (Rich text) | Detailed product description with rich text formatting (bold, italic, links, images, lists, etc.). |
 | `price` | `DecimalField(max_digits=10, decimal_places=2)` | Regular retail price. Must be ≥ 0. Set to 0 if `call_for_price=True`. |
 | `on_sale_price` | `DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)` | Optional discounted sale price. Must be ≥ 0 if provided. |
@@ -115,7 +121,9 @@ Unit tests for product model behavior and constraints.
 **Model methods:**
 
 - `save()` – Overridden to:
-  - Auto-generate `slug` from `name` if not provided (using Django's `slugify()`).
+  - Auto-generate a Unicode-aware `slug` from `name` if not provided (`slugify(..., allow_unicode=True)`).
+  - Guarantee slug uniqueness by appending a numeric suffix (`-2`, `-3`, ...).
+  - Use `product` as fallback base slug if the name produces an empty slug.
   - Set `price = 0` if `call_for_price=True` (internal representation).
   
 - `get_discount_percentage()` – Returns the discount percentage as a float if `on_sale_price` is set:
@@ -214,7 +222,7 @@ Unit tests for product model behavior and constraints.
 **Search:** By product name or description.
 
 **Fieldsets:**
-1. **Basic Information** – name, slug (read-only), description
+1. **Basic Information** – name, slug, description
 2. **Media** – cover_image
 3. **Pricing** – price, on_sale_price, call_for_price, discount_percentage (read-only)
 4. **Status & Visibility** – published, featured_in_special_sales
@@ -261,16 +269,23 @@ Unit tests for product model behavior and constraints.
 - **Regular Price:** Always stored in `price` field (cannot be NULL).
 - **Sale Price:** Optional; if provided, overrides the regular price for display.
 - **Call for Price:** If `call_for_price=True`, the `price` is automatically set to 0 in the `save()` method, hiding the price from the website.
+- **Price Visibility Rule:** Price values are rendered only when the user is authenticated **and** `user.has_price_access` is `True`.
 - **Discount Percentage:** Calculated dynamically via `get_discount_percentage()` method:
   - Only computed if both `price > 0` and `on_sale_price` is set.
   - Returns a rounded float (e.g., 30.0 for 30%).
   - Returns `None` if no sale price is set.
 
+### User Profile Integration
+
+- The account profile page (`/accounts/profile/`) shows the logged-in user's saved and liked products.
+- Profile data is sourced from `ProductSave` and `ProductLike` relations and filtered to published products.
+
 ### Slug Behavior
 
-- Slugs are auto-generated from product names using Django's `slugify()`.
-- If a slug already exists, manually override it before saving (the model does not auto-increment duplicates).
-- Slugs are case-insensitive and accept hyphens; spaces are converted to hyphens.
+- Slugs are auto-generated from product names using Unicode-aware `slugify(..., allow_unicode=True)`.
+- Slugs are made unique automatically with numeric suffixes when needed (`product`, `product-2`, ...).
+- If slug generation returns empty (for punctuation-only names), the fallback base slug `product` is used.
+- Product detail URLs use a Unicode-safe route converter: `/<unicode_slug:slug>/`.
 
 ### User Interactions (Saves & Likes)
 

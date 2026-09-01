@@ -74,7 +74,7 @@ class Category(models.Model):
 
 class Product(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True, allow_unicode=True)
     description = CKEditor5Field(help_text="Product description with rich text formatting")
 
     # Pricing
@@ -138,9 +138,17 @@ class Product(models.Model):
         ]
     
     def save(self, *args, **kwargs):
-        # Auto-generate slug
+        # Auto-generate a unique slug when not provided.
         if not self.slug:
-            self.slug = slugify(self.name)
+            base_slug = slugify(self.name, allow_unicode=True) or 'product'
+            candidate = base_slug
+            suffix = 2
+
+            while Product.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                candidate = f'{base_slug}-{suffix}'
+                suffix += 1
+
+            self.slug = candidate
         
         # If call_for_price is True, set price to 0
         if self.call_for_price:
