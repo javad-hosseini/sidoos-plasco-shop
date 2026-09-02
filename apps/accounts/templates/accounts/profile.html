@@ -1,113 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .profile-container {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 500px;
-        }
-        .profile-container h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        .info-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .info-item label {
-            font-weight: bold;
-            color: #555;
-            display: inline-block;
-            width: 120px;
-        }
-        .info-item span {
-            color: #333;
-        }
-        .badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .badge-success {
-            background: #d4edda;
-            color: #155724;
-        }
-        .badge-secondary {
-            background: #e2e3e5;
-            color: #383d41;
-        }
-        .btn-logout {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin-top: 20px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-        }
-        .btn-logout:hover {
-            background: #c82333;
-        }
-    </style>
-</head>
-<body>
-    <div class="profile-container">
-        <h2>Welcome, {{ user.username }}!</h2>
+{% extends "base.html" %}
 
-        <div class="info-item">
-            <label>Username:</label>
-            <span>{{ user.username }}</span>
-        </div>
+{% block title %}Profile{% endblock %}
 
-        <div class="info-item">
-            <label>Email:</label>
-            <span>{{ user.email|default:"Not provided" }}</span>
-        </div>
+{% block content %}
+<div class="container profile-page">
+    <h1>Welcome, {{ user.username }}</h1>
 
-        <div class="info-item">
-            <label>Phone:</label>
-            <span>{{ user.phone_number|default:"Not provided" }}</span>
-        </div>
+    <section class="panel">
+        <h2>Saved Products</h2>
+        {% if saved_entries %}
+            <ul class="item-list">
+                {% for entry in saved_entries %}
+                    <li>
+                        <a href="{% url 'products:product_detail' entry.product.slug %}">{{ entry.product.name }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-state">You have not saved any products yet.</p>
+        {% endif %}
+    </section>
 
-        <div class="info-item">
-            <label>Price Access:</label>
-            {% if user.has_price_access %}
-                <span class="badge badge-success">✓ Yes</span>
-            {% else %}
-                <span class="badge badge-secondary">✗ No</span>
-            {% endif %}
-        </div>
+    <section class="panel">
+        <h2>Liked Products</h2>
+        {% if liked_entries %}
+            <ul class="item-list">
+                {% for entry in liked_entries %}
+                    <li>
+                        <a href="{% url 'products:product_detail' entry.product.slug %}">{{ entry.product.name }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-state">You have not liked any products yet.</p>
+        {% endif %}
+    </section>
 
-        <div class="info-item">
-            <label>Last Login:</label>
-            <span>{{ user.last_login|date:"Y-m-d H:i" }}</span>
-        </div>
+    <a href="{% url 'accounts:logout' %}" class="btn-logout">Logout</a>
+</div>
+{% endblock %}
 
-        <a href="{% url 'accounts:logout' %}" class="btn-logout">Logout</a>
-    </div>
-</body>
-</html>
+{% block base_extra_style %}
+.profile-page {
+    padding-block: var(--space-6);
+}
+
+.panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    margin-bottom: var(--space-5);
+}
+
+.item-list {
+    list-style: disc;
+    padding-inline-start: var(--space-6);
+}
+
+.item-list li {
+    margin-bottom: var(--space-2);
+}
+
+.item-list a {
+    color: var(--color-primary);
+}
+
+.empty-state {
+    color: var(--color-text-muted);
+}
+
+.btn-logout {
+    display: inline-block;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    background: #c0392b;
+    color: #fff;
+}
+{% endblock %}

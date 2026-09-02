@@ -1,713 +1,252 @@
-{% comment %}
-  Sidoos — Primary Navigation
-  Structure: two-row desktop bar (utility row + main row) collapsing into
-  a single compact mobile bar + slide-in panel.
-  TODO(javad): replace all `href="#"` with {% url '...' %} once urls.py names are final.
-{% endcomment %}
-
-<header class="site-header" id="site-header">
-
-    <!-- ===== Utility row (desktop only): phone + login ===== -->
-    <div class="utility-row">
-        <div class="container utility-row__inner">
-            <a href="#" class="utility-link utility-link--login" aria-label="ورود به حساب کاربری">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-                <span>ورود / ثبت‌نام</span>
-            </a>
-            <a href="tel:+985131234456" class="utility-link utility-link--phone" dir="ltr" aria-label="تماس تلفنی">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
-                <span>۰۵۱-۳۱۲۳۴۴۵۶</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- ===== Main row: logo + search + cart + hamburger ===== -->
-    <div class="main-row">
-        <div class="container main-row__inner">
-
-            <button type="button" class="icon-btn menu-toggle" id="menu-toggle"
-                    aria-expanded="false" aria-controls="mobile-panel" aria-label="باز کردن منو">
-                <svg class="menu-toggle__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-                </svg>
-            </button>
-
-            <a href="#" class="brand" aria-label="سیدوس — صفحه اصلی">
-                <span class="brand__mark" aria-hidden="true">
-                    <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
-                        <circle cx="17" cy="17" r="17" fill="#245C43"/>
-                        <ellipse cx="17" cy="17" rx="12" ry="4" stroke="#F7F7F2" stroke-width="1.6"/>
-                        <circle cx="17" cy="17" r="5" fill="#A8C66C"/>
-                    </svg>
-                </span>
-                <span class="brand__text">سیدوس</span>
-            </a>
-
-            <div class="search-bar">
-                <label for="site-search" class="visually-hidden">جستجوی محصول</label>
-                <input type="search" id="site-search" name="q" class="search-bar__input"
-                       placeholder="جستجوی محصول مورد نظر..." autocomplete="off">
-                <button type="submit" class="search-bar__btn" aria-label="جستجو">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <span>جستجو</span>
-                </button>
-            </div>
-
-            <a href="#" class="cart-link" aria-label="سبد خرید">
-                <span class="cart-link__icon-wrap">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                    <span class="cart-link__badge" id="cart-count">۰</span>
-                </span>
-                <span class="cart-link__label">سبد خرید</span>
-            </a>
-        </div>
-
-        <!-- Mobile-only search row, always visible below the top bar -->
-        <div class="container mobile-search">
-            <label for="mobile-search-input" class="visually-hidden">جستجوی محصول</label>
-            <input type="search" id="mobile-search-input" class="mobile-search__input"
-                   placeholder="جستجوی محصول مورد نظر..." autocomplete="off">
-            <button type="submit" class="mobile-search__btn" aria-label="جستجو">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- ===== Category / nav row (desktop only) ===== -->
-    <nav class="nav-row" aria-label="ناوبری اصلی">
-        <div class="container nav-row__inner">
-
-            <div class="cat-dropdown">
-                <button type="button" class="cat-dropdown__trigger" id="cat-trigger" aria-expanded="false" aria-controls="cat-panel">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-                    <span>دسته‌بندی محصولات</span>
-                    <svg class="cat-dropdown__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-
-                <div class="cat-dropdown__panel" id="cat-panel" role="region" aria-label="گروه‌های اصلی محصولات">
-                    <ul class="cat-dropdown__list">
-                        <li><a href="#"><span>گلدان و لوازم گلخانه</span></a></li>
-                        <li><a href="#"><span>شیلنگ و آبیاری</span></a></li>
-                        <li><a href="#"><span>لوازم خانگی پلاستیکی</span></a></li>
-                        <li><a href="#"><span>لوازم آشپزخانه</span></a></li>
-                        <li><a href="#"><span>لوازم حمام و بهداشتی</span></a></li>
-                        <li><a href="#"><span>لوله و اتصالات</span></a></li>
-                        <li><a href="#" class="cat-dropdown__all"><span>مشاهده همه دسته‌بندی‌ها</span></a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <ul class="nav-links">
-                <li><a href="#" class="nav-links__item is-active">خانه</a></li>
-                <li><a href="#" class="nav-links__item">فروشگاه</a></li>
-                <li><a href="#" class="nav-links__item">تخفیف‌های ویژه</a></li>
-                <li><a href="#" class="nav-links__item">پشتیبانی</a></li>
-                <li><a href="#" class="nav-links__item">درباره ما</a></li>
-                <li><a href="#" class="nav-links__item">تماس با ما</a></li>
-            </ul>
-        </div>
-    </nav>
-</header>
-
-<!-- ===== Mobile slide-in panel ===== -->
-<div class="mobile-overlay" id="mobile-overlay"></div>
-<aside class="mobile-panel" id="mobile-panel" aria-hidden="true" aria-label="منوی موبایل">
-    <div class="mobile-panel__head">
-        <span class="mobile-panel__title">منو</span>
-        <button type="button" class="icon-btn" id="mobile-panel-close" aria-label="بستن منو">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-    </div>
-
-    <nav class="mobile-panel__nav" aria-label="منوی اصلی موبایل">
-        <ul class="mobile-panel__list">
-            <li><a href="#">خانه</a></li>
-
-            <li class="mobile-panel__expandable">
-                <button type="button" class="mobile-panel__expand-btn" aria-expanded="false" aria-controls="mobile-cats">
-                    <span>دسته‌بندی محصولات</span>
-                    <svg class="mobile-panel__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 6 9 12 15 18" transform="rotate(180 12 12)"/></svg>
-                </button>
-                <ul class="mobile-panel__sublist" id="mobile-cats">
-                    <li><a href="#">گلدان و لوازم گلخانه</a></li>
-                    <li><a href="#">شیلنگ و آبیاری</a></li>
-                    <li><a href="#">لوازم خانگی پلاستیکی</a></li>
-                    <li><a href="#">لوازم آشپزخانه</a></li>
-                    <li><a href="#">لوازم حمام و بهداشتی</a></li>
-                    <li><a href="#">لوله و اتصالات</a></li>
-                    <li><a href="#" class="mobile-panel__all">مشاهده همه دسته‌بندی‌ها</a></li>
-                </ul>
-            </li>
-
-            <li><a href="#">فروشگاه</a></li>
-            <li><a href="#">تخفیف‌های ویژه</a></li>
-            <li><a href="#">پشتیبانی</a></li>
-            <li><a href="#">درباره ما</a></li>
-            <li><a href="#">تماس با ما</a></li>
-        </ul>
-    </nav>
-
-    <div class="mobile-panel__foot">
-        <a href="#" class="mobile-panel__login">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-            <span>ورود / ثبت‌نام</span>
-        </a>
-        <a href="tel:+985131234456" class="mobile-panel__phone" dir="ltr">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
-            <span>۰۵۱-۳۱۲۳۴۴۵۶</span>
-        </a>
-    </div>
-</aside>
+{% load static %}
 
 <style>
-    /* =========================================================
-       Navbar — scoped design tokens (falls back if base.html
-       variables aren't present, but base.html already defines
-       the shared palette/spacing set).
-    ========================================================= */
-    .visually-hidden {
-        position: absolute; width: 1px; height: 1px; margin: -1px;
-        padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
-    }
+  /* این متغیرها اگر در base.html شما تعریف شده باشند override می‌شوند،
+     در غیر این‌صورت مقادیر پیش‌فرض (fallback) استفاده می‌شوند */
+  .site-header, .cat-panel, .breadcrumbs, .scroll-progress {
+    --charcoal: var(--charcoal, #111111);
+    --emerald: var(--emerald, #123c36);
+    --cream: var(--cream, #f5f0e8);
+    --beige: var(--beige, #d8cfc1);
+    --gold: var(--gold, #b89b5e);
+    --gold-soft: var(--gold-soft, rgba(184,155,94,.35));
+    --cream-soft: var(--cream-soft, rgba(245,240,232,.6));
+    --ease: var(--ease, cubic-bezier(.16,.84,.44,1));
+  }
 
-    .site-header {
-        background: var(--color-surface);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        border-bottom: 1px solid rgba(32, 37, 34, 0.08);
-        transition: box-shadow var(--transition-base);
-        animation: navbar-in 320ms ease;
-    }
-    .site-header.is-scrolled {
-        box-shadow: var(--shadow-md);
-    }
-    @keyframes navbar-in {
-        from { opacity: 0; transform: translateY(-8px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+  /* ===== Scroll Progress Gradient ===== */
+  .scroll-progress{
+    position:fixed; top:0; right:0; left:0;
+    height:3px; z-index:200;
+    width:0%;
+    background:linear-gradient(90deg, var(--gold), var(--emerald), var(--gold));
+    background-size:200% 100%;
+    transition:width .1s linear;
+    pointer-events:none;
+  }
 
-    /* --- Utility row --- */
-    .utility-row {
-        background: var(--color-primary-dark);
-        color: #F7F7F2;
-        font-size: var(--font-size-sm);
-    }
-    .utility-row__inner {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 38px;
-    }
-    .utility-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        color: #F7F7F2;
-        opacity: 0.92;
-        transition: opacity var(--transition-fast);
-    }
-    .utility-link:hover { opacity: 1; text-decoration: underline; }
+  /* ===== Header / Navbar ===== */
+  .site-header{
+    position:fixed; top:0; right:0; left:0;
+    z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:26px 6vw;
+    transition:padding .5s var(--ease), background .5s var(--ease), backdrop-filter .5s var(--ease), border-color .5s var(--ease);
+    border-bottom:1px solid transparent;
+    font-family:'Vazirmatn', sans-serif;
+  }
+  .site-header.scrolled{
+    padding:16px 6vw;
+    background:rgba(17,17,17,.78);
+    backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid rgba(184,155,94,.16);
+  }
+  .site-header .logo{ display:flex; flex-direction:column; align-items:center; gap:2px; line-height:1; }
+  .site-header .logo-link{ display:flex; flex-direction:column; align-items:center; gap:2px; color:inherit; text-decoration:none; }
+  .site-header .logo .fa{ font-size:23px; font-weight:800; letter-spacing:.02em; color:var(--cream); }
+  .site-header .logo .en{ font-size:9px; color:var(--gold); font-family:'Cormorant Garamond', serif; letter-spacing:.42em; text-transform:uppercase; }
 
-    /* --- Main row --- */
-    .main-row__inner {
-        display: flex;
-        align-items: center;
-        gap: var(--space-md);
-        height: 76px;
-    }
+  nav.primary{ display:flex; gap:44px; font-size:14.5px; letter-spacing:.01em; }
+  nav.primary a{ position:relative; color:var(--cream-soft); transition:color .35s; padding:4px 0; text-decoration:none; }
+  nav.primary a::after{
+    content:''; position:absolute; bottom:0; right:0; left:auto;
+    width:0; height:1px; background:var(--gold);
+    transition:width .4s var(--ease);
+  }
+  nav.primary a:hover, nav.primary a.active{ color:var(--cream); }
+  nav.primary a:hover::after, nav.primary a.active::after{ width:100%; }
 
-    .brand {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        flex-shrink: 0;
-        transition: transform var(--transition-fast);
-    }
-    .brand:hover { transform: scale(1.02); }
-    .brand__text {
-        font-size: 22px;
-        font-weight: 800;
-        color: var(--color-primary-dark);
-        letter-spacing: -0.3px;
-    }
+  .nav-actions{ display:flex; align-items:center; gap:22px; }
 
-    .icon-btn {
-        display: none;
-        align-items: center;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        border: none;
-        background: transparent;
-        color: var(--color-text);
-        cursor: pointer;
-        border-radius: var(--radius-sm);
-        transition: background-color var(--transition-fast);
-    }
-    .icon-btn:hover { background: var(--color-background); }
+  /* دکمه دسته‌بندی (همبرگری) */
+  .cat-toggle{
+    display:flex; align-items:center; gap:10px;
+    background:none; border:none; cursor:pointer;
+    color:var(--cream); font-family:inherit; font-size:13.5px; letter-spacing:.02em;
+    padding:6px 2px; opacity:.9; transition:opacity .3s;
+  }
+  .cat-toggle:hover{ opacity:1; }
+  .burger-icon{ display:flex; flex-direction:column; gap:5px; width:22px; }
+  .burger-icon span{ height:1px; width:100%; background:var(--cream); display:block; transition:transform .35s var(--ease), opacity .35s var(--ease); }
+  .cat-toggle[aria-expanded="true"] .burger-icon span:nth-child(1){ transform:translateY(6px) rotate(45deg); }
+  .cat-toggle[aria-expanded="true"] .burger-icon span:nth-child(2){ opacity:0; }
+  .cat-toggle[aria-expanded="true"] .burger-icon span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
 
-    /* Search — desktop, inline in main row */
-    .search-bar {
-        flex: 1 1 auto;
-        display: flex;
-        align-items: center;
-        max-width: 560px;
-        border: 1.5px solid rgba(32, 37, 34, 0.14);
-        border-radius: var(--radius-sm);
-        overflow: hidden;
-        transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-        background: var(--color-background);
-    }
-    .search-bar:focus-within {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(36, 92, 67, 0.12);
-        background: var(--color-surface);
-    }
-    .search-bar__input {
-        flex: 1;
-        border: none;
-        background: transparent;
-        padding: 12px 14px;
-        font-family: inherit;
-        font-size: var(--font-size-base);
-        color: var(--color-text);
-        outline: none;
-    }
-    .search-bar__input::placeholder { color: var(--color-text-muted); }
-    .search-bar__btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        height: 100%;
-        padding: 0 var(--space-md);
-        background: var(--color-primary);
-        color: #fff;
-        border: none;
-        font-size: var(--font-size-sm);
-        font-weight: 600;
-        cursor: pointer;
-        align-self: stretch;
-        transition: background-color var(--transition-fast);
-    }
-    .search-bar__btn:hover { background: var(--color-primary-dark); }
+  /* ===== Backdrop (blur پشت صفحه) ===== */
+  .cat-backdrop{
+    position:fixed; inset:0; z-index:150;
+    background:rgba(17,17,17,.55);
+    backdrop-filter:blur(6px);
+    opacity:0; pointer-events:none;
+    transition:opacity .4s var(--ease);
+  }
+  .cat-backdrop.show{ opacity:1; pointer-events:auto; }
 
-    /* Mobile search row: hidden on desktop */
-    .mobile-search {
-        display: none;
-        align-items: center;
-        gap: var(--space-xs);
-        padding-block: var(--space-xs) var(--space-sm);
-    }
-    .mobile-search__input {
-        flex: 1;
-        border: 1.5px solid rgba(32, 37, 34, 0.14);
-        border-radius: var(--radius-sm);
-        padding: 11px 14px;
-        font-family: inherit;
-        font-size: var(--font-size-base);
-        background: var(--color-background);
-        color: var(--color-text);
-        outline: none;
-        transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-    }
-    .mobile-search__input:focus {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(36, 92, 67, 0.12);
-        background: var(--color-surface);
-    }
-    .mobile-search__btn {
-        flex-shrink: 0;
-        width: 44px;
-        height: 44px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        border-radius: var(--radius-sm);
-        background: var(--color-primary);
-        color: #fff;
-        cursor: pointer;
-        transition: background-color var(--transition-fast);
-    }
-    .mobile-search__btn:hover { background: var(--color-primary-dark); }
+  /* ===== Category Side Panel ===== */
+  .cat-panel{
+    position:fixed; top:0; bottom:0; right:0;
+    width:min(360px, 86vw);
+    background:var(--charcoal);
+    border-left:1px solid rgba(184,155,94,.16);
+    z-index:160;
+    transform:translateX(100%);
+    transition:transform .5s var(--ease);
+    display:flex; flex-direction:column;
+    overflow-y:auto;
+  }
+  .cat-panel.open{ transform:translateX(0); }
+  .cat-panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:26px 6vw; border-bottom:1px solid rgba(184,155,94,.16);
+    color:var(--cream); font-size:15px; font-weight:700;
+  }
+  .cat-close{ background:none; border:none; color:var(--cream); font-size:26px; line-height:1; cursor:pointer; }
+  .cat-list{ list-style:none; margin:0; padding:14px 0; }
+  .cat-list li a{
+    display:block; padding:14px 6vw; color:var(--cream-soft);
+    text-decoration:none; font-size:15px; transition:color .3s, background .3s, padding-right .3s;
+    border-bottom:1px solid rgba(245,240,232,.06);
+  }
+  .cat-list li a:hover{ color:var(--gold); background:rgba(184,155,94,.06); padding-right:calc(6vw + 6px); }
 
-    /* Cart */
-    .cart-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        flex-shrink: 0;
-        padding: 10px 14px;
-        border-radius: var(--radius-sm);
-        color: var(--color-primary-dark);
-        font-weight: 600;
-        transition: background-color var(--transition-fast), transform var(--transition-fast);
-    }
-    .cart-link:hover { background: var(--color-background); }
-    .cart-link:active { transform: scale(0.96); }
-    .cart-link__icon-wrap { position: relative; display: inline-flex; }
-    .cart-link__badge {
-        position: absolute;
-        top: -8px;
-        inset-inline-start: -8px;
-        background: var(--color-sale);
-        color: #fff;
-        font-size: 11px;
-        font-weight: 700;
-        min-width: 18px;
-        height: 18px;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding-inline: 2px;
-        transition: transform var(--transition-fast);
-    }
-    .cart-link__label { font-size: var(--font-size-sm); }
+  .cat-panel-mobile-nav{ display:none; }
 
-    /* --- Nav / category row --- */
-    .nav-row {
-        background: var(--color-background);
-        border-top: 1px solid rgba(32, 37, 34, 0.06);
-    }
-    .nav-row__inner {
-        display: flex;
-        align-items: stretch;
-        gap: var(--space-lg);
-        height: 52px;
-    }
+  /* ===== Breadcrumbs ===== */
+  .breadcrumbs{
+    padding:14px 6vw; margin-top:76px;
+    border-bottom:1px solid rgba(184,155,94,.10);
+    font-size:12.5px; color:var(--cream-soft);
+    font-family:'Vazirmatn', sans-serif;
+  }
+  .breadcrumbs-inner{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .breadcrumbs a{ color:var(--cream-soft); text-decoration:none; transition:color .3s; }
+  .breadcrumbs a:hover{ color:var(--gold); }
+  .breadcrumbs .crumb-sep{ color:var(--gold-soft); }
+  .breadcrumbs .crumb-current{ color:var(--gold); }
 
-    .cat-dropdown { position: relative; display: flex; align-items: center; }
-    .cat-dropdown__trigger {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        height: 40px;
-        padding: 0 var(--space-md);
-        background: var(--color-primary);
-        color: #fff;
-        border: none;
-        border-radius: var(--radius-sm);
-        font-family: inherit;
-        font-size: var(--font-size-sm);
-        font-weight: 700;
-        cursor: pointer;
-        transition: background-color var(--transition-fast);
+  @media(max-width:760px){
+    nav.primary{ display:none; }
+    .cat-panel-mobile-nav{ display:block; border-bottom:1px solid rgba(184,155,94,.16); padding:10px 0; }
+    .cat-panel-mobile-nav a{
+      display:block; padding:14px 6vw; color:var(--cream);
+      text-decoration:none; font-size:15px; font-weight:600;
     }
-    .cat-dropdown__trigger:hover { background: var(--color-primary-dark); }
-    .cat-dropdown__chevron { transition: transform var(--transition-base); }
-    .cat-dropdown__trigger[aria-expanded="true"] .cat-dropdown__chevron { transform: rotate(180deg); }
-
-    .cat-dropdown__panel {
-        position: absolute;
-        top: calc(100% + 10px);
-        inset-inline-start: 0;
-        width: 280px;
-        background: var(--color-surface);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-md);
-        border: 1px solid rgba(32, 37, 34, 0.06);
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-6px);
-        transition: opacity var(--transition-base), transform var(--transition-base), visibility var(--transition-base);
-        z-index: 50;
-    }
-    .cat-dropdown__panel.is-open {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
-    .cat-dropdown__list { list-style: none; margin: 0; padding: 8px; }
-    .cat-dropdown__list li a {
-        display: block;
-        padding: 11px 14px;
-        border-radius: var(--radius-sm);
-        color: var(--color-text);
-        font-size: var(--font-size-base);
-        transition: background-color var(--transition-fast), padding-inline-start var(--transition-fast);
-    }
-    .cat-dropdown__list li a:hover {
-        background: var(--color-background);
-        padding-inline-start: 18px;
-    }
-    .cat-dropdown__all {
-        margin-top: 4px;
-        border-top: 1px solid rgba(32, 37, 34, 0.08);
-        color: var(--color-primary) !important;
-        font-weight: 700;
-    }
-
-    .nav-links {
-        display: flex;
-        align-items: center;
-        gap: var(--space-md);
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        height: 100%;
-    }
-    .nav-links__item {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        height: 100%;
-        font-size: var(--font-size-base);
-        font-weight: 600;
-        color: var(--color-text);
-        transition: color var(--transition-fast);
-    }
-    .nav-links__item::after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        inset-inline: 0;
-        height: 2.5px;
-        background: var(--color-primary);
-        transform: scaleX(0);
-        transition: transform var(--transition-base);
-    }
-    .nav-links__item:hover,
-    .nav-links__item.is-active { color: var(--color-primary-dark); }
-    .nav-links__item:hover::after,
-    .nav-links__item.is-active::after { transform: scaleX(1); }
-
-    /* --- Mobile slide-in panel --- */
-    .mobile-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(23, 61, 45, 0.45);
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity var(--transition-base), visibility var(--transition-base);
-        z-index: 199;
-    }
-    .mobile-overlay.is-open { opacity: 1; visibility: visible; }
-
-    .mobile-panel {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        inset-inline-start: 0;
-        width: min(86vw, 340px);
-        background: var(--color-surface);
-        z-index: 200;
-        display: flex;
-        flex-direction: column;
-        transform: translateX(-102%);
-        transition: transform var(--transition-base);
-        box-shadow: var(--shadow-md);
-    }
-    [dir="rtl"] .mobile-panel { transform: translateX(102%); }
-    .mobile-panel.is-open { transform: translateX(0); }
-
-    .mobile-panel__head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: var(--space-md);
-        border-bottom: 1px solid rgba(32, 37, 34, 0.08);
-    }
-    .mobile-panel__title { font-weight: 700; font-size: var(--font-size-lg); color: var(--color-primary-dark); }
-
-    .mobile-panel__nav { flex: 1; overflow-y: auto; padding: var(--space-sm) 0; }
-    .mobile-panel__list { list-style: none; margin: 0; padding: 0; }
-    .mobile-panel__list > li > a,
-    .mobile-panel__expand-btn {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        padding: 15px var(--space-md);
-        font-size: var(--font-size-lg);
-        font-weight: 600;
-        color: var(--color-text);
-        background: none;
-        border: none;
-        font-family: inherit;
-        text-align: start;
-        cursor: pointer;
-    }
-    .mobile-panel__list > li > a:active,
-    .mobile-panel__expand-btn:active { background: var(--color-background); }
-
-    .mobile-panel__chevron { transition: transform var(--transition-base); }
-    .mobile-panel__expand-btn[aria-expanded="true"] .mobile-panel__chevron { transform: rotate(180deg); }
-
-    .mobile-panel__sublist {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        background: var(--color-background);
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height var(--transition-base);
-    }
-    .mobile-panel__sublist.is-open { max-height: 500px; }
-    .mobile-panel__sublist li a {
-        display: block;
-        padding: 13px var(--space-md) 13px calc(var(--space-md) + 14px);
-        font-size: var(--font-size-base);
-        color: var(--color-text-muted);
-    }
-    .mobile-panel__sublist li a:active { color: var(--color-primary-dark); }
-    .mobile-panel__all { color: var(--color-primary) !important; font-weight: 700; }
-
-    .mobile-panel__foot {
-        border-top: 1px solid rgba(32, 37, 34, 0.08);
-        padding: var(--space-md);
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .mobile-panel__login,
-    .mobile-panel__phone {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: var(--font-size-base);
-        font-weight: 600;
-        color: var(--color-primary-dark);
-        padding: 10px;
-        border-radius: var(--radius-sm);
-        transition: background-color var(--transition-fast);
-    }
-    .mobile-panel__login:active,
-    .mobile-panel__phone:active { background: var(--color-background); }
-
-    /* Stagger animation for mobile menu items when panel opens */
-    .mobile-panel.is-open .mobile-panel__list > li {
-        animation: mobile-item-in 260ms ease backwards;
-    }
-    .mobile-panel.is-open .mobile-panel__list > li:nth-child(1) { animation-delay: 40ms; }
-    .mobile-panel.is-open .mobile-panel__list > li:nth-child(2) { animation-delay: 80ms; }
-    .mobile-panel.is-open .mobile-panel__list > li:nth-child(3) { animation-delay: 120ms; }
-    .mobile-panel.is-open .mobile-panel__list > li:nth-child(4) { animation-delay: 160ms; }
-    .mobile-panel.is-open .mobile-panel__list > li:nth-child(5) { animation-delay: 200ms; }
-    .mobile-panel.is-open .mobile-panel__list > li:nth-child(6) { animation-delay: 240ms; }
-    @keyframes mobile-item-in {
-        from { opacity: 0; transform: translateX(-10px); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-    [dir="rtl"] .mobile-panel.is-open .mobile-panel__list > li {
-        animation-name: mobile-item-in-rtl;
-    }
-    @keyframes mobile-item-in-rtl {
-        from { opacity: 0; transform: translateX(10px); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-
-    /* =========================================================
-       Responsive breakpoints
-    ========================================================= */
-
-    /* Tablet and down: collapse desktop nav row + utility row,
-       show hamburger + mobile search */
-    @media (max-width: 900px) {
-        .utility-row { display: none; }
-        .nav-row { display: none; }
-        .icon-btn.menu-toggle { display: inline-flex; }
-        .search-bar { display: none; }
-        .mobile-search { display: flex; }
-        .main-row__inner { height: 64px; gap: var(--space-sm); }
-        .brand__text { font-size: 19px; }
-        .cart-link__label { display: none; }
-        .cart-link { padding: 10px; }
-    }
-
-    @media (max-width: 420px) {
-        .brand__text { font-size: 17px; }
-        .brand__mark svg { width: 30px; height: 30px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .site-header,
-        .mobile-panel.is-open .mobile-panel__list > li {
-            animation: none !important;
-        }
-        .cat-dropdown__panel,
-        .mobile-panel,
-        .mobile-overlay,
-        .nav-links__item::after,
-        .cat-dropdown__chevron,
-        .mobile-panel__chevron {
-            transition-duration: 0.001ms !important;
-        }
-    }
+    .cat-toggle-text{ display:none; }
+  }
 </style>
 
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="cat-backdrop" id="catBackdrop"></div>
+
+<header id="siteHeader" class="site-header">
+  <div class="logo">
+    <a href="#" class="logo-link">
+      <span class="fa">سیدوس</span>
+      <span class="en latin">Sidoos</span>
+    </a>
+  </div>
+
+  <nav class="primary">
+    <a href="#">خانه</a>
+    <a href="#">فروشگاه</a>
+    <a href="#">پشتیبانی</a>
+    <a href="#">تخفیف‌های ویژه</a>
+  </nav>
+
+  <div class="nav-actions">
+    <button class="cat-toggle" id="catToggle" aria-haspopup="true" aria-expanded="false" aria-controls="catPanel">
+      <span class="cat-toggle-text">دسته‌بندی</span>
+      <div class="burger-icon" id="burgerIcon"><span></span><span></span><span></span></div>
+    </button>
+  </div>
+</header>
+
+<nav class="breadcrumbs" aria-label="breadcrumb">
+  <div class="breadcrumbs-inner">
+    <a href="#">خانه</a>
+    {% for crumb in breadcrumbs %}
+      <span class="crumb-sep">/</span>
+      {% if forloop.last %}
+        <span class="crumb-current">{{ crumb.label }}</span>
+      {% else %}
+        <a href="#">{{ crumb.label }}</a>
+      {% endif %}
+    {% endfor %}
+  </div>
+</nav>
+
+<aside class="cat-panel" id="catPanel" aria-hidden="true">
+  <div class="cat-panel-head">
+    <span>دسته‌بندی محصولات</span>
+    <button class="cat-close" id="catClose" aria-label="بستن">&times;</button>
+  </div>
+
+  <!-- در موبایل، لینک‌های اصلی هم اینجا نمایش داده می‌شوند چون nav.primary مخفی است -->
+  <div class="cat-panel-mobile-nav">
+    <a href="#">خانه</a>
+    <a href="#">فروشگاه</a>
+    <a href="#">پشتیبانی</a>
+    <a href="#">تخفیف‌های ویژه</a>
+  </div>
+
+  <ul class="cat-list">
+    {% for cat in categories %}
+      <li><a href="{% url 'products:category_products' cat.slug %}">{{ cat.name }}</a></li>
+    {% empty %}
+      <li><a href="#">سرامیک</a></li>
+      <li><a href="#">فلزی</a></li>
+      <li><a href="#">چوبی</a></li>
+      <li><a href="#">ظروف تزئینی</a></li>
+      <li><a href="#">گلدان‌ها</a></li>
+      <li><a href="#">همه محصولات</a></li>
+    {% endfor %}
+  </ul>
+</aside>
+
 <script>
-(function () {
-    var header = document.getElementById('site-header');
-    var menuToggle = document.getElementById('menu-toggle');
-    var mobilePanel = document.getElementById('mobile-panel');
-    var mobileOverlay = document.getElementById('mobile-overlay');
-    var mobilePanelClose = document.getElementById('mobile-panel-close');
-    var catTrigger = document.getElementById('cat-trigger');
-    var catPanel = document.getElementById('cat-panel');
-    var mobileExpandBtn = document.querySelector('.mobile-panel__expand-btn');
-    var mobileSublist = document.getElementById('mobile-cats');
+(function(){
+  /* ---- Scroll Progress + Header Scrolled State ---- */
+  const header = document.getElementById('siteHeader');
+  const progress = document.getElementById('scrollProgress');
 
-    function openMobilePanel() {
-        mobilePanel.classList.add('is-open');
-        mobileOverlay.classList.add('is-open');
-        mobilePanel.setAttribute('aria-hidden', 'false');
-        menuToggle.setAttribute('aria-expanded', 'true');
-        document.body.style.overflow = 'hidden';
-    }
-    function closeMobilePanel() {
-        mobilePanel.classList.remove('is-open');
-        mobileOverlay.classList.remove('is-open');
-        mobilePanel.setAttribute('aria-hidden', 'true');
-        menuToggle.setAttribute('aria-expanded', 'false');
-        document.body.style.overflow = '';
-    }
+  function onScroll(){
+    if(window.scrollY > 40){ header.classList.add('scrolled'); } else { header.classList.remove('scrolled'); }
+    const doc = document.documentElement;
+    const scrollable = doc.scrollHeight - doc.clientHeight;
+    const pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+    progress.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  onScroll();
 
-    menuToggle.addEventListener('click', openMobilePanel);
-    mobilePanelClose.addEventListener('click', closeMobilePanel);
-    mobileOverlay.addEventListener('click', closeMobilePanel);
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            closeMobilePanel();
-            closeCatPanel();
-        }
-    });
+  /* ---- Category Side Panel ---- */
+  const toggle = document.getElementById('catToggle');
+  const panel = document.getElementById('catPanel');
+  const backdrop = document.getElementById('catBackdrop');
+  const closeBtn = document.getElementById('catClose');
 
-    /* Desktop category dropdown */
-    function closeCatPanel() {
-        if (!catTrigger) return;
-        catPanel.classList.remove('is-open');
-        catTrigger.setAttribute('aria-expanded', 'false');
-    }
-    if (catTrigger) {
-        catTrigger.addEventListener('click', function () {
-            var isOpen = catPanel.classList.toggle('is-open');
-            catTrigger.setAttribute('aria-expanded', String(isOpen));
-        });
-        document.addEventListener('click', function (e) {
-            if (!catTrigger.contains(e.target) && !catPanel.contains(e.target)) {
-                closeCatPanel();
-            }
-        });
-    }
-
-    /* Mobile category expandable sublist */
-    if (mobileExpandBtn) {
-        mobileExpandBtn.addEventListener('click', function () {
-            var isOpen = mobileSublist.classList.toggle('is-open');
-            mobileExpandBtn.setAttribute('aria-expanded', String(isOpen));
-        });
-    }
-
-    /* Sticky shadow on scroll */
-    var lastScrolled = false;
-    window.addEventListener('scroll', function () {
-        var scrolled = window.scrollY > 4;
-        if (scrolled !== lastScrolled) {
-            header.classList.toggle('is-scrolled', scrolled);
-            lastScrolled = scrolled;
-        }
-    }, { passive: true });
+  function openPanel(){
+    panel.classList.add('open');
+    backdrop.classList.add('show');
+    panel.setAttribute('aria-hidden', 'false');
+    toggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+  function closePanel(){
+    panel.classList.remove('open');
+    backdrop.classList.remove('show');
+    panel.setAttribute('aria-hidden', 'true');
+    toggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+  toggle.addEventListener('click', ()=>{
+    panel.classList.contains('open') ? closePanel() : openPanel();
+  });
+  closeBtn.addEventListener('click', closePanel);
+  backdrop.addEventListener('click', closePanel);
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closePanel(); });
 })();
 </script>
+
+================== &ndash;&gt;-->

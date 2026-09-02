@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Sidoos Plasco Shop{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="breadcrumb">
+        <a href="{% url 'products:product_list' %}">Products</a>
+        {% if product.category %}
+            / <a href="{% url 'products:category_products' product.category.slug %}">{{ product.category.name }}</a>
+        {% endif %}
+        / {{ product.name }}
+    </div>
+    
+    <div class="product-detail">
+        <!-- Product Images -->
+        <div class="product-images">
+            {% if product.cover_image %}
+                <img src="{{ product.cover_image.url }}" alt="{{ product.name }}" class="main-image" id="main-image">
+            {% endif %}
+            
+            {% if images %}
+            <div class="image-gallery">
+                {% for image in images %}
+                    <img src="{{ image.image.url }}" alt="Gallery image" class="gallery-thumb" onclick="changeImage('{{ image.image.url }}')">
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Product Info -->
+        <div class="product-info">
+            <h1>{{ product.name }}</h1>
+
+            {% if product.category %}
+            <p>
+                <strong>Category:</strong>
+                <a href="{% url 'products:category_products' product.category.slug %}">{{ product.category.name }}</a>
+            </p>
+            {% endif %}
+            
+            <!-- Pricing -->
+            <div class="pricing">
+                {% if can_view_price %}
+                    {% if product.call_for_price %}
+                        <p class="call-for-price">📞 Call for Price</p>
+                    {% else %}
+                        {% if product.on_sale_price %}
+                            <p class="original-price">${{ product.price }}</p>
+                            <p class="sale-price">${{ product.on_sale_price }}</p>
+                            <p class="discount-badge">{{ discount }}% OFF</p>
+                        {% else %}
+                            <p class="price">${{ product.price }}</p>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <p class="price-locked">
+                        {% if user.is_authenticated %}
+                            Price available for approved accounts.
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}">Login</a> to view prices.
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </div>
+            
+            <!-- Tags -->
+            {% if tags %}
+            <div class="tags">
+                <strong>Tags:</strong>
+                {% for tag in tags %}
+                    <span class="tag">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Description -->
+            <div class="description">
+                <h3>Description</h3>
+                <div class="description-content">
+                    {{ product.description|safe }}
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="actions">
+                {% if user.is_authenticated %}
+                    <button class="btn {% if is_saved %}active{% endif %}" onclick="toggleSave(event, {{ product.id }})">
+                        💾 {% if is_saved %}Saved{% else %}Save{% endif %}
+                    </button>
+                    <button class="btn {% if is_liked %}active{% endif %}" onclick="toggleLike(event, {{ product.id }})">
+                        ❤️ {% if is_liked %}Liked{% else %}Like{% endif %}
+                    </button>
+                {% else %}
+                    <p><a href="{% url 'accounts:login' %}">Login</a> to save or like this product.</p>
+                {% endif %}
+            </div>
+            
+            <!-- Publication Status -->
+            {% if not product.published %}
+                <p class="warning">⚠️ This product is currently unpublished.</p>
+            {% endif %}
+            
+            {% if product.featured_in_special_sales %}
+                <p class="badge">✨ Featured in Special Sales</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if tags %}
+    <div class="related-products">
+        <h2>Related Products</h2>
+        <p><em>Related products section to be implemented by frontend team.</em></p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .breadcrumb {
+        margin: 20px 0;
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .breadcrumb a {
+        color: #3498db;
+        text-decoration: none;
+    }
+    
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+    
+    .product-detail {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin: 30px 0;
+    }
+    
+    .product-images {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .main-image {
+        width: 100%;
+        max-height: 500px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+    
+    .image-gallery {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+    }
+    
+    .gallery-thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 2px solid #ddd;
+        transition: border-color 0.2s;
+    }
+    
+    .gallery-thumb:hover {
+        border-color: #3498db;
+    }
+    
+    .product-info h1 {
+        font-size: 32px;
+        margin: 0 0 20px 0;
+    }
+    
+    .pricing {
+        margin: 20px 0;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+    }
+    
+    .price {
+        font-size: 28px;
+        font-weight: bold;
+        color: #27ae60;
+    }
+    
+    .original-price {
+        color: #999;
+        text-decoration: line-through;
+        font-size: 18px;
+    }
+    
+    .sale-price {
+        color: #e74c3c;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    
+    .call-for-price {
+        font-size: 24px;
+        color: #e74c3c;
+        font-weight: bold;
+    }
+    
+    .discount-badge {
+        display: inline-block;
+        background-color: #e74c3c;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    .price-locked {
+        color: #6E756F;
+        font-size: 14px;
+        margin: 0;
+    }
+    
+    .tags {
+        margin: 20px 0;
+    }
+    
+    .tag {
+        display: inline-block;
+        background-color: #ecf0f1;
+        padding: 6px 12px;
+        margin: 4px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .description {
+        margin: 30px 0;
+    }
+    
+    .description h3 {
+        margin-top: 0;
+    }
+    
+    .description-content {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        line-height: 1.6;
+    }
+    
+    .actions {
+        margin: 30px 0;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border: 2px solid #bdc3c7;
+        background-color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.2s;
+    }
+    
+    .btn:hover {
+        border-color: #3498db;
+        background-color: #ecf0f1;
+    }
+    
+    .btn.active {
+        background-color: #3498db;
+        color: white;
+        border-color: #3498db;
+    }
+    
+    .warning {
+        color: #e67e22;
+        font-weight: bold;
+        padding: 10px;
+        background-color: #fef5e7;
+        border-radius: 4px;
+    }
+    
+    .badge {
+        color: #f39c12;
+        font-weight: bold;
+        padding: 10px;
+        background-color: #fef9e7;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    
+    .related-products {
+        margin: 40px 0;
+        padding-top: 40px;
+        border-top: 1px solid #ddd;
+    }
+    
+    @media (max-width: 768px) {
+        .product-detail {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+    }
+</style>
+
+<script>
+function changeImage(imageSrc) {
+    document.getElementById('main-image').src = imageSrc;
+}
+
+function toggleSave(event, productId) {
+    const button = event.currentTarget;
+    fetch(`/products/api/${productId}/save/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to toggle save');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.saved) {
+            button.textContent = '💾 Saved';
+            button.classList.add('active');
+        } else {
+            button.textContent = '💾 Save';
+            button.classList.remove('active');
+        }
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+
+function toggleLike(event, productId) {
+    const button = event.currentTarget;
+    fetch(`/products/api/${productId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to toggle like');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.liked) {
+            button.textContent = '❤️ Liked';
+            button.classList.add('active');
+        } else {
+            button.textContent = '❤️ Like';
+            button.classList.remove('active');
+        }
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

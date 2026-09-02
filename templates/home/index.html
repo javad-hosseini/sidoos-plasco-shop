@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sidoos Plasco — فرم، طبیعت و زندگی</title>
+<meta name="description" content="گلدان‌هایی برای فضاهایی که قرار است بیشتر از یک خانه باشند.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&family=Noto+Serif:ital@0;1&display=swap" rel="stylesheet">
+  {% block extra_css %}
+<link rel="stylesheet" href="{% static 'home/css/sidoos-cinema.css' %}">
+  {% endblock %}
+
+</head>
+<body>
+
+<a class="skip-link" href="#collections">رفتن به مجموعه‌ها</a>
+
+<header class="site-header" data-header>
+  <div class="site-header__inner">
+    <a class="brand-mark" href="#top" aria-label="سیدوس پلاسکو، صفحه اصلی">SIDOOS</a>
+    <nav class="main-nav" aria-label="ناوبری اصلی">
+      <a href="#collections">محصولات</a>
+      <a href="#philosophy">درباره ما</a>
+      <a href="#">مجله</a>
+      <a href="#">تماس</a>
+    </nav>
+    <a class="lang-toggle" href="#" aria-label="تغییر زبان به انگلیسی">EN</a>
+  </div>
+</header>
+
+<main class="site-shell" id="top">
+
+  <section class="cinema-scroll" data-cinema aria-label="معرفی سیدوس پلاسکو">
+    <div class="stage">
+
+      <div class="world" data-world>
+        <div class="layer layer--bg" data-layer="bg" aria-hidden="true"></div>
+        <div class="layer layer--botanical-back" data-layer="botanical-back" aria-hidden="true">
+          <svg viewBox="0 0 400 600" class="leaf leaf--back-1" preserveAspectRatio="xMidYMid slice"><path d="M200 20 C280 120 320 260 260 400 C230 470 190 540 200 590 C160 500 120 400 130 300 C140 190 160 90 200 20 Z" fill="currentColor"/></svg>
+          <svg viewBox="0 0 400 600" class="leaf leaf--back-2" preserveAspectRatio="xMidYMid slice"><path d="M200 20 C280 120 320 260 260 400 C230 470 190 540 200 590 C160 500 120 400 130 300 C140 190 160 90 200 20 Z" fill="currentColor"/></svg>
+        </div>
+
+        <div class="layer layer--product" data-layer="product" aria-hidden="true">
+          <svg class="planter" viewBox="0 0 480 620" role="img" aria-label="گلدان سرامیکی سیدوس">
+            <defs>
+              <linearGradient id="potBody" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#EDE6D8"/>
+                <stop offset="55%" stop-color="#D9CDB8"/>
+                <stop offset="100%" stop-color="#BEAD90"/>
+              </linearGradient>
+              <linearGradient id="potShade" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#000000" stop-opacity="0.16"/>
+                <stop offset="45%" stop-color="#000000" stop-opacity="0"/>
+                <stop offset="100%" stop-color="#000000" stop-opacity="0.1"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="240" cy="590" rx="150" ry="20" fill="#20221E" opacity="0.12"/>
+            <path d="M120 210 L360 210 L330 560 Q240 600 150 560 Z" fill="url(#potBody)"/>
+            <path d="M120 210 L360 210 L330 560 Q240 600 150 560 Z" fill="url(#potShade)"/>
+            <ellipse cx="240" cy="210" rx="120" ry="26" fill="#F4F0E8"/>
+            <ellipse cx="240" cy="210" rx="120" ry="26" fill="none" stroke="#20221E" stroke-opacity="0.08" stroke-width="2"/>
+            <path d="M150 235 Q240 100 330 130" fill="none" stroke="#66745F" stroke-width="10" stroke-linecap="round" opacity="0.9"/>
+            <path d="M150 235 Q120 90 210 40" fill="none" stroke="#4E5A48" stroke-width="8" stroke-linecap="round" opacity="0.85"/>
+            <path d="M330 130 Q380 40 300 10" fill="none" stroke="#7C8A72" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
+          </svg>
+        </div>
+
+        <div class="layer layer--botanical-fore" data-layer="botanical-fore" aria-hidden="true">
+          <svg viewBox="0 0 400 500" class="leaf leaf--fore-1" preserveAspectRatio="xMidYMid slice"><path d="M0 0 C120 40 220 140 200 280 C190 350 140 420 40 460 C90 340 100 220 60 120 C40 70 20 30 0 0 Z" fill="currentColor"/></svg>
+        </div>
+
+        <div class="layer layer--title" data-layer="title">
+          <h1 class="hero-title">SIDOOS<span class="hero-title__sub">PLASCO</span></h1>
+        </div>
+
+        <div class="layer layer--shade" data-layer="shade" aria-hidden="true"></div>
+      </div>
+
+      <section class="intro-copy" data-layer="intro">
+        <p class="eyebrow">فلسفهٔ برند</p>
+        <h2>فرم، طبیعت و زندگی<br>در یک تعادل ساده.</h2>
+        <p class="lede">گلدان‌هایی برای فضاهایی که قرار است بیشتر از یک خانه باشند.</p>
+      </section>
+
+      <section class="story-panel story-panel-product" id="philosophy" data-layer="story-product">
+        <div class="story-panel__text">
+          <p class="eyebrow">فلسفهٔ محصول</p>
+          <h2>فرم، بخشی از فضاست.</h2>
+          <p>گلدان فقط محفظه‌ای برای گیاه نیست؛ بخشی از معماری فضاست.</p>
+        </div>
+        <div class="story-panel__facts">
+          <div class="fact">
+            <span class="fact__num">۰۱</span>
+            <h3>طراحی</h3>
+            <p>فرم‌های ساده و ماندگار برای فضاهای مدرن.</p>
+          </div>
+          <div class="fact">
+            <span class="fact__num">۰۲</span>
+            <h3>کیفیت</h3>
+            <p>ساخته‌شده برای استفاده طولانی‌مدت در فضاهای مختلف.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="story-panel story-panel-collection" data-layer="story-collection">
+        <p class="eyebrow">مجموعه‌ها</p>
+        <h2>دنیای سیدوس، لایه به لایه.</h2>
+        <p class="story-panel-collection__lede">از فضای داخلی تا تراس و باغ؛ هر مجموعه برای یک فضا طراحی شده.</p>
+        <ul class="collection-tags">
+          <li>گلدان‌های دکوراتیو</li>
+          <li>گلدان‌های فضای باز</li>
+          <li>گلدان‌های مدرن</li>
+          <li>باکس‌های گل</li>
+        </ul>
+      </section>
+
+    </div>
+  </section>
+
+  <section class="product-slider-section" id="collections" aria-label="مجموعه‌های سیدوس پلاسکو">
+    <div class="product-slider-section__head">
+      <p class="eyebrow">مجموعه‌ها</p>
+      <h2>گلدان‌هایی که با فضای شما زندگی می‌کنند.</h2>
+    </div>
+
+    <div class="collection-slider" data-slider>
+      <button class="slider-nav slider-nav--prev" data-slider-prev aria-label="مجموعهٔ قبلی">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+
+      <div class="slider-track" data-slider-track role="list">
+        {% for product in products %}
+        <article class="slider-card" role="listitem" tabindex="0" aria-label="{{ product.name }}">
+          <div class="slider-card__media">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          </div>
+          <p class="slider-card__category">{{ product.category.name }}</p>
+          <h3 class="slider-card__title">{{ product.name }}</h3>
+          <p class="slider-card__desc">{{ product.short_description }}</p>
+        </article>
+        {% empty %}
+        <!-- Placeholder cards — replace with real product data from the Django view -->
+        <article class="slider-card" role="listitem" tabindex="0" aria-label="گلدان مدرن آریا">
+          <div class="slider-card__media"><div class="slider-card__placeholder" aria-hidden="true"></div></div>
+          <p class="slider-card__category">دکوراتیو</p>
+          <h3 class="slider-card__title">گلدان مدرن آریا</h3>
+          <p class="slider-card__desc">فرمی ساده برای فضاهای معاصر.</p>
+        </article>
+        <article class="slider-card" role="listitem" tabindex="0" aria-label="گلدان سنگی نوا">
+          <div class="slider-card__media"><div class="slider-card__placeholder" aria-hidden="true"></div></div>
+          <p class="slider-card__category">فضای باز</p>
+          <h3 class="slider-card__title">گلدان سنگی نوا</h3>
+          <p class="slider-card__desc">مقاوم در برابر آب و هوا، برای تراس و باغ.</p>
+        </article>
+        <article class="slider-card" role="listitem" tabindex="0" aria-label="باکس گل رخام">
+          <div class="slider-card__media"><div class="slider-card__placeholder" aria-hidden="true"></div></div>
+          <p class="slider-card__category">باکس گل</p>
+          <h3 class="slider-card__title">باکس گل رخام</h3>
+          <p class="slider-card__desc">خطوط راست برای بالکن‌های شهری.</p>
+        </article>
+        <article class="slider-card" role="listitem" tabindex="0" aria-label="گلدان استوانه‌ای سیرا">
+          <div class="slider-card__media"><div class="slider-card__placeholder" aria-hidden="true"></div></div>
+          <p class="slider-card__category">مدرن</p>
+          <h3 class="slider-card__title">گلدان استوانه‌ای سیرا</h3>
+          <p class="slider-card__desc">سطحی مینیمال با سایه‌ای عمیق.</p>
+        </article>
+        <article class="slider-card" role="listitem" tabindex="0" aria-label="گلدان خاکی اُرن">
+          <div class="slider-card__media"><div class="slider-card__placeholder" aria-hidden="true"></div></div>
+          <p class="slider-card__category">دکوراتیو</p>
+          <h3 class="slider-card__title">گلدان خاکی اُرن</h3>
+          <p class="slider-card__desc">بافتی طبیعی، الهام‌گرفته از خاک رس.</p>
+        </article>
+        {% endfor %}
+      </div>
+
+      <button class="slider-nav slider-nav--next" data-slider-next aria-label="مجموعهٔ بعدی">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <p>© سیدوس پلاسکو</p>
+  </footer>
+
+</main>
+
+{% block extra_js %}
+<script src="{% static 'home/js/sidoos-cinema.js' %}"></script>
+{% endblock %}</body>
+</html>

@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ثبت درخواست پشتیبانی | سیدوس{% endblock %}
+
+{% block content %}
+<style>
+    /* ============================================================
+       Support Ticket Create Page Styles
+       ============================================================ */
+    
+    .ticket-create-page {
+        background-color: var(--color-background, #F7F7F2);
+        min-height: 100vh;
+        padding: 2rem 1rem;
+    }
+
+    .ticket-create-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .ticket-create-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .ticket-create-header__title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--color-text, #202522);
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+
+    .ticket-create-header__subtitle {
+        font-size: 0.95rem;
+        color: var(--color-text-muted, #6E756F);
+        line-height: 1.6;
+    }
+
+    /* Back Link */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-primary, #245C43);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        transition: all 180ms ease;
+    }
+
+    .back-link:hover {
+        color: var(--color-primary-dark, #173D2D);
+        transform: translateX(-4px);
+    }
+
+    .back-link__arrow {
+        transition: transform 180ms ease;
+    }
+
+    .back-link:hover .back-link__arrow {
+        transform: translateX(-4px);
+    }
+
+    /* Form Card */
+    .ticket-form-card {
+        background-color: #ffffff;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(32, 37, 34, 0.06);
+    }
+
+    /* Form Styles */
+    .ticket-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--color-text, #202522);
+    }
+
+    .form-group .help-text {
+        font-size: 0.85rem;
+        color: var(--color-text-muted, #6E756F);
+        line-height: 1.5;
+    }
+
+    .form-group input[type="text"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        color: var(--color-text, #202522);
+        background-color: #ffffff;
+        transition: all 180ms ease;
+        font-family: inherit;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--color-primary, #245C43);
+        box-shadow: 0 0 0 3px rgba(36, 92, 67, 0.1);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-group select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236E756F' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: left 1rem center;
+        padding-left: 2.5rem;
+    }
+
+    /* File Upload */
+    .file-upload {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .file-upload__input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .file-upload__label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border: 1.5px dashed #c0c0c0;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: var(--color-text-muted, #6E756F);
+        transition: all 180ms ease;
+        background-color: #fafafa;
+    }
+
+    .file-upload__label:hover {
+        border-color: var(--color-primary, #245C43);
+        color: var(--color-primary, #245C43);
+        background-color: rgba(36, 92, 67, 0.05);
+    }
+
+    .file-upload__icon {
+        font-size: 1.25rem;
+    }
+
+    .file-upload__files {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .file-upload__file-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.35rem 0.75rem;
+        background-color: rgba(36, 92, 67, 0.1);
+        color: var(--color-primary, #245C43);
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    /* Error Messages */
+    .error-message {
+        color: #d32f2f;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-group.has-error input,
+    .form-group.has-error select,
+    .form-group.has-error textarea {
+        border-color: #d32f2f;
+    }
+
+    .form-group.has-error input:focus,
+    .form-group.has-error select:focus,
+    .form-group.has-error textarea:focus {
+        box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+    }
+
+    /* Global Error Alert */
+    .alert {
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .alert--error {
+        background-color: rgba(211, 47, 47, 0.1);
+        color: #d32f2f;
+        border: 1px solid rgba(211, 47, 47, 0.2);
+    }
+
+    .alert--success {
+        background-color: rgba(36, 92, 67, 0.1);
+        color: var(--color-primary, #245C43);
+        border: 1px solid rgba(36, 92, 67, 0.2);
+    }
+
+    /* Submit Button */
+    .submit-btn {
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+        background-color: var(--color-primary, #245C43);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 180ms ease;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .submit-btn:hover {
+        background-color: var(--color-primary-dark, #173D2D);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(36, 92, 67, 0.2);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #ffffff;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .ticket-create-page {
+            padding: 1.5rem 0.75rem;
+        }
+
+        .ticket-create-header__title {
+            font-size: 1.5rem;
+        }
+
+        .ticket-create-header__subtitle {
+            font-size: 0.9rem;
+        }
+
+        .ticket-form-card {
+            padding: 1.25rem;
+        }
+
+        .form-group input[type="text"],
+        .form-group select,
+        .form-group textarea {
+            font-size: 0.9rem;
+            padding: 0.65rem 0.85rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .ticket-create-header__title {
+            font-size: 1.25rem;
+        }
+
+        .ticket-form-card {
+            padding: 1rem;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+        }
+
+        .submit-btn {
+            font-size: 0.95rem;
+            padding: 0.75rem 1rem;
+        }
+    }
+</style>
+
+<div class="ticket-create-page">
+    <div class="ticket-create-container">
+        
+        <!-- Back Link -->
+        <a href="{% url 'support:ticket_list' %}" class="back-link">
+            <span class="back-link__arrow">→</span>
+            <span>بازگشت به لیست تیکت‌ها</span>
+        </a>
+
+        <!-- Page Header -->
+        <header class="ticket-create-header">
+            <h1 class="ticket-create-header__title">ثبت درخواست پشتیبانی</h1>
+            <p class="ticket-create-header__subtitle">
+                مشکل یا سوال خود را با جزئیات کامل توضیح دهید تا تیم پشتیبانی سیدوس بتواند به بهترین شکل به شما کمک کند.
+            </p>
+        </header>
+
+        <!-- Error Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert--error{% elif message.tags == 'success' %}alert--success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Form Card -->
+        <div class="ticket-form-card">
+            <form method="post" enctype="multipart/form-data" class="ticket-form" id="ticketForm">
+                {% csrf_token %}
+
+                <!-- Title Field -->
+                <div class="form-group {% if form.title.errors %}has-error{% endif %}">
+                    <label for="{{ form.title.id_for_label }}">
+                        عنوان تیکت
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.help_text %}
+                        <span class="help-text">{{ form.title.help_text }}</span>
+                    {% endif %}
+                    {% if form.title.errors %}
+                        {% for error in form.title.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Subject Field -->
+                <div class="form-group {% if form.subject.errors %}has-error{% endif %}">
+                    <label for="{{ form.subject.id_for_label }}">
+                        موضوع
+                    </label>
+                    {{ form.subject }}
+                    {% if form.subject.help_text %}
+                        <span class="help-text">{{ form.subject.help_text }}</span>
+                    {% endif %}
+                    {% if form.subject.errors %}
+                        {% for error in form.subject.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Message Field -->
+                <div class="form-group {% if form.message.errors %}has-error{% endif %}">
+                    <label for="{{ form.message.id_for_label }}">
+                        پیام
+                    </label>
+                    {{ form.message }}
+                    {% if form.message.help_text %}
+                        <span class="help-text">{{ form.message.help_text }}</span>
+                    {% endif %}
+                    {% if form.message.errors %}
+                        {% for error in form.message.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Attachments Field -->
+                <div class="form-group {% if form.attachments.errors %}has-error{% endif %}">
+                    <label>
+                        پیوست‌ها (اختیاری)
+                    </label>
+                    
+                    <div class="file-upload">
+                        <input type="file" 
+                               name="attachments" 
+                               id="fileInput" 
+                               class="file-upload__input" 
+                               multiple 
+                               accept=".jpg,.jpeg,.png,.webp,.pdf">
+                        
+                        <label for="fileInput" class="file-upload__label">
+                            <span class="file-upload__icon">📎</span>
+                            <span>انتخاب فایل‌ها</span>
+                        </label>
+                        
+                        <div class="file-upload__files" id="fileList"></div>
+                    </div>
+                    
+                    {% if form.attachments.help_text %}
+                        <span class="help-text">{{ form.attachments.help_text }}</span>
+                    {% endif %}
+                    
+                    {% if form.attachments.errors %}
+                        {% for error in form.attachments.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span>ثبت درخواست</span>
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // File upload preview
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const submitBtn = document.getElementById('submitBtn');
+    const ticketForm = document.getElementById('ticketForm');
+
+    // Update file list when files are selected
+    fileInput.addEventListener('change', function() {
+        fileList.innerHTML = '';
+        
+        if (this.files.length > 0) {
+            Array.from(this.files).forEach(file => {
+                const fileItem = document.createElement('span');
+                fileItem.className = 'file-upload__file-item';
+                fileItem.textContent = file.name;
+                fileList.appendChild(fileItem);
+            });
+        }
+    });
+
+    // Show loading state on form submit
+    ticketForm.addEventListener('submit', function(e) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span><span>در حال ثبت...</span>';
+    });
+</script>
+{% endblock %}

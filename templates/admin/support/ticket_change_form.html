@@ -1,0 +1,160 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+    {{ block.super }}
+    
+    {% if original %}
+    <style>
+        .support-reply-section {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .support-reply-section h2 {
+            margin: 0 0 15px 0;
+            color: #245C43;
+            font-size: 1.2em;
+        }
+        
+        .support-reply-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .support-reply-form textarea:focus {
+            outline: none;
+            border-color: #245C43;
+            box-shadow: 0 0 0 2px rgba(36, 92, 67, 0.1);
+        }
+        
+        .support-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-reply {
+            background: #245C43;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-reply:hover {
+            background: #173D2D;
+        }
+        
+        .btn-close {
+            background: #E87932;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn-close:hover {
+            background: #d66a20;
+        }
+        
+        .btn-reopen {
+            background: #6E756F;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn-reopen:hover {
+            background: #5a605b;
+        }
+        
+        .file-upload-label {
+            display: inline-block;
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            color: #666;
+        }
+        
+        .file-upload-label:hover {
+            border-color: #245C43;
+            color: #245C43;
+        }
+    </style>
+    
+    <div class="support-reply-section">
+        <h2>ارسال پاسخ به کاربر</h2>
+        
+        {% if original.status == 'WAITING_FOR_SUPPORT' %}
+            <form method="post" action="{% url 'admin:support-ticket-reply' original.pk %}" 
+                  enctype="multipart/form-data" class="support-reply-form">
+                {% csrf_token %}
+                <textarea name="message" rows="4" placeholder="پاسخ خود را بنویسید..."></textarea>
+                <br><br>
+                <label class="file-upload-label">
+                    📎 پیوست فایل
+                    <input type="file" name="attachments" multiple 
+                           accept=".jpg,.jpeg,.png,.webp,.pdf" 
+                           style="display: none;">
+                </label>
+                <div class="support-actions">
+                    <button type="submit" class="btn-reply">ارسال پاسخ</button>
+                </div>
+            </form>
+        {% elif original.status == 'WAITING_FOR_USER' %}
+            <p style="color: #245C43; font-weight: 600;">
+                ✓ در انتظار پاسخ کاربر
+            </p>
+        {% elif original.status == 'CLOSED' %}
+            <p style="color: #6E756F; font-weight: 600;">
+                این تیکت بسته شده است.
+            </p>
+        {% endif %}
+        
+        <div class="support-actions" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+            {% if original.status != 'CLOSED' %}
+                <form method="post" action="{% url 'admin:support-ticket-close' original.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-close">بستن تیکت</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'admin:support-ticket-reopen' original.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-reopen">باز کردن تیکت</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

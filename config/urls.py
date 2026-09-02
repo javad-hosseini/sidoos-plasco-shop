@@ -17,18 +17,29 @@ Including another URLconf
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.sitemaps.views import sitemap
+from config.sitemaps import StaticViewSitemap, ProductSitemap, CategorySitemap
+from .seo import robots_txt
 
 from config import settings
 
+sitemaps = {
+    "static": StaticViewSitemap,
+    "products": ProductSitemap,
+    "categories": CategorySitemap,
+}
+
 urlpatterns = [
+    path("robots.txt", robots_txt, name="robots_txt"),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
     path('sidoos-administration/', admin.site.urls),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
 
-    path('', include('apps.home.urls', namespace="home_app")),
-    path('accounts/', include('apps.accounts.urls', namespace="accounts_app")),
-    path('blogs/', include('apps.blogs.urls', namespace="blogs_app")),
-    path('products/', include('apps.products.urls', namespace="products_app")),
-    path('support/', include('apps.support.urls', namespace="support_app")),
+    path('', include('apps.home.urls')),
+    path('accounts/', include('apps.accounts.urls')),
+    path('blogs/', include('apps.blogs.urls')),
+    path('products/', include('apps.products.urls')),
+    path('support/', include('apps.support.urls')),
 
 ]
 
