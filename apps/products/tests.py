@@ -1,4 +1,5 @@
 import unittest
+
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client
@@ -145,7 +146,7 @@ class ProductCategoryTests(TestCase):
         self.assertContains(response, 'سطل آشپزخانه')
 
     def test_product_detail_page_renders_price_and_related(self):
-        category = Category.objects.create(name='آشپزخانه', creator=self.user)
+        category = Category.objects.create(name='آشپزخانه', creator=self.admin_user)
         product = Product.objects.create(
             name='قابلمه بزرگ',
             description='<p>توضیح محصول</p>',
@@ -153,7 +154,7 @@ class ProductCategoryTests(TestCase):
             on_sale_price=200000,
             cover_image=self._image_file(),
             published=True,
-            creator=self.user,
+            creator=self.admin_user,
             category=category,
         )
         sibling = Product.objects.create(
@@ -162,7 +163,7 @@ class ProductCategoryTests(TestCase):
             price=90000,
             cover_image=self._image_file(),
             published=True,
-            creator=self.user,
+            creator=self.admin_user,
             category=category,
         )
 
@@ -186,7 +187,7 @@ class ProductCategoryTests(TestCase):
             price=120000,
             cover_image=self._image_file(),
             published=True,
-            creator=self.user,
+            creator=self.admin_user,
         )
         response = Client().get(
             reverse('products:product_detail', args=[product.slug])
