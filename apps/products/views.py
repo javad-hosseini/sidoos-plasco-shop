@@ -121,28 +121,7 @@ def category_list(request):
     return render(request, 'products/category_list.html', {'categories': categories})
 
 
-@login_required
-def category_create(request):
-    """Create a new category or subcategory."""
-    if request.method == 'POST':
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            category = form.save(commit=False)
-            category.creator = request.user
-            try:
-                category.full_clean()
-            except ValidationError as exc:
-                for errors in exc.message_dict.values():
-                    for error in errors:
-                        form.add_error(None, error)
-            else:
-                category.save()
-                messages.success(request, 'Category created successfully.')
-                return redirect('products:category_list')
-    else:
-        form = CategoryForm()
 
-    return render(request, 'products/category_create.html', {'form': form})
 
 
 @login_required
