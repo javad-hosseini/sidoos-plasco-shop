@@ -1,0 +1,27 @@
+name: "CodeQL Django Security Configuration"
+
+# Only scan Python files in the apps directory
+paths:
+  - apps/
+
+# Ignore these paths (they're auto-generated or not relevant)
+paths-ignore:
+  - '**/migrations/**'
+  - '**/tests/**'
+  - '**/static/**'
+  - '**/media/**'
+  - 'venv/**'
+  - '.venv/**'
+  - '**/__pycache__/**'
+  - '**/*.pyc'
+
+# Use extended security query packs
+queries:
+  - uses: security-extended
+  - uses: security-quality
+
+# Optional: Exclude specific queries that produce false positives
+query-filters:
+   - exclude:
+       id: py/clear-text-logging-sensitive-data
+       reason: "False positives in debug mode"
