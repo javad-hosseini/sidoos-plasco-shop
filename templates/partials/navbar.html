@@ -1,69 +1,48 @@
 {% load static %}
 
 <style>
-  /* این متغیرها اگر در base.html شما تعریف شده باشند override می‌شوند،
-     در غیر این‌صورت مقادیر پیش‌فرض (fallback) استفاده می‌شوند */
-  .site-header, .cat-panel, .breadcrumbs, .scroll-progress {
-    --charcoal: var(--charcoal, #111111);
-    --emerald: var(--emerald, #123c36);
-    --cream: var(--cream, #f5f0e8);
-    --beige: var(--beige, #d8cfc1);
-    --gold: var(--gold, #b89b5e);
-    --gold-soft: var(--gold-soft, rgba(184,155,94,.35));
-    --cream-soft: var(--cream-soft, rgba(245,240,232,.6));
-    --ease: var(--ease, cubic-bezier(.16,.84,.44,1));
-  }
-
-  /* ===== Scroll Progress Gradient ===== */
-  .scroll-progress{
-    position:fixed; top:0; right:0; left:0;
-    height:3px; z-index:200;
-    width:0%;
-    background:linear-gradient(90deg, var(--gold), var(--emerald), var(--gold));
-    background-size:200% 100%;
-    transition:width .1s linear;
-    pointer-events:none;
-  }
-
-  /* ===== Header / Navbar ===== */
+  /* ===== Header / Navbar (cinematic) ===== */
   .site-header{
     position:fixed; top:0; right:0; left:0;
     z-index:100;
     display:flex; align-items:center; justify-content:space-between;
-    padding:26px 6vw;
+    gap:24px;
+    padding:24px 6vw;
+    font-family:var(--font-body);
     transition:padding .5s var(--ease), background .5s var(--ease), backdrop-filter .5s var(--ease), border-color .5s var(--ease);
     border-bottom:1px solid transparent;
-    font-family:'Vazirmatn', sans-serif;
   }
   .site-header.scrolled{
-    padding:16px 6vw;
-    background:rgba(17,17,17,.78);
+    padding:14px 6vw;
+    background:rgba(17,17,17,.82);
     backdrop-filter:blur(14px) saturate(140%);
     border-bottom:1px solid rgba(184,155,94,.16);
   }
-  .site-header .logo{ display:flex; flex-direction:column; align-items:center; gap:2px; line-height:1; }
-  .site-header .logo-link{ display:flex; flex-direction:column; align-items:center; gap:2px; color:inherit; text-decoration:none; }
-  .site-header .logo .fa{ font-size:23px; font-weight:800; letter-spacing:.02em; color:var(--cream); }
-  .site-header .logo .en{ font-size:9px; color:var(--gold); font-family:'Cormorant Garamond', serif; letter-spacing:.42em; text-transform:uppercase; }
 
-  nav.primary{ display:flex; gap:44px; font-size:14.5px; letter-spacing:.01em; }
-  nav.primary a{ position:relative; color:var(--cream-soft); transition:color .35s; padding:4px 0; text-decoration:none; }
-  nav.primary a::after{
-    content:''; position:absolute; bottom:0; right:0; left:auto;
+  .site-header__group{ display:flex; align-items:center; gap:26px; }
+  .site-header__group--left{ justify-content:flex-end; }
+
+  /* logo (center) */
+  .site-header .logo-link{ display:flex; flex-direction:column; align-items:center; gap:2px; line-height:1; }
+  .site-header .logo-link .fa{ font-size:22px; font-weight:800; letter-spacing:.02em; color:var(--cream); }
+  .site-header .logo-link .en{ font-size:9px; color:var(--gold); font-family:var(--font-display); letter-spacing:.42em; text-transform:uppercase; }
+
+  /* primary links */
+  .nav-primary{ display:flex; align-items:center; gap:30px; font-size:14.5px; letter-spacing:.01em; }
+  .nav-primary a{ position:relative; color:var(--cream-soft); transition:color .35s; padding:4px 0; white-space:nowrap; }
+  .nav-primary a::after{
+    content:''; position:absolute; bottom:0; right:0;
     width:0; height:1px; background:var(--gold);
     transition:width .4s var(--ease);
   }
-  nav.primary a:hover, nav.primary a.active{ color:var(--cream); }
-  nav.primary a:hover::after, nav.primary a.active::after{ width:100%; }
+  .nav-primary a:hover, .nav-primary a.is-active{ color:var(--cream); }
+  .nav-primary a:hover::after, .nav-primary a.is-active::after{ width:100%; }
 
-  .nav-actions{ display:flex; align-items:center; gap:22px; }
-
-  /* دکمه دسته‌بندی (همبرگری) */
+  /* category hamburger button */
   .cat-toggle{
-    display:flex; align-items:center; gap:10px;
-    background:none; border:none; cursor:pointer;
-    color:var(--cream); font-family:inherit; font-size:13.5px; letter-spacing:.02em;
-    padding:6px 2px; opacity:.9; transition:opacity .3s;
+    display:inline-flex; align-items:center; gap:10px;
+    color:var(--cream); font-size:13.5px; letter-spacing:.02em;
+    opacity:.9; transition:opacity .3s; white-space:nowrap;
   }
   .cat-toggle:hover{ opacity:1; }
   .burger-icon{ display:flex; flex-direction:column; gap:5px; width:22px; }
@@ -72,20 +51,42 @@
   .cat-toggle[aria-expanded="true"] .burger-icon span:nth-child(2){ opacity:0; }
   .cat-toggle[aria-expanded="true"] .burger-icon span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
 
-  /* ===== Backdrop (blur پشت صفحه) ===== */
+  /* search */
+  .nav-search{ display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(245,240,232,.25); padding:5px 2px; transition:border-color .3s; }
+  .nav-search:focus-within{ border-color:var(--gold); }
+  .nav-search input{
+    background:none; border:none; outline:none; color:var(--cream);
+    font-family:inherit; font-size:13px; width:130px; transition:width .35s var(--ease);
+  }
+  .nav-search input::placeholder{ color:var(--cream-soft); }
+  .nav-search input:focus{ width:180px; }
+  .nav-search button{ display:flex; color:var(--cream-soft); transition:color .3s; }
+  .nav-search button:hover{ color:var(--gold); }
+  .nav-search svg{ width:17px; height:17px; }
+
+  /* auth */
+  .nav-auth-icon{ width:20px; height:20px; color:var(--cream); opacity:.85; transition:opacity .3s, transform .3s; }
+  .nav-auth-icon:hover{ opacity:1; transform:translateY(-1px); }
+  .nav-auth-icon svg{ width:100%; height:100%; }
+  .nav-login{
+    display:inline-flex; align-items:center; gap:8px;
+    border:1px solid var(--gold-soft); color:var(--cream);
+    padding:9px 20px; font-size:13px; letter-spacing:.02em;
+    transition:background .35s var(--ease), color .35s var(--ease), border-color .35s;
+  }
+  .nav-login:hover{ background:var(--gold); color:var(--charcoal); border-color:var(--gold); }
+
+  /* ===== category drawer ===== */
   .cat-backdrop{
     position:fixed; inset:0; z-index:150;
-    background:rgba(17,17,17,.55);
-    backdrop-filter:blur(6px);
-    opacity:0; pointer-events:none;
-    transition:opacity .4s var(--ease);
+    background:rgba(17,17,17,.55); backdrop-filter:blur(6px);
+    opacity:0; pointer-events:none; transition:opacity .4s var(--ease);
   }
   .cat-backdrop.show{ opacity:1; pointer-events:auto; }
 
-  /* ===== Category Side Panel ===== */
   .cat-panel{
     position:fixed; top:0; bottom:0; right:0;
-    width:min(360px, 86vw);
+    width:min(400px, 88vw);
     background:var(--charcoal);
     border-left:1px solid rgba(184,155,94,.16);
     z-index:160;
@@ -95,158 +96,166 @@
     overflow-y:auto;
   }
   .cat-panel.open{ transform:translateX(0); }
-  .cat-panel-head{
+  .cat-panel__head{
     display:flex; align-items:center; justify-content:space-between;
-    padding:26px 6vw; border-bottom:1px solid rgba(184,155,94,.16);
+    padding:24px 28px; border-bottom:1px solid rgba(184,155,94,.16);
     color:var(--cream); font-size:15px; font-weight:700;
+    position:sticky; top:0; background:var(--charcoal); z-index:2;
   }
-  .cat-close{ background:none; border:none; color:var(--cream); font-size:26px; line-height:1; cursor:pointer; }
-  .cat-list{ list-style:none; margin:0; padding:14px 0; }
-  .cat-list li a{
-    display:block; padding:14px 6vw; color:var(--cream-soft);
-    text-decoration:none; font-size:15px; transition:color .3s, background .3s, padding-right .3s;
+  .cat-panel__close{ color:var(--cream); font-size:26px; line-height:1; }
+
+  .cat-panel__mobile-nav{ display:none; border-bottom:1px solid rgba(184,155,94,.16); padding:8px 0; }
+  .cat-panel__mobile-nav a{ display:block; padding:13px 28px; color:var(--cream); font-size:15px; font-weight:600; }
+
+  .cat-tree{ padding:12px 0 40px; }
+  .cat-tree ul{ padding-inline-start:16px; }
+  .cat-node__row{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
     border-bottom:1px solid rgba(245,240,232,.06);
   }
-  .cat-list li a:hover{ color:var(--gold); background:rgba(184,155,94,.06); padding-right:calc(6vw + 6px); }
-
-  .cat-panel-mobile-nav{ display:none; }
-
-  /* ===== Breadcrumbs ===== */
-  .breadcrumbs{
-    padding:14px 6vw; margin-top:76px;
-    border-bottom:1px solid rgba(184,155,94,.10);
-    font-size:12.5px; color:var(--cream-soft);
-    font-family:'Vazirmatn', sans-serif;
+  .cat-node__link{
+    display:block; flex:1; padding:13px 28px;
+    color:var(--cream-soft); font-size:14.5px;
+    transition:color .3s, background .3s, padding-inline-start .3s;
   }
-  .breadcrumbs-inner{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .breadcrumbs a{ color:var(--cream-soft); text-decoration:none; transition:color .3s; }
-  .breadcrumbs a:hover{ color:var(--gold); }
-  .breadcrumbs .crumb-sep{ color:var(--gold-soft); }
-  .breadcrumbs .crumb-current{ color:var(--gold); }
+  .cat-node__link:hover{ color:var(--gold); background:rgba(184,155,94,.06); padding-inline-start:34px; }
+  .cat-node__children .cat-node__link{ font-size:13.5px; padding-block:11px; }
+  .cat-node__toggle{
+    flex:0 0 auto; width:38px; height:38px; margin-inline-end:18px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--cream-soft); transition:color .3s, transform .35s var(--ease);
+  }
+  .cat-node__toggle svg{ width:16px; height:16px; }
+  .cat-node__toggle[aria-expanded="true"]{ color:var(--gold); transform:rotate(180deg); }
+  .cat-tree__empty{ padding:16px 28px; color:var(--cream-soft); font-size:14px; }
 
-  @media(max-width:760px){
-    nav.primary{ display:none; }
-    .cat-panel-mobile-nav{ display:block; border-bottom:1px solid rgba(184,155,94,.16); padding:10px 0; }
-    .cat-panel-mobile-nav a{
-      display:block; padding:14px 6vw; color:var(--cream);
-      text-decoration:none; font-size:15px; font-weight:600;
-    }
+  @media(max-width:980px){
+    .nav-primary{ display:none; }
+    .nav-search input{ width:110px; }
+    .cat-panel__mobile-nav{ display:block; }
     .cat-toggle-text{ display:none; }
+  }
+  @media(max-width:520px){
+    .site-header{ gap:12px; }
+    .nav-search{ display:none; }
   }
 </style>
 
-<div class="scroll-progress" id="scrollProgress"></div>
-<div class="cat-backdrop" id="catBackdrop"></div>
-
 <header id="siteHeader" class="site-header">
-  <div class="logo">
-    <a href="#" class="logo-link">
+
+  <div class="site-header__group site-header__group--right">
+    <nav class="nav-primary" aria-label="ناوبری اصلی">
+      <a href="{% url 'home:home' %}">خانه</a>
+      <a href="{% url 'products:product_list' %}">فروشگاه</a>
+      <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
+      <a href="{% url 'products:special_sales' %}">پیشنهادهای ویژه</a>
+    </nav>
+    <button class="cat-toggle" id="catToggle" aria-haspopup="true" aria-expanded="false" aria-controls="catPanel">
+      <span class="cat-toggle-text">دسته‌بندی‌ها</span>
+      <span class="burger-icon"><span></span><span></span><span></span></span>
+    </button>
+  </div>
+
+  <div class="site-header__group site-header__group--center">
+    <a href="{% url 'home:home' %}" class="logo-link">
       <span class="fa">سیدوس</span>
       <span class="en latin">Sidoos</span>
     </a>
   </div>
 
-  <nav class="primary">
-    <a href="#">خانه</a>
-    <a href="#">فروشگاه</a>
-    <a href="#">پشتیبانی</a>
-    <a href="#">تخفیف‌های ویژه</a>
-  </nav>
+  <div class="site-header__group site-header__group--left">
+    {% if user.is_authenticated %}
+      <a href="{% url 'accounts:profile' %}" class="nav-auth-icon" aria-label="حساب کاربری">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.8-4 5-6 8-6s6.2 2 8 6"/></svg>
+      </a>
+    {% else %}
+      <a href="{% url 'accounts:login' %}" class="nav-login">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+        <span>ورود</span>
+      </a>
+    {% endif %}
 
-  <div class="nav-actions">
-    <button class="cat-toggle" id="catToggle" aria-haspopup="true" aria-expanded="false" aria-controls="catPanel">
-      <span class="cat-toggle-text">دسته‌بندی</span>
-      <div class="burger-icon" id="burgerIcon"><span></span><span></span><span></span></div>
-    </button>
+    <form class="nav-search" action="{% url 'products:product_list' %}" method="get" role="search">
+      <button type="submit" aria-label="جستجو">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.4" y2="16.4"/></svg>
+      </button>
+      <input type="search" name="q" placeholder="جستجوی محصول…" aria-label="جستجوی محصول">
+    </form>
   </div>
 </header>
 
-<nav class="breadcrumbs" aria-label="breadcrumb">
-  <div class="breadcrumbs-inner">
-    <a href="#">خانه</a>
-    {% for crumb in breadcrumbs %}
-      <span class="crumb-sep">/</span>
-      {% if forloop.last %}
-        <span class="crumb-current">{{ crumb.label }}</span>
-      {% else %}
-        <a href="#">{{ crumb.label }}</a>
-      {% endif %}
-    {% endfor %}
-  </div>
-</nav>
+<div class="cat-backdrop" id="catBackdrop"></div>
 
-<aside class="cat-panel" id="catPanel" aria-hidden="true">
-  <div class="cat-panel-head">
+<aside class="cat-panel" id="catPanel" aria-hidden="true" aria-label="دسته‌بندی محصولات">
+  <div class="cat-panel__head">
     <span>دسته‌بندی محصولات</span>
-    <button class="cat-close" id="catClose" aria-label="بستن">&times;</button>
+    <button class="cat-panel__close" id="catClose" aria-label="بستن">&times;</button>
   </div>
 
-  <!-- در موبایل، لینک‌های اصلی هم اینجا نمایش داده می‌شوند چون nav.primary مخفی است -->
-  <div class="cat-panel-mobile-nav">
-    <a href="#">خانه</a>
-    <a href="#">فروشگاه</a>
-    <a href="#">پشتیبانی</a>
-    <a href="#">تخفیف‌های ویژه</a>
+  <div class="cat-panel__mobile-nav">
+    <a href="{% url 'home:home' %}">خانه</a>
+    <a href="{% url 'products:product_list' %}">فروشگاه</a>
+    <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
+    <a href="{% url 'products:special_sales' %}">پیشنهادهای ویژه</a>
   </div>
 
-  <ul class="cat-list">
+  <ul class="cat-tree" id="catTree">
     {% for cat in categories %}
-      <li><a href="{% url 'products:category_products' cat.slug %}">{{ cat.name }}</a></li>
+      {% include 'partials/category_menu_node.html' with node=cat %}
     {% empty %}
-      <li><a href="#">سرامیک</a></li>
-      <li><a href="#">فلزی</a></li>
-      <li><a href="#">چوبی</a></li>
-      <li><a href="#">ظروف تزئینی</a></li>
-      <li><a href="#">گلدان‌ها</a></li>
-      <li><a href="#">همه محصولات</a></li>
+      <li class="cat-tree__empty">دسته‌بندی‌ای ثبت نشده است.</li>
     {% endfor %}
+    <li class="cat-node">
+      <div class="cat-node__row">
+        <a href="{% url 'products:category_list' %}" class="cat-node__link">مشاهده همه دسته‌بندی‌ها</a>
+      </div>
+    </li>
   </ul>
 </aside>
 
 <script>
 (function(){
-  /* ---- Scroll Progress + Header Scrolled State ---- */
-  const header = document.getElementById('siteHeader');
-  const progress = document.getElementById('scrollProgress');
-
-  function onScroll(){
+  var header = document.getElementById('siteHeader');
+  window.addEventListener('scroll', function(){
     if(window.scrollY > 40){ header.classList.add('scrolled'); } else { header.classList.remove('scrolled'); }
-    const doc = document.documentElement;
-    const scrollable = doc.scrollHeight - doc.clientHeight;
-    const pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
-    progress.style.width = pct + '%';
-  }
-  window.addEventListener('scroll', onScroll, {passive:true});
-  window.addEventListener('resize', onScroll);
-  onScroll();
+  }, {passive:true});
 
-  /* ---- Category Side Panel ---- */
-  const toggle = document.getElementById('catToggle');
-  const panel = document.getElementById('catPanel');
-  const backdrop = document.getElementById('catBackdrop');
-  const closeBtn = document.getElementById('catClose');
+  var toggle = document.getElementById('catToggle');
+  var panel = document.getElementById('catPanel');
+  var backdrop = document.getElementById('catBackdrop');
+  var closeBtn = document.getElementById('catClose');
 
   function openPanel(){
-    panel.classList.add('open');
-    backdrop.classList.add('show');
-    panel.setAttribute('aria-hidden', 'false');
-    toggle.setAttribute('aria-expanded', 'true');
+    panel.classList.add('open'); backdrop.classList.add('show');
+    panel.setAttribute('aria-hidden','false');
+    toggle.setAttribute('aria-expanded','true');
     document.body.style.overflow = 'hidden';
   }
   function closePanel(){
-    panel.classList.remove('open');
-    backdrop.classList.remove('show');
-    panel.setAttribute('aria-hidden', 'true');
-    toggle.setAttribute('aria-expanded', 'false');
+    panel.classList.remove('open'); backdrop.classList.remove('show');
+    panel.setAttribute('aria-hidden','true');
+    toggle.setAttribute('aria-expanded','false');
     document.body.style.overflow = '';
   }
-  toggle.addEventListener('click', ()=>{
+  toggle.addEventListener('click', function(){
     panel.classList.contains('open') ? closePanel() : openPanel();
   });
   closeBtn.addEventListener('click', closePanel);
   backdrop.addEventListener('click', closePanel);
-  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closePanel(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closePanel(); });
+
+  /* accordion: expand/collapse category branches */
+  var tree = document.getElementById('catTree');
+  if(tree){
+    tree.addEventListener('click', function(e){
+      var btn = e.target.closest('.cat-node__toggle');
+      if(!btn) return;
+      var children = btn.closest('.cat-node').querySelector('.cat-node__children');
+      if(!children) return;
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      children.hidden = open;
+    });
+  }
 })();
 </script>
-
-================== &ndash;&gt;-->

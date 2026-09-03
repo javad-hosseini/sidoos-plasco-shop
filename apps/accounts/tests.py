@@ -1,5 +1,7 @@
 # apps/accounts/tests.py
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from django.urls import reverse
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.hashers import make_password
 
@@ -57,3 +59,64 @@ class AuthenticationBackendTests(TestCase):
             has_price_access=False
         )
         self.assertFalse(user2.has_price_access)
+
+
+class ProfilePageTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(
+            username='pf-user',
+            first_name='رضا',
+            phone_number='09120000000',
+            password=make_password('testpass123'),
+        )
+
+    def _image(self):
+        return SimpleUploadedFile(
+            name='p.gif',
+            content=(
+                b'GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00'
+                b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00'
+                b'\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+            ),
+            content_type='image/gif',
+        )
+
+    def test_profile_requires_login(self):
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_profile_renders_empty_state(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/profile.html')
+        self.assertContains(response, 'محصولات ذخیره‌شده')
+        self.assertContains(response, 'رفتن به فروشگاه')
+
+    def test_profile_lists_saved_and_liked_products(self):
+        from apps.products.models import Category, Product, ProductLike, ProductSave
+
+        category = Category.objects.create(name='آشپزخانه', creator=self.user)
+        product = Product.objects.create(
+            name='قابلمه',
+            description='x',
+            price=300000,
+            cover_image=self._image(),
+            published=True,
+            creator=self.user,
+            category=category,
+        )
+        ProductSave.objects.create(user=self.user, product=product)
+        ProductLike.objects.create(user=self.user, product=product)
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'قابلمه')
+        # default has_price_access=True -> price shown
+        self.assertContains(response, 'تومان')
+
+    def test_profile_logout_is_post(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('accounts:logout'))
+        self.assertEqual(response.status_code, 302)

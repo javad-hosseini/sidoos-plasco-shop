@@ -40,23 +40,39 @@ def product_list(request):
 def product_detail(request, slug):
     """Display detailed product information."""
     can_view_price = _can_view_price(request.user)
-    product = get_object_or_404(Product, slug=slug, published=True)
-    images = product.images.all()
+    product = get_object_or_404(
+        Product.objects.select_related('category'), slug=slug, published=True
+    )
+    images = list(product.images.all())
     tags = product.tags.all()
-    
+
     # Check if user has saved/liked this product
     is_saved = False
     is_liked = False
     if request.user.is_authenticated:
         is_saved = ProductSave.objects.filter(user=request.user, product=product).exists()
         is_liked = ProductLike.objects.filter(user=request.user, product=product).exists()
-    
+
+    like_count = ProductLike.objects.filter(product=product).count()
+
+    # A small set of sibling products from the same category, newest first.
+    related_products = []
+    if product.category_id:
+        related_products = list(
+            Product.objects.filter(published=True, category_id=product.category_id)
+            .exclude(pk=product.pk)
+            .select_related('category')
+            .order_by('-created_at')[:8]
+        )
+
     context = {
         'product': product,
         'images': images,
         'tags': tags,
         'is_saved': is_saved,
         'is_liked': is_liked,
+        'like_count': like_count,
+        'related_products': related_products,
         'discount': product.get_discount_percentage() if can_view_price else None,
         'can_view_price': can_view_price,
     }

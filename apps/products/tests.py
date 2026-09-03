@@ -182,6 +182,56 @@ class ProductCategoryTests(TestCase):
         response = self.client.get(reverse('products:product_detail', args=[product.slug]))
         self.assertEqual(response.status_code, 200)
 
+    def test_product_detail_page_renders_price_and_related(self):
+        category = Category.objects.create(name='آشپزخانه', creator=self.user)
+        product = Product.objects.create(
+            name='قابلمه بزرگ',
+            description='<p>توضیح محصول</p>',
+            price=250000,
+            on_sale_price=200000,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+            category=category,
+        )
+        sibling = Product.objects.create(
+            name='ماهیتابه',
+            description='x',
+            price=90000,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+            category=category,
+        )
+
+        response = self.client.get(
+            reverse('products:product_detail', args=[product.slug])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'products/product_detail.html')
+        # price visible for an authenticated has_price_access user
+        self.assertContains(response, 'تومان')
+        self.assertContains(response, 'توضیحات محصول')
+        # sibling shows up in the related rail
+        self.assertContains(response, sibling.name)
+        # save/like controls are wired to the toggle endpoints
+        self.assertContains(response, reverse('products:toggle_like', args=[product.id]))
+
+    def test_product_detail_hides_price_for_anonymous(self):
+        product = Product.objects.create(
+            name='سبد نان',
+            description='x',
+            price=120000,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.user,
+        )
+        response = Client().get(
+            reverse('products:product_detail', args=[product.slug])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'ورود برای مشاهده قیمت')
+
     def test_toggle_save_creates_and_deletes_save(self):
         product = Product.objects.create(
             name='Save Toggle Product',

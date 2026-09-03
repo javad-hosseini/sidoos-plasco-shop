@@ -19,12 +19,16 @@ class ProductAdmin(admin.ModelAdmin):
         'call_for_price',
         'published',
         'featured_in_special_sales',
+        'is_featured',
+        'featured_order',
         'category',
         'created_at'
     )
+    list_editable = ('is_featured', 'featured_order')
     list_filter = (
         'published',
         'featured_in_special_sales',
+        'is_featured',
         'category',
         'call_for_price',
         'created_at'
@@ -44,7 +48,12 @@ class ProductAdmin(admin.ModelAdmin):
             'description': 'Set call_for_price to hide actual price. Discount % is auto-calculated.'
         }),
         ('Status & Visibility', {
-            'fields': ('published', 'featured_in_special_sales')
+            'fields': (
+                'published',
+                'featured_in_special_sales',
+                'is_featured',
+                'featured_order',
+            )
         }),
         ('Category, Tags & Creator', {
             'fields': ('category', 'tags', 'creator')

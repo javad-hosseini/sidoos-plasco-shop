@@ -109,6 +109,14 @@ class Product(models.Model):
         default=False,
         help_text="Include in 'Special Sales' section of website"
     )
+    is_featured = models.BooleanField(
+        default=False,
+        help_text="نمایش در بخش «محصولات منتخب» صفحه اصلی"
+    )
+    featured_order = models.PositiveIntegerField(
+        default=0,
+        help_text="ترتیب نمایش در «محصولات منتخب» صفحه اصلی (کوچک‌تر = جلوتر)"
+    )
     
     # Relations
     creator = models.ForeignKey(
@@ -135,6 +143,7 @@ class Product(models.Model):
         indexes = [
             models.Index(fields=['published']),
             models.Index(fields=['featured_in_special_sales']),
+            models.Index(fields=['is_featured', 'featured_order']),
             models.Index(fields=['slug']),
         ]
         constraints = [

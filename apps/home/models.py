@@ -1,3 +1,108 @@
-from django.db import models
+"""
+Home application models.
 
-# Create your models here.
+Contains content models that power the public landing page and are
+managed entirely from the Django admin:
+
+- HeroSlide: one slide of the homepage hero slider.
+"""
+
+from django.db import models
+from django.urls import NoReverseMatch, reverse
+
+
+class HeroSlide(models.Model):
+    """
+    A single slide in the homepage hero slider.
+
+    Every visible text fragment of the slide is a separate field so the
+    marketing team can edit them independently from the admin. The CTA
+    destination is chosen from a fixed list of parameterless named URLs.
+    """
+
+    # Named URLs that can be safely reversed without extra arguments.
+    # Routes that require a slug / id / tracking code are intentionally
+    # excluded — the hero CTA always points at a top-level page.
+    CTA_URL_CHOICES = [
+        ("home:home", "خانه"),
+        ("products:product_list", "فروشگاه (همه محصولات)"),
+        ("products:special_sales", "فروش ویژه"),
+        ("products:category_list", "دسته‌بندی‌ها"),
+        ("blogs:article_list", "مجله سیدوس"),
+        ("support:ticket_list", "پشتیبانی (لیست تیکت‌ها)"),
+        ("support:ticket_create", "ثبت تیکت جدید"),
+        ("accounts:login", "ورود"),
+        ("accounts:logout", "خروج"),
+        ("accounts:profile", "پروفایل کاربر"),
+    ]
+
+    background_image = models.ImageField(
+        upload_to="home/hero/",
+        verbose_name="تصویر پس‌زمینه",
+        help_text="تصویر تمام‌صفحه پشت متن اسلاید. بهتر است افقی و با کیفیت باشد.",
+    )
+    eyebrow = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="پیش‌عنوان",
+        help_text="متن کوچک بالای عنوان (مثلاً «مجموعه‌ی پاییز ۱۴۰۳»).",
+    )
+    title = models.TextField(
+        verbose_name="عنوان اصلی",
+        help_text="عنوان بزرگ اسلاید. برای شکستن خط، Enter بزنید.",
+    )
+    subtitle = models.TextField(
+        blank=True,
+        verbose_name="توضیح کوتاه",
+        help_text="یک یا دو جمله زیر عنوان.",
+    )
+    cta_label = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name="متن دکمه",
+        help_text="متن روی دکمه‌ی طلایی. خالی بگذارید تا دکمه نمایش داده نشود.",
+    )
+    cta_url_name = models.CharField(
+        max_length=64,
+        blank=True,
+        choices=CTA_URL_CHOICES,
+        verbose_name="مقصد دکمه",
+        help_text="صفحه‌ای که با کلیک روی دکمه باز می‌شود.",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="غیرفعال کنید تا اسلاید از روی سایت مخفی شود.",
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="ترتیب نمایش",
+        help_text="کوچک‌تر = جلوتر.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+
+    class Meta:
+        verbose_name = "اسلاید هیرو"
+        verbose_name_plural = "اسلایدهای هیرو"
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        first_line = self.title.splitlines()[0] if self.title else ""
+        return first_line or f"اسلاید {self.pk}"
+
+    def get_cta_url(self):
+        """
+        Resolve the CTA destination to a URL path.
+
+        Returns an empty string when no destination is set or the name
+        can no longer be reversed, so templates can guard with `if`.
+        """
+        if not self.cta_url_name:
+            return ""
+        try:
+            return reverse(self.cta_url_name)
+        except NoReverseMatch:
+            return ""

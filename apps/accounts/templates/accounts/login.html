@@ -1,140 +1,370 @@
 <!DOCTYPE html>
-<html lang="en">
+{% load static %}
+<html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
-        }
-        .btn-login {
-            width: 100%;
-            padding: 12px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-login:hover {
-            background: #0056b3;
-        }
-        .alert {
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .help-text {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-        .help-text a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        .help-text a:hover {
-            text-decoration: underline;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ورود به حساب کاربری | سیدوس</title>
+<meta name="robots" content="noindex,nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer">
+
+<style>
+  :root{
+    --charcoal:#111111;
+    --graphite:#181818;
+    --graphite-2:#1f1f1f;
+    --emerald:#123c36;
+    --cream:#f5f0e8;
+    --beige:#d8cfc1;
+    --gold:#b89b5e;
+    --gold-2:#c9ac6d;
+    --gold-soft:rgba(184,155,94,.35);
+    --cream-soft:rgba(245,240,232,.6);
+    --line:rgba(216,207,193,.14);
+    --ease:cubic-bezier(.16,.84,.44,1);
+    --font:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+    --display:'Cormorant Garamond','Vazirmatn',serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--font);
+    background:var(--charcoal);
+    color:var(--cream);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--gold);color:var(--charcoal);}
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+  }
+
+  .auth{
+    display:grid;
+    grid-template-columns:1.05fr .95fr;
+    min-height:100vh;
+  }
+
+  /* ===================== BRAND SIDE ===================== */
+  .auth__brand{
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:54px 56px;
+    isolation:isolate;
+  }
+  .auth__brand-bg{
+    position:absolute;inset:0;z-index:-2;
+    background:url('https://images.unsplash.com/photo-1578500494198-246f612d3b3d?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+    animation:kenburns 24s var(--ease) infinite alternate;
+  }
+  @keyframes kenburns{ from{transform:scale(1.04)} to{transform:scale(1.16)} }
+  .auth__brand-overlay{
+    position:absolute;inset:0;z-index:-1;
+    background:linear-gradient(120deg, rgba(17,17,17,.94) 0%, rgba(17,17,17,.7) 45%, rgba(18,60,54,.55) 100%);
+  }
+  .auth__brand-overlay::after{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 82% 12%, rgba(184,155,94,.22), transparent 55%);
+  }
+
+  .auth__logo{
+    display:inline-flex;flex-direction:column;gap:3px;line-height:1;
+    align-self:flex-start;
+  }
+  .auth__logo b{font-size:22px;font-weight:800;letter-spacing:.02em;}
+  .auth__logo span{
+    font-family:var(--display);font-size:10px;color:var(--gold);
+    letter-spacing:.44em;text-transform:uppercase;
+  }
+
+  .auth__brand-eyebrow{
+    font-family:var(--display);font-style:italic;color:var(--gold);
+    font-size:15px;letter-spacing:.04em;margin-bottom:16px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .auth__brand-eyebrow::before{content:'';width:28px;height:1px;background:var(--gold);}
+  .auth__brand-title{
+    font-size:clamp(28px,3vw,42px);line-height:1.3;font-weight:800;
+    max-width:15ch;margin-bottom:18px;
+  }
+  .auth__brand-sub{
+    color:var(--cream-soft);font-size:15px;line-height:2;max-width:44ch;
+  }
+
+  .auth__points{list-style:none;display:flex;flex-direction:column;gap:14px;}
+  .auth__points li{
+    display:flex;align-items:center;gap:14px;
+    font-size:14px;color:var(--beige);
+  }
+  .auth__points i{
+    width:38px;height:38px;flex:0 0 auto;
+    display:grid;place-items:center;
+    border:1px solid var(--gold-soft);color:var(--gold);
+    font-size:15px;
+  }
+
+  /* ===================== FORM SIDE ===================== */
+  .auth__panel{
+    display:flex;align-items:center;justify-content:center;
+    padding:48px 24px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(184,155,94,.06), transparent 60%),
+      var(--charcoal);
+  }
+  .auth__card{
+    width:100%;max-width:432px;
+    background:linear-gradient(180deg, var(--graphite-2), var(--graphite));
+    border:1px solid var(--line);
+    padding:40px;
+    animation:cardIn .8s var(--ease) both;
+  }
+  @keyframes cardIn{ from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+  .auth__mobile-logo{display:none;}
+
+  .auth__back{
+    display:inline-flex;align-items:center;gap:8px;
+    color:var(--cream-soft);font-size:12.5px;margin-bottom:26px;
+    transition:color .3s,gap .3s;
+  }
+  .auth__back:hover{color:var(--gold);gap:12px;}
+
+  .auth__head{margin-bottom:28px;}
+  .auth__badge{
+    display:grid;place-items:center;width:52px;height:52px;
+    border:1px solid var(--gold-soft);color:var(--gold);
+    font-size:19px;margin-bottom:18px;
+  }
+  .auth__head h1{font-size:23px;font-weight:800;margin-bottom:8px;}
+  .auth__head p{font-size:13.5px;color:var(--cream-soft);line-height:1.9;}
+
+  .auth__alert{
+    display:flex;align-items:flex-start;gap:10px;
+    background:rgba(232,121,50,.1);border:1px solid rgba(232,121,50,.32);
+    color:#f0b48c;font-size:13px;line-height:1.8;
+    padding:12px 14px;margin-bottom:22px;
+  }
+  .auth__alert i{margin-top:3px;flex:0 0 auto;}
+
+  .auth__form{display:flex;flex-direction:column;gap:18px;}
+
+  .field{position:relative;animation:fieldIn .6s var(--ease) both;}
+  .field:nth-child(2){animation-delay:.08s;}
+  .field:nth-child(3){animation-delay:.16s;}
+  @keyframes fieldIn{ from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  .field__icon{
+    position:absolute;right:16px;top:50%;transform:translateY(-50%);
+    color:var(--cream-soft);font-size:14px;transition:color .3s;
+    pointer-events:none;
+  }
+  .field__input{
+    width:100%;
+    background:var(--charcoal);
+    border:1px solid var(--line);
+    color:var(--cream);
+    font-family:inherit;font-size:14.5px;
+    padding:17px 44px 17px 44px;
+    outline:none;
+    transition:border-color .3s,box-shadow .3s,background .3s;
+  }
+  .field__input::placeholder{color:transparent;}
+  .field__input:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(184,155,94,.14);
+  }
+  .field__input:focus ~ .field__icon{color:var(--gold);}
+
+  .field__label{
+    position:absolute;right:40px;top:50%;transform:translateY(-50%);
+    color:var(--cream-soft);font-size:14px;
+    background:var(--charcoal);padding:0 6px;
+    pointer-events:none;
+    transition:top .2s var(--ease),font-size .2s var(--ease),color .2s var(--ease);
+  }
+  .field__input:focus ~ .field__label,
+  .field__input:not(:placeholder-shown) ~ .field__label{
+    top:0;font-size:11px;color:var(--gold);
+  }
+
+  .field__toggle{
+    position:absolute;left:10px;top:50%;transform:translateY(-50%);
+    width:34px;height:34px;display:grid;place-items:center;
+    background:none;border:none;cursor:pointer;
+    color:var(--cream-soft);font-size:14px;transition:color .3s;
+  }
+  .field__toggle:hover{color:var(--gold);}
+
+  .auth__submit{
+    position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    width:100%;min-height:54px;margin-top:6px;
+    background:var(--gold);color:var(--charcoal);
+    border:1px solid var(--gold);
+    font-family:inherit;font-size:15px;font-weight:800;letter-spacing:.02em;
+    cursor:pointer;
+    transition:background .35s var(--ease),letter-spacing .35s var(--ease);
+    animation:fieldIn .6s var(--ease) .24s both;
+  }
+  .auth__submit:hover{background:var(--gold-2);letter-spacing:.06em;}
+  .auth__submit::after{
+    content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+    background:linear-gradient(120deg,transparent,rgba(255,255,255,.45),transparent);
+    transform:skewX(-20deg);
+  }
+  .auth__submit:hover::after{animation:shimmer .9s var(--ease);}
+  @keyframes shimmer{ to{left:120%;} }
+
+  .auth__foot{
+    display:flex;align-items:flex-start;gap:10px;
+    margin-top:26px;padding-top:22px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--cream-soft);line-height:2;
+  }
+  .auth__foot i{margin-top:4px;color:var(--gold);flex:0 0 auto;}
+  .auth__foot a{color:var(--gold);font-weight:700;}
+
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width:900px){
+    .auth{grid-template-columns:1fr;}
+    .auth__brand{display:none;}
+    .auth__panel{padding:32px 18px;min-height:100vh;}
+    .auth__card{padding:32px 24px;}
+    .auth__mobile-logo{
+      display:inline-flex;flex-direction:column;gap:3px;line-height:1;
+      align-items:center;text-align:center;width:100%;margin-bottom:26px;
+    }
+    .auth__mobile-logo b{font-size:22px;font-weight:800;}
+    .auth__mobile-logo span{
+      font-family:var(--display);font-size:10px;color:var(--gold);
+      letter-spacing:.44em;text-transform:uppercase;
+    }
+    .auth__back{position:absolute;top:18px;right:18px;margin:0;}
+  }
+  @media (max-width:400px){
+    .auth__card{padding:26px 18px;}
+  }
+</style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
 
-        {% if form.errors %}
-            <div class="alert alert-error">
-                Invalid username or password. Please try again.
-            </div>
-        {% endif %}
+<div class="auth">
 
-        {% if next %}
-            {% if user.is_authenticated %}
-                <div class="alert alert-error">
-                    Your account doesn't have access to this page.
-                </div>
-            {% endif %}
-        {% endif %}
+  <aside class="auth__brand">
+    <div class="auth__brand-bg"></div>
+    <div class="auth__brand-overlay"></div>
 
-        <form method="post" action="{% url 'accounts:login' %}">
-            {% csrf_token %}
+    <a href="{% url 'home:home' %}" class="auth__logo"><b>سیدوس</b><span>Sidoos</span></a>
 
-            <div class="form-group">
-                <label for="id_username">Username, Email, or Phone:</label>
-                <input type="text" name="username" id="id_username"
-                       placeholder="Enter username, email, or phone number"
-                       required autofocus>
-            </div>
-
-            <div class="form-group">
-                <label for="id_password">Password:</label>
-                <input type="password" name="password" id="id_password"
-                       placeholder="Enter your password" required>
-            </div>
-
-            <button type="submit" class="btn-login">Login</button>
-
-            <input type="hidden" name="next" value="{{ next }}">
-        </form>
-
-        <div class="help-text">
-            <p>Contact your administrator if you need an account.</p>
-        </div>
+    <div>
+      <p class="auth__brand-eyebrow">پنل کاربران سیدوس</p>
+      <p class="auth__brand-title">ظرافتی که از دل خاک برمی‌خیزد</p>
+      <p class="auth__brand-sub">وارد حساب کاربری خود شوید تا به قیمت‌های عمده، سوابق سفارش و پشتیبانی اختصاصی دسترسی داشته باشید.</p>
     </div>
+
+    <ul class="auth__points">
+      <li><i class="fa-solid fa-tags"></i> مشاهده قیمت‌های عمده</li>
+      <li><i class="fa-solid fa-headset"></i> پشتیبانی و مشاوره‌ی اختصاصی</li>
+      <li><i class="fa-solid fa-box-open"></i> پیگیری و سوابق سفارش‌ها</li>
+    </ul>
+  </aside>
+
+  <main class="auth__panel">
+    <div class="auth__card">
+
+      <a href="{% url 'home:home' %}" class="auth__back"><i class="fa-solid fa-arrow-right"></i> بازگشت به سایت</a>
+
+      <a href="{% url 'home:home' %}" class="auth__mobile-logo"><b>سیدوس</b><span>Sidoos</span></a>
+
+      <div class="auth__head">
+        <span class="auth__badge"><i class="fa-solid fa-fingerprint"></i></span>
+        <h1>ورود به حساب کاربری</h1>
+        <p>برای ادامه، اطلاعات حساب خود را وارد کنید.</p>
+      </div>
+
+      {% if form.errors %}
+        <div class="auth__alert" role="alert">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>نام کاربری یا رمز عبور نادرست است. لطفاً دوباره تلاش کنید.</span>
+        </div>
+      {% endif %}
+
+      {% if next and user.is_authenticated %}
+        <div class="auth__alert" role="alert">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>حساب کاربری شما به این صفحه دسترسی ندارد.</span>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'accounts:login' %}" novalidate class="auth__form">
+        {% csrf_token %}
+
+        <div class="field">
+          <input type="text" name="username" id="id_username" class="field__input"
+                 placeholder=" " required autofocus autocomplete="username"
+                 value="{{ form.username.value|default_if_none:'' }}">
+          <i class="fa-solid fa-user field__icon"></i>
+          <label for="id_username" class="field__label">نام کاربری، ایمیل یا شماره موبایل</label>
+        </div>
+
+        <div class="field">
+          <input type="password" name="password" id="id_password" class="field__input"
+                 placeholder=" " required autocomplete="current-password">
+          <i class="fa-solid fa-lock field__icon"></i>
+          <label for="id_password" class="field__label">رمز عبور</label>
+          <button type="button" class="field__toggle" data-target="id_password"
+                  aria-label="نمایش رمز عبور" aria-pressed="false">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+
+        <button type="submit" class="auth__submit">
+          <span>ورود</span>
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+
+        <input type="hidden" name="next" value="{{ next }}">
+      </form>
+
+      <div class="auth__foot">
+        <i class="fa-solid fa-circle-info"></i>
+        <p>
+          ثبت‌نام در سیدوس توسط کارشناسان انجام می‌شود. برای دریافت حساب کاربری با شماره
+          <a href="tel:+985138944715" dir="ltr">۰۵۱۳-۸۹۴۴۷۱۵</a>
+          تماس بگیرید یا از بخش
+          <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
+          پیام بگذارید.
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.field__toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var input = document.getElementById(btn.dataset.target);
+      var icon = btn.querySelector('i');
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', String(show));
+      btn.setAttribute('aria-label', show ? 'پنهان کردن رمز عبور' : 'نمایش رمز عبور');
+      icon.classList.toggle('fa-eye', !show);
+      icon.classList.toggle('fa-eye-slash', show);
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
