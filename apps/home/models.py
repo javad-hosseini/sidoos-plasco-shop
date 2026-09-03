@@ -7,8 +7,10 @@ managed entirely from the Django admin:
 - HeroSlide: one slide of the homepage hero slider.
 """
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 
 
 class HeroSlide(models.Model):
@@ -106,3 +108,73 @@ class HeroSlide(models.Model):
             return reverse(self.cta_url_name)
         except NoReverseMatch:
             return ""
+
+
+class BestSeller(models.Model):
+    """
+    Represents a product selected by the admin to appear in the
+    "Best Sellers" section of the homepage.
+
+    A product can only appear once in this section. The ordering is
+    controlled by the `display_order` field (smaller values appear first).
+    """
+
+    product = models.OneToOneField(
+        "products.Product",
+        on_delete=models.CASCADE,
+        related_name="home_bestseller",
+        verbose_name="محصول",
+        help_text="محصولی که به‌عنوان پرفروش در صفحه اصلی نمایش داده می‌شود.",
+    )
+
+    subtitle = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="زیرعنوان",
+        help_text="متن کوتاهی که زیر نام محصول در بخش پرفروش‌ها نمایش داده می‌شود.",
+    )
+
+    display_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="ترتیب نمایش",
+        help_text="عدد کوچک‌تر = نمایش جلوتر در بخش پرفروش‌ها.",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="اگر غیرفعال باشد، محصول در بخش پرفروش‌ها نمایش داده نمی‌شود.",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ ایجاد",
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="تاریخ به‌روزرسانی",
+    )
+
+    class Meta:
+        verbose_name = "محصول پرفروش"
+        verbose_name_plural = "محصولات پرفروش"
+        ordering = ["display_order", "-created_at"]
+        indexes = [
+            models.Index(fields=["is_active", "display_order"]),
+        ]
+
+    def __str__(self):
+        """Return a human-readable representation of the bestseller entry."""
+        status = "فعال" if self.is_active else "غیرفعال"
+        return f"{self.product.name} ({status})"
+
+    def clean(self):
+        """Validate that the selected product is published."""
+        super().clean()
+        if self.is_active and self.product and not self.product.published:
+            raise ValidationError({
+                "product": _(
+                    "فقط محصولات منتشرشده می‌توانند به‌عنوان پرفروش فعال نمایش داده شوند."
+                ),
+            })
