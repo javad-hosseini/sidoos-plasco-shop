@@ -1,0 +1,109 @@
+name: Django CI - PostgreSQL & SQLite Testing
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+        database: ["postgresql", "sqlite"]
+        # Django 5.0 support - uncomment when ready
+        # django-version: ["4.2", "5.0"]
+
+    services:
+      # PostgreSQL Service - only starts when needed
+      postgresql:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libpq-dev \
+          build-essential \
+          pkg-config \
+          gettext
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install psycopg2-binary flake8 coverage
+
+    - name: Create .env.dev file for tests
+      run: |
+        cat > .env.dev << EOF
+        SECRET_KEY=test-secret-key-not-for-production
+        DEBUG=True
+        ALLOWED_HOSTS=localhost,127.0.0.1,testserver
+        APP_ENV=test
+        EOF
+
+    - name: Configure PostgreSQL database
+      if: matrix.database == 'postgresql'
+      run: |
+        echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db" >> .env.dev
+
+    - name: Configure SQLite database
+      if: matrix.database == 'sqlite'
+      run: |
+        echo "DATABASE_URL=sqlite:///db.sqlite3" >> .env.dev
+
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        flake8 apps/ --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Run Django checks
+      run: |
+        python manage.py check
+
+    - name: Run tests
+      env:
+        DJANGO_ENV: test
+        SECRET_KEY: test-secret-key-not-for-production
+      run: |
+        python manage.py test apps/ --verbosity=2
+
+    - name: Run tests with coverage
+      run: |
+        pip install coverage
+        coverage run manage.py test apps/
+        coverage report
+        coverage xml
+
+    - name: Upload coverage to Codecov
+      if: success()
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        fail_ci_if_error: false
