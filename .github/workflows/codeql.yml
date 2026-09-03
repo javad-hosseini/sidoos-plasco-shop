@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "main" ]
   schedule:
-    - cron: '30 1 * * 0'  # Every Sunday at 1:30 AM
+    - cron: '30 1 * * 0'
 
 jobs:
   analyze:
@@ -25,29 +25,28 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4 # Good practice to keep this updated too
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    - name: Install dependencies for CodeQL
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # All three actions below are now on v3
+    # No custom queries - uses CodeQL's default security queries
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
-        queries: +security-and-quality, +security-extended
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
+      uses: github/codeql-action/autobuild@v4
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{matrix.language}}"
