@@ -31,10 +31,11 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v3  # Changed from v4 to v3
+    - name: Checkout code
+      uses: actions/checkout@v3
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4  # Changed from v5 to v4
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
@@ -61,34 +62,37 @@ jobs:
         DEBUG=True
         ALLOWED_HOSTS=localhost,127.0.0.1,testserver
         APP_ENV=test
+        DB_NAME=test_db
+        DB_USER=test_user
+        DB_PASSWORD=test_password
+        DB_HOST=localhost
+        DB_PORT=5432
         EOF
 
-    - name: Configure database
+    - name: Configure PostgreSQL database
+      if: matrix.database == 'postgresql'
       run: |
-        if [ "${{ matrix.database }}" = "postgresql" ]; then
-          echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db" >> .env.dev
-        else
-          echo "DATABASE_URL=sqlite:///db.sqlite3" >> .env.dev
-        fi
+        echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db" >> .env.dev
 
-    - name: Lint with flake8
+    - name: Configure SQLite database
+      if: matrix.database == 'sqlite'
       run: |
-        pip install flake8
-        flake8 apps/ --count --select=E9,F63,F7,F82 --show-source --statistics || true
+        echo "DATABASE_URL=sqlite:///db.sqlite3" >> .env.dev
+
+    - name: Debug - Show .env.dev content
+      run: |
+        echo "=== .env.dev content ==="
+        cat .env.dev
+        echo "========================"
 
     - name: Run Django checks
+      env:
+        DJANGO_ENV: test
       run: |
         python manage.py check
 
     - name: Run tests
       env:
         DJANGO_ENV: test
-        SECRET_KEY: test-secret-key-not-for-production
       run: |
-        python manage.py test apps/ --verbosity=3 --noinput
-
-    - name: Run tests with coverage
-      run: |
-        pip install coverage
-        coverage run manage.py test apps/
-        coverage report
+        python manage.py test apps/ --verbosity=3
