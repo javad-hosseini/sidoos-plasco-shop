@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'apps.home.apps.HomeConfig',
     'apps.products.apps.ProductsConfig',
     'apps.support.apps.SupportConfig',
+    'apps.translation.apps.TranslationConfig',
 ]
 
 # CKEditor config

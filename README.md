@@ -134,3 +134,39 @@ python manage.py test apps.home
 - Uploaded files are served from `media/` in debug mode.
 - Static source files are in `static/`; collected static output goes to `staticfiles/`.
 - CKEditor uploads are stored under `media/content/ckeditor/`.
+
+
+## Site Routes
+
+```text
+/
+├── robots.txt
+├── sitemap.xml
+├── sidoos-administration/
+├── ckeditor5/
+│
+├── /                       → Home
+│
+├── accounts/
+│   ├── login/
+│   ├── logout/
+│   └── profile/
+│
+├── blogs/
+│   └── /
+│
+├── products/
+│   ├── /
+│   ├── special-sales/
+│   ├── categories/
+│   ├── categories/new/
+│   ├── categories/<slug>/
+│   ├── api/<product_id>/save/
+│   ├── api/<product_id>/like/
+│   └── <unicode_slug>/
+│
+└── support/
+    ├── /
+    ├── new/
+    └── tickets/<tracking_code>/
+```
