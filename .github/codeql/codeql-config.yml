@@ -18,7 +18,7 @@ paths-ignore:
 # Use extended security query packs
 queries:
   - uses: security-extended
-  - uses: security-quality
+  - uses: security-and-quality  # ✅ FIXED: was "security-quality"
 
 # Optional: Exclude specific queries that produce false positives
 query-filters:
