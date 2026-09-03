@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.http import require_POST
@@ -23,11 +22,11 @@ def product_list(request):
         .select_related('category')
         .prefetch_related('images', 'tags')
     )
-    
+
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
-    
+
     context = {
         'page_obj': page_obj,
         'products': page_obj.object_list,
@@ -87,11 +86,11 @@ def special_sales(request):
         .select_related('category')
         .prefetch_related('images', 'tags')
     )
-    
+
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
-    
+
     context = {
         'page_obj': page_obj,
         'products': page_obj.object_list,
@@ -127,17 +126,52 @@ def category_products(request, slug):
 
 
 def category_list(request):
-    """Display all categories and their direct subcategories."""
-    categories = (
+    """Display all top-level categories with their subcategories, product
+    counts (including nested subcategories) and a representative cover
+    image drawn from one of their published products."""
+    top_categories = (
         Category.objects.filter(parent__isnull=True)
         .prefetch_related('children')
-        .annotate(product_count=Count('products'))
         .order_by('name')
     )
-    return render(request, 'products/category_list.html', {'categories': categories})
 
+    categories = []
+    total_products = 0
 
+    for category in top_categories:
+        descendant_ids = category.get_descendant_ids()
+        product_count = Product.objects.filter(
+            published=True, category_id__in=descendant_ids
+        ).count()
+        total_products += product_count
 
+        cover_product = (
+            Product.objects.filter(published=True, category_id__in=descendant_ids)
+            .exclude(cover_image='')
+            .order_by('-featured_in_special_sales', '-created_at')
+            .first()
+        )
+
+        children = []
+        for child in category.children.all().order_by('name'):
+            child_count = Product.objects.filter(
+                published=True, category_id__in=child.get_descendant_ids()
+            ).count()
+            children.append({'category': child, 'product_count': child_count})
+
+        categories.append({
+            'category': category,
+            'product_count': product_count,
+            'cover_image': cover_product.cover_image if cover_product else None,
+            'children': children,
+        })
+
+    context = {
+        'categories': categories,
+        'category_count': len(categories),
+        'total_products': total_products,
+    }
+    return render(request, 'products/category_list.html', context)
 
 
 @login_required
