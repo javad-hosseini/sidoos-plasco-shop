@@ -57,15 +57,6 @@
   }
   .hero-slide.active .hero-cta-wrap{ opacity:1; transform:translateY(0); }
 
-  .btn-gold{
-    display:inline-flex; align-items:center; gap:12px;
-    background:var(--gold); color:var(--charcoal);
-    padding:16px 34px; font-size:14px; letter-spacing:.02em; font-weight:700;
-    border:1px solid var(--gold);
-    transition:background .4s var(--ease), color .4s var(--ease), letter-spacing .4s;
-    position:relative; overflow:hidden;
-  }
-  .btn-gold:hover{ letter-spacing:.06em; }
 
   .hero-nav{ position:absolute; bottom:46px; right:6vw; z-index:3; display:flex; align-items:center; gap:22px; }
   .hero-dots{ display:flex; gap:12px; }
@@ -137,7 +128,7 @@
   .empty-note{ color:var(--cream-soft); font-size:14px; padding:20px 0; }
 
   /* ===== CATEGORIES (static) ===== */
-  .cat-grid{ display:grid; grid-template-columns:1.3fr 1fr 1fr; grid-template-rows:260px 260px; gap:14px; }
+  .cat-grid{ display:grid; grid-template-columns:1.3fr 1fr 1fr; grid-template-rows:260px 260px; grid-auto-rows:260px; gap:14px; }
   .cat-card{ position:relative; overflow:hidden; background-size:cover; background-position:center; display:flex; align-items:flex-end; padding:30px; }
   .cat-card::before{ content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(17,17,17,.9) 0%, rgba(17,17,17,.15) 55%, transparent 100%); }
   .cat-card:nth-child(1){ grid-row:span 2; }
@@ -148,7 +139,7 @@
   .cat-card__link{ font-size:12.5px; color:var(--gold); display:inline-flex; align-items:center; gap:8px; opacity:0; transform:translateY(8px); transition:opacity .4s, transform .4s; }
   .cat-card:hover .cat-card__link{ opacity:1; transform:translateY(0); }
   @media(max-width:1100px){
-    .cat-grid{ grid-template-columns:1fr 1fr; grid-template-rows:220px 220px 220px; }
+    .cat-grid{ grid-template-columns:1fr 1fr; grid-template-rows:220px 220px 220px; grid-auto-rows:220px; }
     .cat-card:nth-child(1){ grid-row:span 1; grid-column:span 2; }
   }
   @media(max-width:760px){
@@ -207,10 +198,15 @@
   .news-strip{ background:var(--cream); color:var(--charcoal); padding:80px 0; }
   .news-inner{ display:flex; justify-content:space-between; align-items:center; gap:40px; flex-wrap:wrap; }
   .news-inner h3{ font-size:clamp(24px,3vw,34px); max-width:480px; line-height:1.4; }
-  .news-form{ display:flex; gap:0; border-bottom:1px solid var(--charcoal); padding-bottom:12px; min-width:340px; }
+  .news-form-wrap{ display:flex; flex-direction:column; gap:8px; min-width:340px; }
+  .news-form{ display:flex; gap:0; border-bottom:1px solid var(--charcoal); padding-bottom:12px; }
   .news-form input{ flex:1; background:none; border:none; font-family:inherit; font-size:14px; color:var(--charcoal); outline:none; }
   .news-form input::placeholder{ color:rgba(17,17,17,.5); }
-  .news-form button{ font-size:13px; font-weight:700; letter-spacing:.02em; color:var(--emerald); white-space:nowrap; }
+  .news-form button{ font-size:13px; font-weight:700; letter-spacing:.02em; color:var(--emerald); white-space:nowrap; background:none; border:none; cursor:pointer; font-family:inherit; }
+  .news-form button:disabled{ opacity:.55; cursor:default; }
+  .news-form__msg{ font-size:12.5px; min-height:1.4em; }
+  .news-form__msg--ok{ color:var(--emerald); }
+  .news-form__msg--err{ color:var(--color-sale); }
   @media(max-width:760px){
     .news-inner{ flex-direction:column; align-items:flex-start; }
     .section-head{ flex-direction:column; align-items:flex-start; }
@@ -306,21 +302,21 @@
   </div>
 </section>
 
-<!-- ===== FEATURED PRODUCTS ===== -->
-<section class="section-pad" id="featured">
+<!-- ===== BEST SELLERS ===== -->
+<section class="section-pad" id="best-sellers">
   <div class="container">
     <div class="section-head reveal">
       <div>
-        <div class="eyebrow">انتخاب سیدوس</div>
-        <h2 class="section-title">محصولات منتخب</h2>
+        <div class="eyebrow">پرفروش‌ترین‌ها</div>
+        <h2 class="section-title">محصولات پرفروش</h2>
       </div>
-      <p class="section-desc">گزیده‌ای از محصولاتی که تیم سیدوس برای معرفی انتخاب کرده است.</p>
+      <p class="section-desc">محصولاتی که بیشترین استقبال را از سوی مشتریان سیدوس داشته‌اند.</p>
     </div>
   </div>
   <div class="container reveal" style="padding-left:0;">
-    {% if featured_products %}
+    {% if best_sellers %}
     <div class="scroller js-stagger">
-      {% for product in featured_products %}
+      {% for product in best_sellers %}
       <a class="p-card" href="{% url 'products:product_detail' product.slug %}">
         <div class="p-card__media">
           {% if product.cover_image %}<img src="{{ product.cover_image.url }}" alt="{{ product.name }}" loading="lazy">{% endif %}
@@ -348,36 +344,21 @@
       </div>
       <p class="section-desc">از محصولات آشپزخانه تا اقلام ساختمانی و باغبانی، هر مجموعه روایتی از کیفیت است.</p>
     </div>
+    {% if featured_categories %}
     <div class="cat-grid reveal">
-      <div class="cat-card" style="background-image:url('https://images.unsplash.com/photo-1584990347449-a2d4c2c9b4b3?q=80&w=1200&auto=format&fit=crop')">
+      {% for featured in featured_categories %}
+      <div class="cat-card" style="background-image:url('{{ featured.image.url }}')">
         <div class="cat-card__inner">
-          <span class="cat-card__count">محصولات آشپزخانه</span>
-          <h3>ظروف و لوازم آشپزخانه</h3>
-          <a href="{% url 'products:product_list' %}" class="cat-card__link">مشاهده‌ی مجموعه ←</a>
+          <span class="cat-card__count">{{ featured.category.products.count|persian_digits }} محصول</span>
+          <h3>{{ featured.category.name }}</h3>
+          <a href="{% url 'products:category_products' featured.category.slug %}" class="cat-card__link">مشاهده‌ی مجموعه ←</a>
         </div>
       </div>
-      <div class="cat-card" style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop')">
-        <div class="cat-card__inner">
-          <span class="cat-card__count">اقلام ساختمانی</span>
-          <h3>پیچ و رولپلاک</h3>
-          <a href="{% url 'products:product_list' %}" class="cat-card__link">مشاهده‌ی مجموعه ←</a>
-        </div>
-      </div>
-      <div class="cat-card" style="background-image:url('https://images.unsplash.com/photo-1620626011761-996317b8d101?q=80&w=1200&auto=format&fit=crop')">
-        <div class="cat-card__inner">
-          <span class="cat-card__count">بهداشتی و ساختمانی</span>
-          <h3>محصولات بهداشتی</h3>
-          <a href="{% url 'products:product_list' %}" class="cat-card__link">مشاهده‌ی مجموعه ←</a>
-        </div>
-      </div>
-      <div class="cat-card" style="background-image:url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1200&auto=format&fit=crop')">
-        <div class="cat-card__inner">
-          <span class="cat-card__count">باغبانی</span>
-          <h3>شیلنگ و لوازم باغبانی</h3>
-          <a href="{% url 'products:product_list' %}" class="cat-card__link">مشاهده‌ی مجموعه ←</a>
-        </div>
-      </div>
+      {% endfor %}
     </div>
+    {% else %}
+    <p class="empty-note">هنوز دسته‌بندی‌ای برای این بخش انتخاب نشده است.</p>
+    {% endif %}
   </div>
 </section>
 
@@ -500,10 +481,14 @@
 <section class="news-strip">
   <div class="container news-inner">
     <h3>از تازه‌ترین مجموعه‌ها و پیشنهادهای ویژه‌ی سیدوس باخبر شوید.</h3>
-    <form class="news-form" onsubmit="return false;">
-      <input type="email" placeholder="ایمیل خود را وارد کنید" required aria-label="ایمیل">
-      <button type="submit">عضویت ←</button>
-    </form>
+    <div class="news-form-wrap">
+      <form class="news-form" id="newsletterForm" data-url="{% url 'home:newsletter_subscribe' %}" novalidate>
+        {% csrf_token %}
+        <input type="email" name="email" placeholder="ایمیل خود را وارد کنید" required aria-label="ایمیل">
+        <button type="submit">عضویت ←</button>
+      </form>
+      <p class="news-form__msg" id="newsletterMsg" role="status" aria-live="polite"></p>
+    </div>
   </div>
 </section>
 
@@ -579,6 +564,53 @@
     });
   }, {threshold:.12});
   groups.forEach(g => io.observe(g));
+})();
+
+/* ================= NEWSLETTER SIGNUP ================= */
+(function(){
+  var form = document.getElementById('newsletterForm');
+  if(!form) return;
+
+  var input = form.querySelector('input[name=email]');
+  var button = form.querySelector('button');
+  var tokenField = form.querySelector('input[name=csrfmiddlewaretoken]');
+  var token = tokenField ? tokenField.value : '';
+  var msgEl = document.getElementById('newsletterMsg');
+
+  function showMessage(text, isError){
+    msgEl.textContent = text;
+    msgEl.classList.toggle('news-form__msg--ok', !isError);
+    msgEl.classList.toggle('news-form__msg--err', !!isError);
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(button.disabled) return;
+
+    button.disabled = true;
+    showMessage('در حال ارسال...', false);
+
+    fetch(form.dataset.url, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': token,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'email=' + encodeURIComponent(input.value),
+    })
+      .then(function(r){ return r.json().then(function(data){ return {ok: r.ok, data: data}; }); })
+      .then(function(res){
+        showMessage(res.data.message, !res.data.success);
+        if(res.data.success) input.value = '';
+      })
+      .catch(function(){
+        showMessage('خطایی رخ داد. لطفاً دوباره تلاش کنید.', true);
+      })
+      .finally(function(){
+        button.disabled = false;
+      });
+  });
 })();
 
 /* ================= COUNT-UP STATS ================= */

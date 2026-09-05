@@ -2,8 +2,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .forms import CategoryForm
@@ -14,23 +16,61 @@ def _can_view_price(user):
     return user.is_authenticated and user.has_price_access
 
 
+def _shop_breadcrumbs():
+    """Home / Shop, as a base for every products-app breadcrumb trail."""
+    return [
+        {'label': 'خانه', 'url': reverse('home:home')},
+        {'label': 'فروشگاه', 'url': reverse('products:product_list')},
+    ]
+
+
+def _category_breadcrumbs(ancestors, current_label):
+    """Home / Shop / <ancestor categories...> / <current, non-clickable>."""
+    crumbs = _shop_breadcrumbs()
+    for ancestor in ancestors:
+        crumbs.append({
+            'label': ancestor.name,
+            'url': reverse('products:category_products', args=[ancestor.slug]),
+        })
+    crumbs.append({'label': current_label, 'url': None})
+    return crumbs
+
+
 def product_list(request):
-    """Display all published products with pagination."""
+    """Display all published products, optionally filtered by the header
+    search box (?q=...), with pagination."""
     can_view_price = _can_view_price(request.user)
-    products = (
-        Product.objects.filter(published=True)
-        .select_related('category')
-        .prefetch_related('images', 'tags')
-    )
+    search_query = request.GET.get('q', '').strip()
+
+    products = Product.objects.filter(published=True)
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) | Q(description__icontains=search_query)
+        )
+    products = products.select_related('category').prefetch_related('images', 'tags')
 
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
+    if search_query:
+        breadcrumbs = _shop_breadcrumbs()
+        breadcrumbs[-1]['url'] = reverse('products:product_list')
+        breadcrumbs.append({'label': f'نتایج جستجو برای «{search_query}»', 'url': None})
+    else:
+        breadcrumbs = [
+            {'label': 'خانه', 'url': reverse('home:home')},
+            {'label': 'فروشگاه', 'url': None},
+        ]
+
     context = {
         'page_obj': page_obj,
         'products': page_obj.object_list,
         'selected_category': None,
+        'ancestors': [],
+        'children': [],
+        'search_query': search_query,
+        'breadcrumbs': breadcrumbs,
         'can_view_price': can_view_price,
     }
     return render(request, 'products/product_list.html', context)
@@ -64,6 +104,15 @@ def product_detail(request, slug):
             .order_by('-created_at')[:8]
         )
 
+    breadcrumbs = _shop_breadcrumbs()
+    if product.category:
+        for ancestor in product.category.get_ancestors(include_self=True):
+            breadcrumbs.append({
+                'label': ancestor.name,
+                'url': reverse('products:category_products', args=[ancestor.slug]),
+            })
+    breadcrumbs.append({'label': product.name, 'url': None})
+
     context = {
         'product': product,
         'images': images,
@@ -74,6 +123,7 @@ def product_detail(request, slug):
         'related_products': related_products,
         'discount': product.get_discount_percentage() if can_view_price else None,
         'can_view_price': can_view_price,
+        'breadcrumbs': breadcrumbs,
     }
     return render(request, 'products/product_detail.html', context)
 
@@ -102,9 +152,36 @@ def special_sales(request):
 
 
 def category_products(request, slug):
-    """Display published products under a category and all nested subcategories."""
+    """
+    Display published products under a category and all nested
+    subcategories, along with its breadcrumb trail and its own direct
+    child categories (each with a descendant-inclusive product count and
+    a representative cover image, same pattern as category_list()).
+    """
     can_view_price = _can_view_price(request.user)
-    selected_category = get_object_or_404(Category, slug=slug)
+    selected_category = get_object_or_404(
+        Category.objects.select_related('parent'), slug=slug
+    )
+    ancestors = selected_category.get_ancestors()
+
+    children = []
+    for child in selected_category.children.all().order_by('name'):
+        child_descendant_ids = child.get_descendant_ids()
+        child_product_count = Product.objects.filter(
+            published=True, category_id__in=child_descendant_ids
+        ).count()
+        cover_product = (
+            Product.objects.filter(published=True, category_id__in=child_descendant_ids)
+            .exclude(cover_image='')
+            .order_by('-featured_in_special_sales', '-created_at')
+            .first()
+        )
+        children.append({
+            'category': child,
+            'product_count': child_product_count,
+            'cover_image': cover_product.cover_image if cover_product else None,
+        })
+
     category_ids = selected_category.get_descendant_ids()
     products = (
         Product.objects.filter(published=True, category_id__in=category_ids)
@@ -120,6 +197,9 @@ def category_products(request, slug):
         'page_obj': page_obj,
         'products': page_obj.object_list,
         'selected_category': selected_category,
+        'ancestors': ancestors,
+        'children': children,
+        'breadcrumbs': _category_breadcrumbs(ancestors, selected_category.name),
         'can_view_price': can_view_price,
     }
     return render(request, 'products/product_list.html', context)
@@ -135,7 +215,7 @@ def category_list(request):
         .order_by('name')
     )
 
-    categories = []
+    category_cards = []
     total_products = 0
 
     for category in top_categories:
@@ -159,7 +239,7 @@ def category_list(request):
             ).count()
             children.append({'category': child, 'product_count': child_count})
 
-        categories.append({
+        category_cards.append({
             'category': category,
             'product_count': product_count,
             'cover_image': cover_product.cover_image if cover_product else None,
@@ -167,9 +247,14 @@ def category_list(request):
         })
 
     context = {
-        'categories': categories,
-        'category_count': len(categories),
+        # Named distinctly (not "categories") so it can't be shadowed by
+        # apps.products.context_processors.product_categories, which
+        # injects a site-wide "categories" queryset for the navbar drawer
+        # on every page, including this one.
+        'category_cards': category_cards,
+        'category_count': len(category_cards),
         'total_products': total_products,
+        'breadcrumbs': _shop_breadcrumbs() + [{'label': 'دسته‌بندی‌ها', 'url': None}],
     }
     return render(request, 'products/category_list.html', context)
 

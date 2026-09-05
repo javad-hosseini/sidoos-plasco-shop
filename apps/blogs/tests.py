@@ -12,8 +12,11 @@ Tests cover:
 - Model validation
 """
 
+from datetime import timedelta
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from .models import Article
@@ -240,3 +243,135 @@ class ArticleModelTests(TestCase):
         )
         with self.assertRaises(ValidationError):
             article.full_clean()
+
+
+def _published_article(**overrides):
+    defaults = dict(
+        title="مقاله منتشرشده",
+        slug=None,  # set per-call to keep slugs unique across tests
+        summary="خلاصه",
+        content="<p>محتوا</p>",
+        reading_time=5,
+        is_published=True,
+        published_at=timezone.now(),
+    )
+    defaults.update(overrides)
+    if not defaults.get("slug"):
+        defaults["slug"] = defaults["title"].replace(" ", "-")
+    return Article.objects.create(**defaults)
+
+
+class ArticleListViewTests(TestCase):
+    """HTTP-level tests for the public article listing page."""
+
+    def test_only_published_articles_are_listed(self):
+        _published_article(title="مقاله منتشر", slug="published-one")
+        Article.objects.create(
+            title="مقاله پیش‌نویس",
+            slug="draft-one",
+            summary="s",
+            content="c",
+            reading_time=3,
+            is_published=False,
+        )
+
+        response = self.client.get(reverse("blogs:article_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "مقاله منتشر")
+        self.assertNotContains(response, "مقاله پیش‌نویس")
+
+    def test_articles_ordered_newest_first(self):
+        older = _published_article(
+            title="مقاله قدیمی", slug="old-one",
+            published_at=timezone.now() - timedelta(days=5),
+        )
+        newer = _published_article(
+            title="مقاله جدید", slug="new-one",
+            published_at=timezone.now(),
+        )
+
+        response = self.client.get(reverse("blogs:article_list"))
+        articles = list(response.context["articles"])
+        self.assertEqual(articles[0], newer)
+        self.assertIn(older, articles)
+
+    def test_pagination_limits_to_page_size(self):
+        for i in range(13):
+            _published_article(
+                title=f"مقاله شماره {i}", slug=f"article-{i}",
+                published_at=timezone.now() - timedelta(minutes=i),
+            )
+
+        response = self.client.get(reverse("blogs:article_list"))
+        self.assertEqual(len(response.context["page_obj"].object_list), 12)
+        self.assertTrue(response.context["page_obj"].has_next())
+
+    def test_breadcrumbs_present_and_home_is_first(self):
+        response = self.client.get(reverse("blogs:article_list"))
+        breadcrumbs = response.context["breadcrumbs"]
+        self.assertEqual(breadcrumbs[0]["label"], "خانه")
+        self.assertIsNone(breadcrumbs[-1]["url"])  # current page not clickable
+
+    def test_empty_state_message_when_no_articles(self):
+        response = self.client.get(reverse("blogs:article_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "در حال حاضر مقاله‌ای برای نمایش وجود ندارد")
+
+
+class ArticleDetailViewTests(TestCase):
+    """HTTP-level tests for the article detail page."""
+
+    def test_published_article_renders(self):
+        article = _published_article(title="مقاله کامل", slug="full-article")
+        response = self.client.get(reverse("blogs:article_detail", args=[article.slug]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "مقاله کامل")
+
+    def test_draft_article_returns_404(self):
+        draft = Article.objects.create(
+            title="پیش‌نویس مخفی",
+            slug="hidden-draft",
+            summary="s",
+            content="c",
+            reading_time=3,
+            is_published=False,
+        )
+        response = self.client.get(reverse("blogs:article_detail", args=[draft.slug]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_nonexistent_slug_returns_404(self):
+        response = self.client.get(reverse("blogs:article_detail", args=["does-not-exist"]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_related_articles_excludes_self_and_drafts(self):
+        current = _published_article(title="مقاله فعلی", slug="current-article")
+        related = _published_article(title="مقاله مرتبط", slug="related-article")
+        Article.objects.create(
+            title="پیش‌نویس نامرتبط",
+            slug="unrelated-draft",
+            summary="s",
+            content="c",
+            reading_time=3,
+            is_published=False,
+        )
+
+        response = self.client.get(reverse("blogs:article_detail", args=[current.slug]))
+        related_articles = list(response.context["related_articles"])
+        self.assertNotIn(current, related_articles)
+        self.assertIn(related, related_articles)
+
+    def test_related_articles_limited_to_three(self):
+        current = _published_article(title="مقاله اصلی", slug="main-article")
+        for i in range(5):
+            _published_article(title=f"مقاله دیگر {i}", slug=f"other-article-{i}")
+
+        response = self.client.get(reverse("blogs:article_detail", args=[current.slug]))
+        self.assertEqual(len(response.context["related_articles"]), 3)
+
+    def test_breadcrumbs_include_article_title(self):
+        article = _published_article(title="عنوان مسیر", slug="breadcrumb-article")
+        response = self.client.get(reverse("blogs:article_detail", args=[article.slug]))
+        breadcrumbs = response.context["breadcrumbs"]
+        self.assertEqual(breadcrumbs[0]["label"], "خانه")
+        self.assertEqual(breadcrumbs[-1]["label"], "عنوان مسیر")
+        self.assertIsNone(breadcrumbs[-1]["url"])

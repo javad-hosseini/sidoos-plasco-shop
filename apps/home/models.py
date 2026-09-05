@@ -178,3 +178,149 @@ class BestSeller(models.Model):
                     "فقط محصولات منتشرشده می‌توانند به‌عنوان پرفروش فعال نمایش داده شوند."
                 ),
             })
+
+
+class FeaturedCategory(models.Model):
+    """
+    A category selected by the admin to appear in the "Featured Categories"
+    section of the homepage, paired with a homepage-only cover image.
+
+    Category itself carries no image field (it's a pure taxonomy), so the
+    homepage cover image lives here instead of being bolted onto Category.
+    """
+
+    category = models.OneToOneField(
+        "products.Category",
+        on_delete=models.CASCADE,
+        related_name="home_featured",
+        verbose_name="دسته‌بندی",
+        help_text="دسته‌بندی‌ای که در بخش «دسته‌بندی‌های منتخب» صفحه اصلی نمایش داده می‌شود.",
+    )
+
+    image = models.ImageField(
+        upload_to="home/featured_categories/",
+        verbose_name="تصویر",
+        help_text="تصویری که مخصوص نمایش این دسته‌بندی در صفحه اصلی است (مستقل از خود دسته‌بندی).",
+    )
+
+    display_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="ترتیب نمایش",
+        help_text="عدد کوچک‌تر = نمایش جلوتر در بخش دسته‌بندی‌های منتخب.",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="اگر غیرفعال باشد، این دسته‌بندی در صفحه اصلی نمایش داده نمی‌شود.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+
+    class Meta:
+        verbose_name = "دسته‌بندی منتخب"
+        verbose_name_plural = "دسته‌بندی‌های منتخب"
+        ordering = ["display_order", "-created_at"]
+        indexes = [
+            models.Index(fields=["is_active", "display_order"]),
+        ]
+
+    def __str__(self):
+        status = "فعال" if self.is_active else "غیرفعال"
+        return f"{self.category.name} ({status})"
+
+
+class SpecialSaleFeature(models.Model):
+    """
+    A product selected by the admin to appear in the "Special Sale" section
+    of the homepage.
+
+    Only products with Product.featured_in_special_sales enabled may be
+    selected. This is enforced at the field level via limit_choices_to
+    (which Django's admin honors both for the autocomplete search results
+    and for form validation), and again in clean() so the rule also holds
+    for saves that don't go through a ModelForm.
+    """
+
+    product = models.OneToOneField(
+        "products.Product",
+        on_delete=models.CASCADE,
+        related_name="home_special_sale",
+        limit_choices_to={"featured_in_special_sales": True},
+        verbose_name="محصول",
+        help_text="فقط محصولاتی که «فروش ویژه» آن‌ها فعال است قابل انتخاب هستند.",
+    )
+
+    display_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="ترتیب نمایش",
+        help_text="عدد کوچک‌تر = نمایش جلوتر در بخش فروش ویژه.",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="اگر غیرفعال باشد، محصول در بخش فروش ویژه نمایش داده نمی‌شود.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+
+    class Meta:
+        verbose_name = "محصول فروش ویژه"
+        verbose_name_plural = "محصولات فروش ویژه"
+        ordering = ["display_order", "-created_at"]
+        indexes = [
+            models.Index(fields=["is_active", "display_order"]),
+        ]
+
+    def __str__(self):
+        status = "فعال" if self.is_active else "غیرفعال"
+        return f"{self.product.name} ({status})"
+
+    def clean(self):
+        """Validate that the selected product actually has the special-sale flag on."""
+        super().clean()
+        if self.product_id and not self.product.featured_in_special_sales:
+            raise ValidationError({
+                "product": _(
+                    "فقط محصولاتی که «فروش ویژه» برای آن‌ها فعال است قابل انتخاب هستند."
+                ),
+            })
+
+    def save(self, *args, **kwargs):
+        # Enforce the special-sale restriction even for saves that bypass a
+        # ModelForm (shell, scripts, etc.), not just admin-form validation.
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+
+class NewsletterSubscriber(models.Model):
+    """
+    An email address collected from the homepage newsletter signup form.
+
+    Public-facing: only ever created through the newsletter subscribe
+    endpoint, never read back out through any public view or API - the
+    admin list is the only place these are visible.
+    """
+
+    email = models.EmailField(
+        unique=True,
+        verbose_name="ایمیل",
+        help_text="آدرسی که کاربر برای عضویت در خبرنامه سیدوس وارد کرده است. هر ایمیل فقط یک‌بار می‌تواند ثبت شود.",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ ثبت‌نام",
+        help_text="تاریخ و زمان عضویت در خبرنامه (به‌صورت خودکار ثبت می‌شود).",
+    )
+
+    class Meta:
+        verbose_name = "مشترک خبرنامه"
+        verbose_name_plural = "مشترکین خبرنامه"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.email

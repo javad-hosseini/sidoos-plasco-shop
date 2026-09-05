@@ -19,7 +19,6 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.sitemaps.views import sitemap
 from config.sitemaps import StaticViewSitemap, ProductSitemap, CategorySitemap
-from .seo import robots_txt
 
 from config import settings
 
@@ -29,9 +28,13 @@ sitemaps = {
     "categories": CategorySitemap,
 }
 
+# Note: robots.txt is served by apps.home.views.robots_txt, registered via
+# the apps.home.urls include below (it lists the site's actual private
+# paths - a separate project-level route here previously shadowed it with
+# a stale list referencing routes that don't exist in this project).
 urlpatterns = [
-    path("robots.txt", robots_txt, name="robots_txt"),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
+    path('i18n/', include('django.conf.urls.i18n')),
     path('sidoos-administration/', admin.site.urls),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
 

@@ -1,13 +1,17 @@
-from django.http import HttpResponse
+from django.db import IntegrityError
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_POST
 
 from apps.blogs.models import Article
 from apps.products.models import Product
-from .models import BestSeller
-from .models import HeroSlide
+from .forms import NewsletterSubscriptionForm
+from .models import BestSeller, FeaturedCategory, HeroSlide, NewsletterSubscriber, SpecialSaleFeature
 
 # How many items each homepage section shows at most.
 FEATURED_LIMIT = 12
+BEST_SELLERS_LIMIT = 8
+FEATURED_CATEGORIES_LIMIT = 8
 SPECIAL_OFFERS_LIMIT = 12
 LATEST_ARTICLES_LIMIT = 6
 
@@ -21,12 +25,28 @@ def home(request):
         .order_by("featured_order", "-created_at")[:FEATURED_LIMIT]
     )
 
-    special_offers = (
-        Product.objects.filter(published=True, featured_in_special_sales=True)
-        .select_related("category")
-        .prefetch_related("images")
-        .order_by("-created_at")[:SPECIAL_OFFERS_LIMIT]
+    best_sellers = [
+        entry.product
+        for entry in BestSeller.objects.filter(
+            is_active=True,
+            product__published=True,
+        ).select_related("product", "product__category")[:BEST_SELLERS_LIMIT]
+    ]
+
+    featured_categories = (
+        FeaturedCategory.objects.filter(is_active=True)
+        .select_related("category")[:FEATURED_CATEGORIES_LIMIT]
     )
+
+    special_offers = [
+        entry.product
+        for entry in SpecialSaleFeature.objects.filter(
+            is_active=True,
+            product__published=True,
+            product__featured_in_special_sales=True,
+        ).select_related("product", "product__category")
+        .prefetch_related("product__images")[:SPECIAL_OFFERS_LIMIT]
+    ]
 
     latest_articles = (
         Article.objects.filter(is_published=True)
@@ -42,11 +62,52 @@ def home(request):
     context = {
         "hero_slides": hero_slides,
         "featured_products": featured_products,
+        "best_sellers": best_sellers,
+        "featured_categories": featured_categories,
         "special_offers": special_offers,
         "latest_articles": latest_articles,
         "can_view_price": can_view_price,
     }
     return render(request, "home/index.html", context)
+
+
+@require_POST
+def newsletter_subscribe(request):
+    """
+    Handle the homepage newsletter signup form (AJAX POST, same convention
+    as apps.products.views.toggle_save/toggle_like: CSRF-protected JSON
+    endpoint, always 200 unless the submitted data itself is invalid).
+    """
+    form = NewsletterSubscriptionForm(request.POST)
+
+    if not form.is_valid():
+        message = form.errors["email"][0] if "email" in form.errors else "لطفاً یک ایمیل معتبر وارد کنید."
+        return JsonResponse({"success": False, "message": message}, status=400)
+
+    email = form.cleaned_data["email"].lower()
+
+    if NewsletterSubscriber.objects.filter(email=email).exists():
+        return JsonResponse({
+            "success": False,
+            "already_subscribed": True,
+            "message": "این ایمیل قبلاً در خبرنامه سیدوس ثبت شده است.",
+        })
+
+    try:
+        NewsletterSubscriber.objects.create(email=email)
+    except IntegrityError:
+        # Two simultaneous submissions of the same address raced past the
+        # .exists() check above; the unique constraint caught it instead.
+        return JsonResponse({
+            "success": False,
+            "already_subscribed": True,
+            "message": "این ایمیل قبلاً در خبرنامه سیدوس ثبت شده است.",
+        })
+
+    return JsonResponse({
+        "success": True,
+        "message": "با موفقیت در خبرنامه سیدوس عضو شدید.",
+    })
 
 
 def robots_txt(request):
@@ -59,37 +120,7 @@ def robots_txt(request):
         "Disallow: /sidoos-administration/",
         "Disallow: /ckeditor5/",
         "Disallow: /products/api/",
+        "Disallow: /newsletter/",
         "Sitemap: " + request.build_absolute_uri("/sitemap.xml"),
     ]
     return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")
-
-
-def home_view(request):
-    """
-    Render the homepage with hero slides, featured products,
-    special offers, best sellers, and latest articles.
-    """
-    # Get active hero slides ordered by display order
-    hero_slides = HeroSlide.objects.filter(is_active=True).order_by("order")
-
-    # Get active best sellers (products selected by admin)
-    best_sellers = BestSeller.objects.filter(
-        is_active=True,
-        product__published=True,
-    ).select_related(
-        "product",
-        "product__category",
-    ).order_by("display_order")[:8]
-
-    # Extract product objects from best sellers
-    best_seller_products = [bs.product for bs in best_sellers]
-
-    # Existing context
-    context = {
-        "hero_slides": hero_slides,
-        # ... other existing context data ...
-        "best_sellers": best_seller_products,  # ← New: products for best sellers section
-        # ... rest of context ...
-    }
-
-    return render(request, "home/index.html", context)

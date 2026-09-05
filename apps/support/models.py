@@ -182,7 +182,7 @@ class TicketMessage(models.Model):
         ]
 
     def __str__(self):
-        return f"Message {self.pk} - Ticket {self.ticket.tracking_code}"
+        return f"پیام {self.pk} - تیکت {self.ticket.tracking_code}"
 
     @property
     def short_preview(self):

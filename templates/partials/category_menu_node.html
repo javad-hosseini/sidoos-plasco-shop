@@ -6,7 +6,7 @@
 {% load static %}
 <li class="cat-node{% if node.children.all %} cat-node--has-children{% endif %}">
   <div class="cat-node__row">
-    <a href="#" class="cat-node__link">{{ node.name }}</a>
+    <a href="{% url 'products:category_products' node.slug %}" class="cat-node__link">{{ node.name }}</a>
     {% if node.children.all %}
       <button type="button" class="cat-node__toggle" aria-expanded="false" aria-label="باز/بستن زیرشاخه‌ها">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>

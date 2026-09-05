@@ -1,0 +1,75 @@
+/*
+ * RTL polish for the Jazzmin admin theme.
+ *
+ * Jazzmin/AdminLTE only sets <html dir="rtl"> for a bidi language (see its
+ * base.html) - it ships no dedicated RTL stylesheet of its own, so a few
+ * Bootstrap utilities that still use physical left/right (rather than
+ * logical start/end) need a manual mirror here. Everything below is scoped
+ * to html[dir="rtl"], so it has zero effect while an admin stays on the
+ * English interface.
+ */
+
+html[dir="rtl"] body {
+  text-align: right;
+}
+
+/* Breadcrumbs: Jazzmin floats them with a Bootstrap *-end utility that
+   doesn't always mirror on its own; force them to the visual start (right
+   edge in RTL) and read in the natural right-to-left order. */
+html[dir="rtl"] .content-header .float-sm-end {
+  float: left !important;
+}
+
+html[dir="rtl"] .breadcrumb {
+  padding-right: 0;
+}
+
+/* Sidebar menu icons sit before the label in the source order; in RTL that
+   means "before" is visually on the right, which is correct, but AdminLTE's
+   fixed left margin on the icon needs mirroring to keep icon/label spacing
+   even. */
+html[dir="rtl"] .nav-sidebar .nav-icon {
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
+/* Forms: field labels, help text, and error lists should hug the same edge
+   as the field itself. */
+html[dir="rtl"] .form-label,
+html[dir="rtl"] label {
+  text-align: right;
+}
+
+html[dir="rtl"] .form-text,
+html[dir="rtl"] .help,
+html[dir="rtl"] p.help {
+  text-align: right;
+}
+
+html[dir="rtl"] .errorlist {
+  padding-right: 0;
+  padding-left: 0;
+  text-align: right;
+}
+
+/* Fieldset / collapsible section headers: the expand/collapse caret is
+   usually positioned with a left margin assuming LTR text flow. */
+html[dir="rtl"] fieldset.collapse h2,
+html[dir="rtl"] fieldset.module h2 {
+  text-align: right;
+}
+
+/* Changelist filter sidebar reads more naturally right-aligned in RTL. */
+html[dir="rtl"] #changelist-filter {
+  text-align: right;
+}
+
+html[dir="rtl"] #changelist-filter li {
+  padding-right: 0;
+}
+
+/* Inline "add another" / delete controls keep their icon glued to the
+   nearest edge of the label instead of the far side. */
+html[dir="rtl"] .inline-deletelink {
+  float: left;
+}

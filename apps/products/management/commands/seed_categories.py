@@ -9,13 +9,13 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'ساخت دسته‌بندی‌های تودرتو برای تست'
+    help = 'Build a nested category tree for testing'
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--clear',
             action='store_true',
-            help='پاک کردن دسته‌بندی‌های موجود'
+            help='Delete existing categories first'
         )
 
     def handle(self, *args, **options):
@@ -24,17 +24,17 @@ class Command(BaseCommand):
 
         admin = self.get_admin_user()
 
-        self.stdout.write('🏗️  در حال ساخت دسته‌بندی‌های تودرتو...')
+        self.stdout.write('🏗️  Building nested categories...')
 
         categories = self.create_category_tree(admin)
 
         self.stdout.write(self.style.SUCCESS(
-            f'✅ {len(categories)} دسته‌بندی ساخته شد'
+            f'✅ Created {len(categories)} categories'
         ))
         self.print_tree()
 
     def get_admin_user(self):
-        """دریافت یا ساخت کاربر ادمین"""
+        """Get or create the admin user"""
         admin = User.objects.filter(is_superuser=True).first()
         if not admin:
             admin = User.objects.create_superuser(
@@ -42,13 +42,13 @@ class Command(BaseCommand):
                 email='admin@example.com',
                 password='admin123'
             )
-            self.stdout.write('👤 کاربر ادمین ساخته شد')
+            self.stdout.write('👤 Created admin user')
         return admin
 
     def create_category_tree(self, admin):
-        """ساخت درخت دسته‌بندی با عمق ۳-۴ سطح"""
+        """Build a category tree 3-4 levels deep"""
 
-        # تعریف ساختار درختی
+        # Tree structure definition (category names stay in Persian - they're real content)
         tree = {
             'محصولات آشپزخانه': {
                 'ابزارآلات آشپزخانه': ['پوست کن', 'چاقو تیزکن', 'جا ادویه', 'نمک پاش'],
@@ -91,7 +91,7 @@ class Command(BaseCommand):
         created = []
 
         for main_name, sub_cats in tree.items():
-            # سطح ۱
+            # Level 1
             main_cat, created_flag = Category.objects.get_or_create(
                 name=main_name,
                 parent=None,
@@ -103,7 +103,7 @@ class Command(BaseCommand):
                 self.stdout.write(f'  ✅ {main_name}')
 
             for sub_name, sub_sub_cats in sub_cats.items():
-                # سطح ۲
+                # Level 2
                 sub_cat, _ = Category.objects.get_or_create(
                     name=sub_name,
                     parent=main_cat,
@@ -113,7 +113,7 @@ class Command(BaseCommand):
 
                 if isinstance(sub_sub_cats, list):
                     for sub_sub_name in sub_sub_cats:
-                        # سطح ۳
+                        # Level 3
                         sub_sub_cat, _ = Category.objects.get_or_create(
                             name=sub_sub_name,
                             parent=sub_cat,
@@ -121,7 +121,7 @@ class Command(BaseCommand):
                         )
                         created.append(sub_sub_cat)
 
-                        # سطح ۴ (برای تست عمق بیشتر)
+                        # Level 4 (to exercise deeper nesting)
                         if sub_sub_name in ['گلدان استوانه‌ای', 'گلدان آجری', 'سیفون فانتزی (غیر هم سطح)']:
                             for i in range(2):
                                 sub_sub_sub, _ = Category.objects.get_or_create(
@@ -134,15 +134,15 @@ class Command(BaseCommand):
         return created
 
     def clear_categories(self):
-        """پاک کردن تمام دسته‌بندی‌ها"""
-        self.stdout.write('🗑️  در حال پاک کردن دسته‌بندی‌ها...')
+        """Delete all categories"""
+        self.stdout.write('🗑️  Deleting existing categories...')
         count = Category.objects.count()
         Category.objects.all().delete()
-        self.stdout.write(self.style.SUCCESS(f'✅ {count} دسته‌بندی پاک شد'))
+        self.stdout.write(self.style.SUCCESS(f'✅ Deleted {count} categories'))
 
     def print_tree(self):
-        """چاپ درخت دسته‌بندی"""
-        self.stdout.write('\n📁 ساختار دسته‌بندی:')
+        """Print the category tree"""
+        self.stdout.write('\n📁 Category structure:')
         self.stdout.write('=' * 50)
 
         main_cats = Category.objects.filter(parent__isnull=True)

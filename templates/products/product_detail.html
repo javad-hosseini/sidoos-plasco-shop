@@ -8,13 +8,6 @@
 <style>
   .pd-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:120px; }
 
-  /* breadcrumb */
-  .pd-crumbs{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:13px; color:var(--cream-soft); margin-bottom:34px; }
-  .pd-crumbs a{ transition:color .3s; }
-  .pd-crumbs a:hover{ color:var(--gold); }
-  .pd-crumbs .sep{ color:var(--gold-soft); }
-  .pd-crumbs .current{ color:var(--cream); }
-
   /* main layout */
   .pd-main{ display:grid; grid-template-columns:1.05fr .95fr; gap:60px; align-items:start; }
   @media(max-width:960px){ .pd-main{ grid-template-columns:1fr; gap:36px; } }
@@ -107,17 +100,6 @@
   /* description */
   .pd-section{ margin-top:90px; }
   .pd-section__title{ font-size:22px; font-weight:800; margin-bottom:22px; padding-bottom:14px; border-bottom:1px solid rgba(216,207,193,.12); }
-  .rte{ color:var(--cream-soft); font-size:15px; line-height:2.05; max-width:820px; }
-  .rte h1,.rte h2,.rte h3,.rte h4{ color:var(--cream); margin:1.6em 0 .6em; line-height:1.5; }
-  .rte p{ margin:0 0 1.1em; }
-  .rte ul,.rte ol{ margin:0 0 1.1em; padding-inline-start:1.4em; }
-  .rte li{ margin-bottom:.5em; }
-  .rte a{ color:var(--gold); text-decoration:underline; }
-  .rte img{ margin:1.2em 0; border:1px solid rgba(216,207,193,.12); }
-  .rte table{ width:100%; border-collapse:collapse; margin:1.2em 0; font-size:14px; }
-  .rte th,.rte td{ border:1px solid rgba(216,207,193,.16); padding:10px 12px; text-align:right; }
-  .rte blockquote{ border-inline-start:2px solid var(--gold); padding-inline-start:16px; margin:1.2em 0; color:var(--cream); }
-
   /* related */
   .pd-related-scroller{ display:flex; gap:22px; overflow-x:auto; padding-bottom:18px; scroll-snap-type:x proximity; scrollbar-width:none; }
   .pd-related-scroller::-webkit-scrollbar{ display:none; }
@@ -141,17 +123,7 @@
 <div class="pd-wrap">
   <div class="container">
 
-    <nav class="pd-crumbs reveal" aria-label="مسیر صفحه">
-      <a href="{% url 'home:home' %}">خانه</a>
-      <span class="sep">/</span>
-      <a href="{% url 'products:product_list' %}">فروشگاه</a>
-      {% if product.category %}
-        <span class="sep">/</span>
-        <a href="{% url 'products:category_products' product.category.slug %}">{{ product.category.name }}</a>
-      {% endif %}
-      <span class="sep">/</span>
-      <span class="current">{{ product.name }}</span>
-    </nav>
+    {% include 'partials/breadcrumbs.html' %}
 
     <div class="pd-main">
 

@@ -4,17 +4,17 @@ from apps.products.models import Category, Product, ProductImage, ProductLike, P
 
 
 class Command(BaseCommand):
-    help = 'پاک کردن تمام داده‌های mock از دیتابیس'
+    help = 'Delete all mock data from the database'
 
     def handle(self, *args, **options):
-        self.stdout.write('🗑️  در حال پاک کردن تمام محصولات و دسته‌بندی‌ها...')
+        self.stdout.write('🗑️  Deleting all products and categories...')
 
-        # پاک کردن وابستگی‌ها
+        # Delete dependent rows first
         ProductLike.objects.all().delete()
         ProductSave.objects.all().delete()
         ProductImage.objects.all().delete()
 
-        # پاک کردن محصولات و دسته‌ها
+        # Delete products and categories
         product_count = Product.objects.count()
         category_count = Category.objects.count()
 
@@ -22,5 +22,5 @@ class Command(BaseCommand):
         Category.objects.all().delete()
 
         self.stdout.write(self.style.SUCCESS(
-            f'✅ {product_count} محصول و {category_count} دسته‌بندی پاک شد'
+            f'✅ Deleted {product_count} products and {category_count} categories'
         ))

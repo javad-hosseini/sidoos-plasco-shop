@@ -123,6 +123,37 @@
     font-weight:400;
   }
 
+  /* shared primary CTA button */
+  .btn-gold{
+    display:inline-flex; align-items:center; gap:12px;
+    background:var(--gold); color:var(--charcoal);
+    padding:16px 34px; font-size:14px; letter-spacing:.02em; font-weight:700;
+    border:1px solid var(--gold);
+    transition:background .4s var(--ease), color .4s var(--ease), letter-spacing .4s;
+    position:relative; overflow:hidden;
+  }
+  .btn-gold:hover{ letter-spacing:.06em; }
+
+  /* shared rich-text renderer for CKEditor-authored HTML fields
+     (Product.description, Article.content, ...) */
+  .rte{ color:var(--cream-soft); font-size:15px; line-height:2.05; max-width:820px; }
+  .rte h1,.rte h2,.rte h3,.rte h4{ color:var(--cream); margin:1.6em 0 .6em; line-height:1.5; }
+  .rte p{ margin:0 0 1.1em; }
+  .rte ul,.rte ol{ margin:0 0 1.1em; padding-inline-start:1.4em; }
+  .rte li{ margin-bottom:.5em; }
+  .rte a{ color:var(--gold); text-decoration:underline; }
+  .rte img{ margin:1.2em 0; border:1px solid rgba(216,207,193,.12); }
+  .rte table{ width:100%; border-collapse:collapse; margin:1.2em 0; font-size:14px; }
+  .rte th,.rte td{ border:1px solid rgba(216,207,193,.16); padding:10px 12px; text-align:right; }
+  .rte blockquote{ border-inline-start:2px solid var(--gold); padding-inline-start:16px; margin:1.2em 0; color:var(--cream); }
+
+  /* shared breadcrumb trail (partials/breadcrumbs.html) */
+  .crumbs{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:13px; color:var(--cream-soft); margin-bottom:34px; }
+  .crumbs a{ transition:color .3s; }
+  .crumbs a:hover{ color:var(--gold); }
+  .crumbs .sep{ color:var(--gold-soft); }
+  .crumbs .current{ color:var(--cream); }
+
   /* ===== particle canvas (global backdrop) ===== */
   #particles {
     position:fixed;

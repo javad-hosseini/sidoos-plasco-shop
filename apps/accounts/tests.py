@@ -60,6 +60,78 @@ class AuthenticationBackendTests(TestCase):
         )
         self.assertFalse(user2.has_price_access)
 
+    def test_authenticate_with_no_matching_user(self):
+        user = authenticate(username='nobody-with-this-name', password='whatever')
+        self.assertIsNone(user)
+
+    def test_inactive_user_cannot_authenticate(self):
+        self.user.is_active = False
+        self.user.save()
+        user = authenticate(username='testuser', password='testpass123')
+        self.assertIsNone(user)
+
+    def test_phone_number_uniqueness_enforced(self):
+        from django.db import IntegrityError, transaction
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                User.objects.create(
+                    username='another-user',
+                    phone_number='+1234567890',  # already used by self.user
+                    password=make_password('testpass123'),
+                )
+
+
+class LoginViewTests(TestCase):
+    """HTTP-level tests for the built-in LoginView, wired to our custom backend."""
+
+    def setUp(self):
+        self.user = User.objects.create(
+            username='login-user',
+            email='login@example.com',
+            phone_number='+1112223333',
+            password=make_password('correct-password'),
+        )
+
+    def test_get_renders_login_form(self):
+        response = self.client.get(reverse('accounts:login'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/login.html')
+
+    def test_successful_login_with_username_redirects(self):
+        response = self.client.post(reverse('accounts:login'), {
+            'username': 'login-user',
+            'password': 'correct-password',
+        })
+        self.assertEqual(response.status_code, 302)
+        # confirm the session actually holds an authenticated user now
+        self.assertIn('_auth_user_id', self.client.session)
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
+
+    def test_successful_login_with_email_redirects(self):
+        response = self.client.post(reverse('accounts:login'), {
+            'username': 'login@example.com',
+            'password': 'correct-password',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('_auth_user_id', self.client.session)
+
+    def test_invalid_credentials_shows_form_error(self):
+        response = self.client.post(reverse('accounts:login'), {
+            'username': 'login-user',
+            'password': 'wrong-password',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertFalse(response.context['form'].is_valid())
+        self.assertTrue(response.context['form'].errors)
+
+    def test_already_authenticated_user_redirected_away_from_login(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('accounts:login'))
+        # redirect_authenticated_user=True on the LoginView
+        self.assertEqual(response.status_code, 302)
+
 
 class ProfilePageTests(TestCase):
     def setUp(self):
@@ -120,3 +192,42 @@ class ProfilePageTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.post(reverse('accounts:logout'))
         self.assertEqual(response.status_code, 302)
+
+    def test_profile_hides_price_when_access_disabled(self):
+        from apps.products.models import Product, ProductSave
+
+        self.user.has_price_access = False
+        self.user.save()
+        product = Product.objects.create(
+            name='دیس بزرگ',
+            description='x',
+            price=150000,
+            cover_image=self._image(),
+            published=True,
+            creator=self.user,
+        )
+        ProductSave.objects.create(user=self.user, product=product)
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'دیس بزرگ')
+        self.assertNotContains(response, 'تومان')
+
+    def test_profile_excludes_unpublished_products(self):
+        from apps.products.models import Product, ProductSave
+
+        hidden_product = Product.objects.create(
+            name='محصول پیش‌نویس',
+            description='x',
+            price=100000,
+            cover_image=self._image(),
+            published=False,
+            creator=self.user,
+        )
+        ProductSave.objects.create(user=self.user, product=hidden_product)
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'محصول پیش‌نویس')

@@ -139,9 +139,8 @@ python manage.py clear_mock_data
 
 ## Images
 
-- **Source:** picsum.photos
+- **Source:** generated locally with Pillow (no network calls)
 - **Size:** 800×600
-- **Fallback:** Product created without image if download fails
 
 ---
 

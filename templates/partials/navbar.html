@@ -131,13 +131,48 @@
 
   @media(max-width:980px){
     .nav-primary{ display:none; }
-    .nav-search input{ width:110px; }
     .cat-panel__mobile-nav{ display:block; }
     .cat-toggle-text{ display:none; }
-  }
-  @media(max-width:520px){
-    .site-header{ gap:12px; }
-    .nav-search{ display:none; }
+
+    /* Reflow the header onto two rows instead of shrinking/hiding the
+       search bar: logo + actions stay on the top row, search moves to
+       its own full-width row directly below. Fluid (no fixed widths),
+       so this works the same from small phones up through tablets. */
+    .site-header{
+      display:grid;
+      grid-template-columns: 1fr auto 1fr;
+      grid-template-areas:
+        "right center left"
+        "search search search";
+      row-gap:14px;
+      column-gap:16px;
+    }
+    .site-header__group--right{ grid-area:right; justify-self:start; }
+    .site-header__group--center{ grid-area:center; justify-self:center; }
+    /* Dissolve the --left wrapper so its two children (auth link and
+       search form) can be placed independently: auth stays on the top
+       row, search drops to its own row below. */
+    .site-header__group--left{ display:contents; }
+    .nav-auth-icon, .nav-login{ grid-area:left; justify-self:end; }
+
+    .nav-search{
+      grid-area:search;
+      width:100%;
+      min-height:48px;
+      border:1px solid rgba(245,240,232,.18);
+      border-radius:var(--radius-md);
+      background:rgba(245,240,232,.05);
+      padding:0 16px;
+      gap:10px;
+    }
+    .nav-search:focus-within{ border-color:var(--gold); background:rgba(245,240,232,.08); }
+    .nav-search input{ width:100%; flex:1; font-size:15px; }
+    .nav-search input:focus{ width:100%; }
+    .nav-search button{
+      flex:0 0 auto;
+      min-width:40px; min-height:40px;
+      display:flex; align-items:center; justify-content:center;
+    }
   }
 </style>
 
@@ -148,6 +183,7 @@
       <a href="{% url 'home:home' %}">خانه</a>
       <a href="{% url 'products:product_list' %}">فروشگاه</a>
       <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
+      <a href="{% url 'blogs:article_list' %}">مقالات</a>
       <a href="{% url 'products:special_sales' %}">پیشنهادهای ویژه</a>
     </nav>
     <button class="cat-toggle" id="catToggle" aria-haspopup="true" aria-expanded="false" aria-controls="catPanel">
@@ -179,7 +215,7 @@
       <button type="submit" aria-label="جستجو">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.4" y2="16.4"/></svg>
       </button>
-      <input type="search" name="q" placeholder="جستجوی محصول…" aria-label="جستجوی محصول">
+      <input type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="جستجوی محصول…" aria-label="جستجوی محصول">
     </form>
   </div>
 </header>
@@ -196,6 +232,7 @@
     <a href="{% url 'home:home' %}">خانه</a>
     <a href="{% url 'products:product_list' %}">فروشگاه</a>
     <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
+    <a href="{% url 'blogs:article_list' %}">مقالات</a>
     <a href="{% url 'products:special_sales' %}">پیشنهادهای ویژه</a>
   </div>
 
