@@ -6,13 +6,14 @@ from django.contrib.auth import get_user_model
 from django.core.files import File
 from django.core.management.base import BaseCommand
 from faker import Faker
+from PIL import Image
+from io import BytesIO
+import os
 
 from apps.products.models import Category, Product
 
-
 User = get_user_model()
 fake = Faker('fa_IR')
-
 
 # ============================================================================
 # CONFIGURATION
@@ -25,9 +26,9 @@ fake = Faker('fa_IR')
 # This uses Django's MEDIA_ROOT instead of calculating the project root
 # manually, which makes it much more reliable.
 SAMPLE_COVERS_DIR = (
-    Path(settings.MEDIA_ROOT)
-    / 'products'
-    / 'SampleCovers'
+        Path(settings.MEDIA_ROOT)
+        / 'products'
+        / 'SampleCovers'
 )
 
 SUPPORTED_IMAGE_EXTENSIONS = {
@@ -39,6 +40,9 @@ SUPPORTED_IMAGE_EXTENSIONS = {
     '.bmp',
 }
 
+# Image processing settings
+COVER_IMAGE_SIZE = (800, 800)  # 1:1 aspect ratio
+IMAGE_QUALITY = 85  # JPEG quality (1-100)
 
 # ============================================================================
 # PRODUCT DATA
@@ -91,7 +95,6 @@ PRODUCT_NAME_MAP = {
     ],
 }
 
-
 MATERIALS = [
     'پلاستیک فشرده',
     'استیل ضد زنگ',
@@ -99,7 +102,6 @@ MATERIALS = [
     'پلی‌اتیلن',
     'ABS',
 ]
-
 
 FEATURES = [
     'کیفیت بالا',
@@ -109,7 +111,6 @@ FEATURES = [
     'مناسب مصارف خانگی',
     'بسته‌بندی استاندارد',
 ]
-
 
 EXTRA_TAGS = [
     'کیفیت بالا',
@@ -125,7 +126,6 @@ EXTRA_TAGS = [
 # ============================================================================
 
 class Command(BaseCommand):
-
     help = (
         'Generate mock products using existing categories '
         'and local sample images'
@@ -169,7 +169,6 @@ class Command(BaseCommand):
         # ====================================================================
 
         if count < 1:
-
             self.stdout.write(
                 self.style.ERROR(
                     '❌ Product count must be greater than 0.'
@@ -190,7 +189,6 @@ class Command(BaseCommand):
         # ====================================================================
 
         if not Category.objects.exists():
-
             self.stdout.write(
                 self.style.ERROR(
                     '❌ No categories found!'
@@ -222,7 +220,6 @@ class Command(BaseCommand):
             )
 
             if not main_categories.exists():
-
                 self.stdout.write(
                     self.style.ERROR(
                         f'❌ Category "{options["category"]}" not found'
@@ -251,7 +248,6 @@ class Command(BaseCommand):
         )
 
         if not self.sample_covers:
-
             self.stdout.write('')
             self.stdout.write(
                 self.style.ERROR(
@@ -333,6 +329,90 @@ class Command(BaseCommand):
     # IMAGE HANDLING
     # =========================================================================
 
+    def process_image_to_square(self, image_path, output_path=None):
+        """
+        Process an image to be a 1:1 square ratio.
+
+        This function:
+        1. Opens the image
+        2. Crops it to a square (center crop)
+        3. Resizes it to COVER_IMAGE_SIZE (800x800 by default)
+        4. Saves it with optimization
+
+        Returns the processed image file path or None if processing fails.
+        """
+        try:
+            # Open the image
+            img = Image.open(image_path)
+
+            # Convert to RGB if necessary (for PNG with transparency)
+            if img.mode in ('RGBA', 'LA', 'P'):
+                # Create a white background
+                background = Image.new('RGB', img.size, (255, 255, 255))
+
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+
+                # Paste the image on the background
+                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                img = background
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+
+            # Get original dimensions
+            width, height = img.size
+
+            # Calculate crop dimensions for center square crop
+            if width > height:
+                # Landscape image - crop width
+                left = (width - height) // 2
+                top = 0
+                right = left + height
+                bottom = height
+            else:
+                # Portrait image - crop height
+                left = 0
+                top = (height - width) // 2
+                right = width
+                bottom = top + width
+
+            # Crop to square
+            img_cropped = img.crop((left, top, right, bottom))
+
+            # Resize to target size
+            img_resized = img_cropped.resize(
+                COVER_IMAGE_SIZE,
+                Image.Resampling.LANCZOS
+            )
+
+            # Save to BytesIO
+            img_io = BytesIO()
+
+            # Determine format based on original extension
+            ext = image_path.suffix.lower()
+
+            if ext in ['.jpg', '.jpeg']:
+                img_resized.save(img_io, format='JPEG', quality=IMAGE_QUALITY, optimize=True)
+            elif ext == '.png':
+                img_resized.save(img_io, format='PNG', optimize=True)
+            elif ext == '.webp':
+                img_resized.save(img_io, format='WEBP', quality=IMAGE_QUALITY)
+            else:
+                # Default to JPEG for other formats
+                img_resized.save(img_io, format='JPEG', quality=IMAGE_QUALITY, optimize=True)
+
+            img_io.seek(0)
+
+            return img_io
+
+        except Exception as exc:
+            self.stdout.write(
+                self.style.WARNING(
+                    f'   ⚠️  Image processing failed for {image_path.name}: {exc}'
+                )
+            )
+            return None
+
     def load_sample_covers(self):
         """
         Find all supported images in:
@@ -382,9 +462,9 @@ class Command(BaseCommand):
         # ---------------------------------------------------------------------
 
         sample_dir = (
-            media_root
-            / 'products'
-            / 'SampleCovers'
+                media_root
+                / 'products'
+                / 'SampleCovers'
         )
 
         self.stdout.write('')
@@ -460,7 +540,6 @@ class Command(BaseCommand):
         # ---------------------------------------------------------------------
 
         if not sample_dir.is_dir():
-
             self.stdout.write('')
             self.stdout.write(
                 self.style.ERROR(
@@ -506,7 +585,6 @@ class Command(BaseCommand):
         # ---------------------------------------------------------------------
 
         if not contents:
-
             self.stdout.write('')
             self.stdout.write(
                 self.style.WARNING(
@@ -530,7 +608,6 @@ class Command(BaseCommand):
         self.stdout.write('')
 
         for path in sorted(contents):
-
             self.stdout.write(
                 f'   📄 {path.name}'
                 f' | file={path.is_file()}'
@@ -563,7 +640,6 @@ class Command(BaseCommand):
             # ---------------------------------------------------------------
 
             if not path.is_file():
-
                 self.stdout.write(
                     f'   ⏭️  SKIP: {path.name}'
                     ' (not a regular file)'
@@ -578,7 +654,6 @@ class Command(BaseCommand):
             extension = path.suffix.lower()
 
             if extension not in SUPPORTED_IMAGE_EXTENSIONS:
-
                 self.stdout.write(
                     f'   ⏭️  SKIP: {path.name}'
                     f' (unsupported extension: {extension!r})'
@@ -673,10 +748,9 @@ class Command(BaseCommand):
         # ---------------------------------------------------------------
 
         if (
-            self.sample_cover_index
-            >= len(self.sample_covers)
+                self.sample_cover_index
+                >= len(self.sample_covers)
         ):
-
             self.stdout.write('')
             self.stdout.write(
                 self.style.WARNING(
@@ -710,7 +784,6 @@ class Command(BaseCommand):
         ).first()
 
         if not admin:
-
             self.stdout.write(
                 '👤 No superuser found. Creating development admin...'
             )
@@ -762,9 +835,9 @@ class Command(BaseCommand):
     # =========================================================================
 
     def create_products(
-        self,
-        count,
-        main_categories,
+            self,
+            count,
+            main_categories,
     ):
 
         admin = self.get_admin_user()
@@ -832,15 +905,15 @@ class Command(BaseCommand):
                 call_for_price=call_for_price,
 
                 published=(
-                    random.random() < 0.9
+                        random.random() < 0.9
                 ),
 
                 featured_in_special_sales=(
-                    random.random() < 0.25
+                        random.random() < 0.25
                 ),
 
                 is_featured=(
-                    random.random() < 0.15
+                        random.random() < 0.15
                 ),
 
                 featured_order=(
@@ -870,40 +943,91 @@ class Command(BaseCommand):
                 )
 
                 # -------------------------------------------------------------
-                # Generate unique destination filename.
-                #
-                # This keeps Django's media storage from having to deal with
-                # products sharing exactly the same filename.
+                # Process image to 1:1 square format
                 # -------------------------------------------------------------
 
-                image_filename = (
-                    f'product_{i + 1}_'
-                    f'{random.randint(100000, 999999)}'
-                    f'{image_path.suffix.lower()}'
+                processed_image = self.process_image_to_square(
+                    image_path
                 )
 
-                try:
+                if processed_image:
 
-                    with image_path.open(
-                        'rb'
-                    ) as image_file:
+                    # ---------------------------------------------------------
+                    # Generate unique destination filename.
+                    #
+                    # This keeps Django's media storage from having to deal with
+                    # products sharing exactly the same filename.
+                    # ---------------------------------------------------------
+
+                    # Use .jpg extension for processed images
+                    image_filename = (
+                        f'product_{i + 1}_'
+                        f'{random.randint(100000, 999999)}'
+                        f'.jpg'
+                    )
+
+                    try:
 
                         product.cover_image.save(
                             image_filename,
-                            File(image_file),
+                            File(processed_image),
                             save=False,
                         )
 
-                except Exception as exc:
+                        self.stdout.write(
+                            f'   ✅ Image processed: '
+                            f'{COVER_IMAGE_SIZE[0]}x{COVER_IMAGE_SIZE[1]}px'
+                        )
+
+                    except Exception as exc:
+
+                        self.stdout.write(
+                            self.style.ERROR(
+                                f'   ❌ Failed to attach image '
+                                f'{image_path.name}: {exc}'
+                            )
+                        )
+
+                        raise
+
+                else:
 
                     self.stdout.write(
-                        self.style.ERROR(
-                            f'   ❌ Failed to attach image '
-                            f'{image_path.name}: {exc}'
+                        self.style.WARNING(
+                            f'   ⚠️  Image processing failed, '
+                            f'attempting to use original...'
                         )
                     )
 
-                    raise
+                    # Fallback to original image
+                    image_filename = (
+                        f'product_{i + 1}_'
+                        f'{random.randint(100000, 999999)}'
+                        f'{image_path.suffix.lower()}'
+                    )
+
+                    try:
+
+                        with image_path.open(
+                                'rb'
+                        ) as image_file:
+
+                            product.cover_image.save(
+                                image_filename,
+                                File(image_file),
+                                save=False,
+                            )
+
+                    except Exception as exc:
+
+                        self.stdout.write(
+                            self.style.ERROR(
+                                f'   ❌ Failed to attach image '
+                                f'{image_path.name}: {exc}'
+                            )
+                        )
+
+                        raise
 
             else:
 
@@ -959,7 +1083,6 @@ class Command(BaseCommand):
             # -----------------------------------------------------------------
 
             if (i + 1) % 25 == 0:
-
                 self.stdout.write(
                     f'  ⏳ {i + 1}/{count} products created...'
                 )
@@ -1020,10 +1143,9 @@ class Command(BaseCommand):
         for key, names in PRODUCT_NAME_MAP.items():
 
             if (
-                key in category.name
-                or category.name in key
+                    key in category.name
+                    or category.name in key
             ):
-
                 return random.choice(
                     names
                 )
@@ -1054,7 +1176,6 @@ class Command(BaseCommand):
             )
 
             if candidate not in self.used_names:
-
                 self.used_names.add(
                     candidate
                 )
@@ -1079,7 +1200,6 @@ class Command(BaseCommand):
         # ---------------------------------------------------------------------
 
         if random.random() < 0.15:
-
             return (
                 0,
                 None,
@@ -1100,7 +1220,6 @@ class Command(BaseCommand):
         # ---------------------------------------------------------------------
 
         if random.random() < 0.30:
-
             on_sale = int(
                 price
                 * random.uniform(
@@ -1126,9 +1245,9 @@ class Command(BaseCommand):
     # =========================================================================
 
     def get_realistic_description(
-        self,
-        name,
-        category,
+            self,
+            name,
+            category,
     ):
 
         feature_1 = random.choice(
@@ -1162,7 +1281,6 @@ class Command(BaseCommand):
         parent = category.parent
 
         while parent:
-
             tags.append(
                 parent.name
             )
@@ -1262,6 +1380,11 @@ class Command(BaseCommand):
         self.stdout.write(
             f'  🖼️  Sample images available: '
             f'{len(self.sample_covers)}'
+        )
+
+        self.stdout.write(
+            f'  📐 Image size:              '
+            f'{COVER_IMAGE_SIZE[0]}x{COVER_IMAGE_SIZE[1]}px (1:1)'
         )
 
         self.stdout.write(
