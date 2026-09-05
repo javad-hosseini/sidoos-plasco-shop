@@ -13,9 +13,9 @@ JAZZMIN_SETTINGS = {
     # Branding
     # ------------------------------------------------------
 
-    "site_title": "Admin Panel",
-    "site_header": "Sidoos admin",
-    "site_brand": "Sidoos panel",
+    "site_title": "پنل مدیریت سیدوس",
+    "site_header": "مدیریت سیدوس",
+    "site_brand": "سیدوس",
 
     "site_logo": "images/logo.png",
     "site_icon": "images/favicon.ico",
@@ -25,7 +25,7 @@ JAZZMIN_SETTINGS = {
 
     "site_logo_classes": "img-circle elevation-2",
 
-    "welcome_sign": "Welcome to the Sidoos Panel",
+    "welcome_sign": "به پنل مدیریت سیدوس خوش آمدید",
 
     # "copyright": "© 2026",
 
@@ -58,7 +58,7 @@ JAZZMIN_SETTINGS = {
     # ------------------------------------------------------
 
     "search_model": [
-        "auth.User",
+        "accounts.User",
     ],
 
     # ------------------------------------------------------
@@ -82,7 +82,7 @@ JAZZMIN_SETTINGS = {
     "topmenu_links": [
 
         {
-            "name": "Dashboard",
+            "name": "داشبورد",
             "url": "admin:index",
         },
 
@@ -97,10 +97,11 @@ JAZZMIN_SETTINGS = {
         # Django Apps
 
         "auth": "fas fa-users",
+        "accounts": "fas fa-users",
 
         # Django Models
 
-        "auth.user": "fas fa-user",
+        "accounts.user": "fas fa-user",
 
         "auth.group": "fas fa-users-cog",
 
@@ -129,6 +130,15 @@ JAZZMIN_SETTINGS = {
     # ------------------------------------------------------
 
     "language_chooser": True,
+
+    # ------------------------------------------------------
+    # Custom assets
+    # ------------------------------------------------------
+
+    # RTL polish for admins who switch the language to Persian, via the
+    # language chooser above. Scoped to html[dir="rtl"], so it has no
+    # effect while the interface is in English.
+    "custom_css": "admin/css/rtl-polish.css",
 
 }
 

@@ -1,390 +1,341 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static humanize blog_extras %}
 
-{% block title %}{{ product.name }} - Sidoos Plasco Shop{% endblock %}
+{% block title %}{{ product.name }} | سیدوس{% endblock %}
+{% block meta_description %}{{ product.name }} — {{ product.category.name|default:"محصولات سیدوس" }}. مشاهده جزئیات و تماس برای سفارش عمده.{% endblock %}
+
+{% block extra_css %}
+<style>
+  .pd-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:120px; }
+
+  /* main layout */
+  .pd-main{ display:grid; grid-template-columns:1.05fr .95fr; gap:60px; align-items:start; }
+  @media(max-width:960px){ .pd-main{ grid-template-columns:1fr; gap:36px; } }
+
+  /* gallery */
+  .pd-gallery{ position:sticky; top:calc(var(--header-height) + 24px); }
+  @media(max-width:960px){ .pd-gallery{ position:static; } }
+  .pd-stage{
+    position:relative; aspect-ratio:1/1; overflow:hidden;
+    background:#141814; border:1px solid rgba(216,207,193,.12);
+  }
+  .pd-stage img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    opacity:0; transition:opacity .5s var(--ease), transform 1.2s var(--ease);
+  }
+  .pd-stage img.is-active{ opacity:1; }
+  .pd-stage:hover img.is-active{ transform:scale(1.06); }
+  .pd-stage__badge{
+    position:absolute; top:16px; right:16px; z-index:2;
+    background:var(--emerald); color:var(--cream); font-size:12px;
+    padding:7px 14px; letter-spacing:.02em;
+  }
+  .pd-stage__sale{
+    position:absolute; top:16px; left:16px; z-index:2;
+    background:var(--gold); color:var(--charcoal); font-weight:800; font-size:15px;
+    padding:8px 14px; line-height:1;
+  }
+  .pd-thumbs{ display:flex; gap:12px; margin-top:14px; flex-wrap:wrap; }
+  .pd-thumb{
+    width:74px; height:74px; object-fit:cover; cursor:pointer;
+    border:1px solid rgba(216,207,193,.16); opacity:.6;
+    transition:opacity .3s, border-color .3s, transform .3s;
+  }
+  .pd-thumb:hover{ opacity:1; transform:translateY(-2px); }
+  .pd-thumb.is-active{ opacity:1; border-color:var(--gold); }
+
+  /* info column */
+  .pd-cat{ font-size:12.5px; color:var(--gold); letter-spacing:.03em; margin-bottom:12px; display:inline-block; }
+  .pd-title{ font-size:clamp(24px,3vw,38px); line-height:1.35; font-weight:800; margin-bottom:22px; }
+
+  .pd-price-box{
+    border:1px solid rgba(216,207,193,.12); background:var(--graphite);
+    padding:22px 24px; margin-bottom:26px;
+  }
+  .pd-price{ font-size:26px; font-weight:800; color:var(--cream); }
+  .pd-price .unit{ font-size:15px; font-weight:400; color:var(--cream-soft); margin-inline-start:4px; }
+  .pd-price .old{ display:block; font-size:15px; font-weight:400; color:var(--cream-soft); text-decoration:line-through; margin-top:6px; }
+  .pd-price--call{ font-size:20px; color:var(--gold); font-weight:700; }
+  .pd-price--locked{ font-size:15px; color:var(--cream-soft); line-height:1.9; }
+
+  /* actions — large, clearly labelled */
+  .pd-actions{ display:flex; flex-direction:column; gap:14px; margin-bottom:26px; }
+  .pd-btn{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    min-height:54px; padding:0 24px; font-size:15px; font-weight:700;
+    border:1px solid var(--gold); transition:background .35s var(--ease), color .35s var(--ease), transform .15s;
+  }
+  .pd-btn:active{ transform:scale(.98); }
+  .pd-btn--primary{ background:var(--gold); color:var(--charcoal); }
+  .pd-btn--primary:hover{ background:#c9ac6d; }
+  .pd-btn--ghost{ background:none; color:var(--cream); border-color:rgba(216,207,193,.28); }
+  .pd-btn--ghost:hover{ border-color:var(--gold); background:rgba(184,155,94,.08); }
+  .pd-btn svg{ width:19px; height:19px; flex:0 0 auto; }
+
+  .pd-mini-actions{ display:flex; gap:12px; }
+  .pd-mini{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+    min-height:48px; font-size:13.5px; font-weight:600;
+    border:1px solid rgba(216,207,193,.2); color:var(--cream-soft);
+    transition:border-color .3s, color .3s, background .3s;
+  }
+  .pd-mini:hover{ border-color:var(--gold-soft); color:var(--cream); }
+  .pd-mini.is-active{ border-color:var(--gold); color:var(--gold); background:rgba(184,155,94,.08); }
+  .pd-mini svg{ width:17px; height:17px; }
+  .pd-mini.is-active svg{ fill:currentColor; }
+
+  /* help box — this shop has no online checkout, so guide the user */
+  .pd-help{
+    display:flex; gap:14px; align-items:flex-start;
+    border:1px solid rgba(184,155,94,.22); background:rgba(184,155,94,.06);
+    padding:18px 20px; margin-bottom:24px;
+  }
+  .pd-help svg{ width:22px; height:22px; color:var(--gold); flex:0 0 auto; margin-top:2px; }
+  .pd-help p{ font-size:13.5px; line-height:1.95; color:var(--cream-soft); }
+  .pd-help a{ color:var(--gold); font-weight:700; }
+
+  .pd-tags{ display:flex; flex-wrap:wrap; gap:8px; }
+  .pd-tag{ font-size:12px; color:var(--cream-soft); border:1px solid rgba(216,207,193,.18); padding:5px 12px; }
+
+  /* description */
+  .pd-section{ margin-top:90px; }
+  .pd-section__title{ font-size:22px; font-weight:800; margin-bottom:22px; padding-bottom:14px; border-bottom:1px solid rgba(216,207,193,.12); }
+  /* related */
+  .pd-related-scroller{ display:flex; gap:22px; overflow-x:auto; padding-bottom:18px; scroll-snap-type:x proximity; scrollbar-width:none; }
+  .pd-related-scroller::-webkit-scrollbar{ display:none; }
+  .pd-rcard{
+    flex:0 0 240px; scroll-snap-align:start; background:var(--graphite);
+    border:1px solid rgba(216,207,193,.1); transition:border-color .4s, transform .5s var(--ease);
+  }
+  .pd-rcard:hover{ border-color:var(--gold-soft); transform:translateY(-6px); }
+  .pd-rcard__media{ height:220px; overflow:hidden; background:#141814; }
+  .pd-rcard__media img{ width:100%; height:100%; object-fit:cover; transition:transform .9s var(--ease); }
+  .pd-rcard:hover .pd-rcard__media img{ transform:scale(1.07); }
+  .pd-rcard__info{ padding:16px 18px 20px; }
+  .pd-rcard__cat{ font-size:11px; color:var(--gold); display:block; margin-bottom:6px; }
+  .pd-rcard__info h4{ font-size:14.5px; font-weight:600; line-height:1.6; }
+
+  .pd-back{ display:inline-flex; align-items:center; gap:8px; color:var(--gold); font-size:13px; margin-top:40px; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="breadcrumb">
-        <a href="{% url 'products:product_list' %}">Products</a>
-        {% if product.category %}
-            / <a href="{% url 'products:category_products' product.category.slug %}">{{ product.category.name }}</a>
-        {% endif %}
-        / {{ product.name }}
-    </div>
-    
-    <div class="product-detail">
-        <!-- Product Images -->
-        <div class="product-images">
-            {% if product.cover_image %}
-                <img src="{{ product.cover_image.url }}" alt="{{ product.name }}" class="main-image" id="main-image">
-            {% endif %}
-            
-            {% if images %}
-            <div class="image-gallery">
-                {% for image in images %}
-                    <img src="{{ image.image.url }}" alt="Gallery image" class="gallery-thumb" onclick="changeImage('{{ image.image.url }}')">
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-        
-        <!-- Product Info -->
-        <div class="product-info">
-            <h1>{{ product.name }}</h1>
+<div class="pd-wrap">
+  <div class="container">
 
-            {% if product.category %}
-            <p>
-                <strong>Category:</strong>
-                <a href="{% url 'products:category_products' product.category.slug %}">{{ product.category.name }}</a>
-            </p>
-            {% endif %}
-            
-            <!-- Pricing -->
-            <div class="pricing">
-                {% if can_view_price %}
-                    {% if product.call_for_price %}
-                        <p class="call-for-price">📞 Call for Price</p>
-                    {% else %}
-                        {% if product.on_sale_price %}
-                            <p class="original-price">${{ product.price }}</p>
-                            <p class="sale-price">${{ product.on_sale_price }}</p>
-                            <p class="discount-badge">{{ discount }}% OFF</p>
-                        {% else %}
-                            <p class="price">${{ product.price }}</p>
-                        {% endif %}
-                    {% endif %}
-                {% else %}
-                    <p class="price-locked">
-                        {% if user.is_authenticated %}
-                            Price available for approved accounts.
-                        {% else %}
-                            <a href="{% url 'accounts:login' %}">Login</a> to view prices.
-                        {% endif %}
-                    </p>
-                {% endif %}
-            </div>
-            
-            <!-- Tags -->
-            {% if tags %}
-            <div class="tags">
-                <strong>Tags:</strong>
-                {% for tag in tags %}
-                    <span class="tag">{{ tag.name }}</span>
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <!-- Description -->
-            <div class="description">
-                <h3>Description</h3>
-                <div class="description-content">
-                    {{ product.description|safe }}
-                </div>
-            </div>
-            
-            <!-- Actions -->
-            <div class="actions">
-                {% if user.is_authenticated %}
-                    <button class="btn {% if is_saved %}active{% endif %}" onclick="toggleSave(event, {{ product.id }})">
-                        💾 {% if is_saved %}Saved{% else %}Save{% endif %}
-                    </button>
-                    <button class="btn {% if is_liked %}active{% endif %}" onclick="toggleLike(event, {{ product.id }})">
-                        ❤️ {% if is_liked %}Liked{% else %}Like{% endif %}
-                    </button>
-                {% else %}
-                    <p><a href="{% url 'accounts:login' %}">Login</a> to save or like this product.</p>
-                {% endif %}
-            </div>
-            
-            <!-- Publication Status -->
-            {% if not product.published %}
-                <p class="warning">⚠️ This product is currently unpublished.</p>
-            {% endif %}
-            
-            {% if product.featured_in_special_sales %}
-                <p class="badge">✨ Featured in Special Sales</p>
-            {% endif %}
+    {% include 'partials/breadcrumbs.html' %}
+
+    <div class="pd-main">
+
+      {# ============ GALLERY ============ #}
+      <div class="pd-gallery reveal">
+        <div class="pd-stage" id="pdStage">
+          {% if product.featured_in_special_sales %}<span class="pd-stage__badge">فروش ویژه</span>{% endif %}
+          {% if discount %}<span class="pd-stage__sale">{{ discount|floatformat:0|persian_digits }}٪ تخفیف</span>{% endif %}
+
+          {% if product.cover_image %}
+            <img src="{{ product.cover_image.url }}" alt="{{ product.name }}" class="pd-stage__img is-active" data-index="0">
+          {% endif %}
+          {% for image in images %}
+            <img src="{{ image.image.url }}" alt="{{ product.name }} - تصویر {{ forloop.counter }}" class="pd-stage__img" data-index="{{ forloop.counter }}" loading="lazy">
+          {% endfor %}
         </div>
+
+        {% if images %}
+        <div class="pd-thumbs" id="pdThumbs">
+          {% if product.cover_image %}
+            <img src="{{ product.cover_image.url }}" alt="نمای اصلی" class="pd-thumb is-active" data-target="0">
+          {% endif %}
+          {% for image in images %}
+            <img src="{{ image.image.url }}" alt="تصویر {{ forloop.counter }}" class="pd-thumb" data-target="{{ forloop.counter }}" loading="lazy">
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      {# ============ INFO ============ #}
+      <div class="pd-info reveal reveal-delay-1">
+        {% if product.category %}
+          <a href="{% url 'products:category_products' product.category.slug %}" class="pd-cat">{{ product.category.name }}</a>
+        {% endif %}
+        <h1 class="pd-title">{{ product.name }}</h1>
+
+        <div class="pd-price-box">
+          {% if can_view_price %}
+            {% if product.call_for_price %}
+              <div class="pd-price pd-price--call">تماس برای قیمت</div>
+            {% elif product.on_sale_price %}
+              <div class="pd-price">
+                {{ product.on_sale_price|intcomma|persian_digits }}<span class="unit">تومان</span>
+                <span class="old">{{ product.price|intcomma|persian_digits }} تومان</span>
+              </div>
+            {% else %}
+              <div class="pd-price">{{ product.price|intcomma|persian_digits }}<span class="unit">تومان</span></div>
+            {% endif %}
+          {% else %}
+            <div class="pd-price pd-price--locked">
+              {% if user.is_authenticated %}
+                قیمت این محصول فقط برای حساب‌های تأییدشده نمایش داده می‌شود.
+              {% else %}
+                برای مشاهده قیمت، لطفاً وارد حساب کاربری خود شوید.
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="pd-actions">
+          <a href="tel:+985138944715" class="pd-btn pd-btn--primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L9 10a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7A2 2 0 0 1 22 16.9z"/></svg>
+            تماس برای سفارش
+          </a>
+          {% if not can_view_price and not user.is_authenticated %}
+            <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}" class="pd-btn pd-btn--ghost">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+              ورود برای مشاهده قیمت
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="pd-mini-actions">
+          {% if user.is_authenticated %}
+            <button type="button" class="pd-mini{% if is_saved %} is-active{% endif %}" id="pdSave" data-url="{% url 'products:toggle_save' product.id %}" aria-pressed="{{ is_saved|yesno:'true,false' }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              <span class="pd-mini__label">{% if is_saved %}ذخیره شد{% else %}ذخیره محصول{% endif %}</span>
+            </button>
+            <button type="button" class="pd-mini{% if is_liked %} is-active{% endif %}" id="pdLike" data-url="{% url 'products:toggle_like' product.id %}" aria-pressed="{{ is_liked|yesno:'true,false' }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21c-4-3-8-6.5-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 4.5-4 8-10 11z"/></svg>
+              <span class="pd-mini__label">پسندیدن</span>
+              <span class="pd-mini__count" id="pdLikeCount">{{ like_count|persian_digits }}</span>
+            </button>
+          {% else %}
+            <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}" class="pd-mini">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              <span>ذخیره محصول</span>
+            </a>
+            <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}" class="pd-mini">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21c-4-3-8-6.5-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 4.5-4 8-10 11z"/></svg>
+              <span>پسندیدن ({{ like_count|persian_digits }})</span>
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="pd-help" style="margin-top:24px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <p>
+            خرید در سیدوس به‌صورت عمده و با هماهنگی کارشناسان انجام می‌شود.
+            برای ثبت سفارش، قیمت عمده و موجودی با شماره
+            <a href="tel:+985138944715" dir="ltr">۰۵۱۳-۸۹۴۴۷۱۵</a>
+            تماس بگیرید یا از بخش
+            <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
+            برای ما پیام بگذارید.
+          </p>
+        </div>
+
+        {% if tags %}
+        <div class="pd-tags">
+          {% for tag in tags %}<span class="pd-tag">{{ tag.name }}</span>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
     </div>
-    
-    <!-- Related Products -->
-    {% if tags %}
-    <div class="related-products">
-        <h2>Related Products</h2>
-        <p><em>Related products section to be implemented by frontend team.</em></p>
-    </div>
+
+    {# ============ DESCRIPTION ============ #}
+    {% if product.description %}
+    <section class="pd-section reveal">
+      <h2 class="pd-section__title">توضیحات محصول</h2>
+      <div class="rte">{{ product.description|safe }}</div>
+    </section>
     {% endif %}
+
+    {# ============ RELATED ============ #}
+    {% if related_products %}
+    <section class="pd-section reveal">
+      <h2 class="pd-section__title">محصولات مرتبط</h2>
+      <div class="pd-related-scroller">
+        {% for item in related_products %}
+        <a class="pd-rcard" href="{% url 'products:product_detail' item.slug %}">
+          <div class="pd-rcard__media">
+            {% if item.cover_image %}<img src="{{ item.cover_image.url }}" alt="{{ item.name }}" loading="lazy">{% endif %}
+          </div>
+          <div class="pd-rcard__info">
+            {% if item.category %}<span class="pd-rcard__cat">{{ item.category.name }}</span>{% endif %}
+            <h4>{{ item.name }}</h4>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <a href="{% url 'products:product_list' %}" class="pd-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+      بازگشت به فروشگاه
+    </a>
+
+  </div>
 </div>
 
-<style>
-    .breadcrumb {
-        margin: 20px 0;
-        padding: 10px 0;
-        border-bottom: 1px solid #ddd;
-    }
-    
-    .breadcrumb a {
-        color: #3498db;
-        text-decoration: none;
-    }
-    
-    .breadcrumb a:hover {
-        text-decoration: underline;
-    }
-    
-    .product-detail {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 40px;
-        margin: 30px 0;
-    }
-    
-    .product-images {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .main-image {
-        width: 100%;
-        max-height: 500px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-    }
-    
-    .image-gallery {
-        display: flex;
-        gap: 10px;
-        overflow-x: auto;
-    }
-    
-    .gallery-thumb {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-        border-radius: 4px;
-        cursor: pointer;
-        border: 2px solid #ddd;
-        transition: border-color 0.2s;
-    }
-    
-    .gallery-thumb:hover {
-        border-color: #3498db;
-    }
-    
-    .product-info h1 {
-        font-size: 32px;
-        margin: 0 0 20px 0;
-    }
-    
-    .pricing {
-        margin: 20px 0;
-        padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 8px;
-    }
-    
-    .price {
-        font-size: 28px;
-        font-weight: bold;
-        color: #27ae60;
-    }
-    
-    .original-price {
-        color: #999;
-        text-decoration: line-through;
-        font-size: 18px;
-    }
-    
-    .sale-price {
-        color: #e74c3c;
-        font-size: 24px;
-        font-weight: bold;
-    }
-    
-    .call-for-price {
-        font-size: 24px;
-        color: #e74c3c;
-        font-weight: bold;
-    }
-    
-    .discount-badge {
-        display: inline-block;
-        background-color: #e74c3c;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 4px;
-        margin-top: 10px;
-        font-weight: bold;
-    }
+<form hidden aria-hidden="true">{% csrf_token %}</form>
+{% endblock %}
 
-    .price-locked {
-        color: #6E756F;
-        font-size: 14px;
-        margin: 0;
-    }
-    
-    .tags {
-        margin: 20px 0;
-    }
-    
-    .tag {
-        display: inline-block;
-        background-color: #ecf0f1;
-        padding: 6px 12px;
-        margin: 4px;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-    
-    .description {
-        margin: 30px 0;
-    }
-    
-    .description h3 {
-        margin-top: 0;
-    }
-    
-    .description-content {
-        background-color: #f9f9f9;
-        padding: 20px;
-        border-radius: 8px;
-        line-height: 1.6;
-    }
-    
-    .actions {
-        margin: 30px 0;
-        display: flex;
-        gap: 10px;
-    }
-    
-    .btn {
-        padding: 12px 24px;
-        border: 2px solid #bdc3c7;
-        background-color: white;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: all 0.2s;
-    }
-    
-    .btn:hover {
-        border-color: #3498db;
-        background-color: #ecf0f1;
-    }
-    
-    .btn.active {
-        background-color: #3498db;
-        color: white;
-        border-color: #3498db;
-    }
-    
-    .warning {
-        color: #e67e22;
-        font-weight: bold;
-        padding: 10px;
-        background-color: #fef5e7;
-        border-radius: 4px;
-    }
-    
-    .badge {
-        color: #f39c12;
-        font-weight: bold;
-        padding: 10px;
-        background-color: #fef9e7;
-        border-radius: 4px;
-        display: inline-block;
-    }
-    
-    .related-products {
-        margin: 40px 0;
-        padding-top: 40px;
-        border-top: 1px solid #ddd;
-    }
-    
-    @media (max-width: 768px) {
-        .product-detail {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-    }
-</style>
-
+{% block extra_js %}
 <script>
-function changeImage(imageSrc) {
-    document.getElementById('main-image').src = imageSrc;
-}
+/* ---------- gallery: thumbnail → main image ---------- */
+(function(){
+  var stage = document.getElementById('pdStage');
+  var thumbs = document.getElementById('pdThumbs');
+  if(!stage || !thumbs) return;
+  var imgs = stage.querySelectorAll('.pd-stage__img');
+  thumbs.addEventListener('click', function(e){
+    var t = e.target.closest('.pd-thumb');
+    if(!t) return;
+    var idx = t.dataset.target;
+    imgs.forEach(function(im){ im.classList.toggle('is-active', im.dataset.index === idx); });
+    thumbs.querySelectorAll('.pd-thumb').forEach(function(x){ x.classList.toggle('is-active', x === t); });
+  });
+})();
 
-function toggleSave(event, productId) {
-    const button = event.currentTarget;
-    fetch(`/products/api/${productId}/save/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to toggle save');
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.saved) {
-            button.textContent = '💾 Saved';
-            button.classList.add('active');
-        } else {
-            button.textContent = '💾 Save';
-            button.classList.remove('active');
-        }
-    })
-    .catch(error => {
-        console.error(error);
+/* ---------- save / like toggle ---------- */
+(function(){
+  var tokenField = document.querySelector('input[name=csrfmiddlewaretoken]');
+  var token = tokenField ? tokenField.value : '';
+
+  function post(url){
+    return fetch(url, {
+      method:'POST',
+      headers:{ 'X-CSRFToken': token, 'X-Requested-With':'XMLHttpRequest' },
+    }).then(function(r){ if(!r.ok) throw new Error('bad'); return r.json(); });
+  }
+
+  var saveBtn = document.getElementById('pdSave');
+  if(saveBtn){
+    saveBtn.addEventListener('click', function(){
+      saveBtn.disabled = true;
+      post(saveBtn.dataset.url).then(function(data){
+        var on = !!data.saved;
+        saveBtn.classList.toggle('is-active', on);
+        saveBtn.setAttribute('aria-pressed', String(on));
+        saveBtn.querySelector('.pd-mini__label').textContent = on ? 'ذخیره شد' : 'ذخیره محصول';
+      }).catch(function(){}).finally(function(){ saveBtn.disabled = false; });
     });
-}
+  }
 
-function toggleLike(event, productId) {
-    const button = event.currentTarget;
-    fetch(`/products/api/${productId}/like/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to toggle like');
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.liked) {
-            button.textContent = '❤️ Liked';
-            button.classList.add('active');
-        } else {
-            button.textContent = '❤️ Like';
-            button.classList.remove('active');
-        }
-    })
-    .catch(error => {
-        console.error(error);
+  var likeBtn = document.getElementById('pdLike');
+  if(likeBtn){
+    var countEl = document.getElementById('pdLikeCount');
+    var toFa = function(n){ return String(n).replace(/\d/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'[d]; }); };
+    likeBtn.addEventListener('click', function(){
+      likeBtn.disabled = true;
+      post(likeBtn.dataset.url).then(function(data){
+        var on = !!data.liked;
+        likeBtn.classList.toggle('is-active', on);
+        likeBtn.setAttribute('aria-pressed', String(on));
+        var c = parseInt((countEl.textContent||'0').replace(/\D/g,''), 10) || 0;
+        countEl.textContent = toFa(Math.max(0, c + (on ? 1 : -1)));
+      }).catch(function(){}).finally(function(){ likeBtn.disabled = false; });
     });
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+  }
+})();
 </script>
 {% endblock %}

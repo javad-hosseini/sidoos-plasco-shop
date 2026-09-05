@@ -1,6 +1,8 @@
 import unittest
+
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError, transaction
 from django.test import TestCase, Client
 from django.urls import reverse
 
@@ -143,6 +145,56 @@ class ProductCategoryTests(TestCase):
         response = self.client.get(reverse('products:product_detail', args=[product.slug]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'سطل آشپزخانه')
+
+    def test_product_detail_page_renders_price_and_related(self):
+        category = Category.objects.create(name='آشپزخانه', creator=self.admin_user)
+        product = Product.objects.create(
+            name='قابلمه بزرگ',
+            description='<p>توضیح محصول</p>',
+            price=250000,
+            on_sale_price=200000,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.admin_user,
+            category=category,
+        )
+        sibling = Product.objects.create(
+            name='ماهیتابه',
+            description='x',
+            price=90000,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.admin_user,
+            category=category,
+        )
+
+        response = self.client.get(
+            reverse('products:product_detail', args=[product.slug])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'products/product_detail.html')
+        # price visible for an authenticated has_price_access user
+        self.assertContains(response, 'تومان')
+        self.assertContains(response, 'توضیحات محصول')
+        # sibling shows up in the related rail
+        self.assertContains(response, sibling.name)
+        # save/like controls are wired to the toggle endpoints
+        self.assertContains(response, reverse('products:toggle_like', args=[product.id]))
+
+    def test_product_detail_hides_price_for_anonymous(self):
+        product = Product.objects.create(
+            name='سبد نان',
+            description='x',
+            price=120000,
+            cover_image=self._image_file(),
+            published=True,
+            creator=self.admin_user,
+        )
+        response = Client().get(
+            reverse('products:product_detail', args=[product.slug])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'ورود برای مشاهده قیمت')
 
     def test_toggle_save_creates_and_deletes_save(self):
         """Test that users can save and unsave products."""
@@ -320,3 +372,252 @@ class ProductPricingValidationTests(TestCase):
 
         discount = product.get_discount_percentage()
         self.assertIsNone(discount)
+
+
+class CategoryTreeTests(TestCase):
+    """Tests for Category's hierarchy helpers and constraints."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='cat-owner', password='x')
+        self.root = Category.objects.create(name='محصولات آشپزخانه', creator=self.user)
+        self.child = Category.objects.create(name='ابزارآلات', parent=self.root, creator=self.user)
+        self.grandchild = Category.objects.create(name='پوست کن', parent=self.child, creator=self.user)
+
+    def test_get_descendant_ids_includes_self_and_all_levels(self):
+        ids = self.root.get_descendant_ids()
+        self.assertIn(self.root.id, ids)
+        self.assertIn(self.child.id, ids)
+        self.assertIn(self.grandchild.id, ids)
+        self.assertEqual(len(ids), 3)
+
+    def test_get_descendant_ids_for_leaf_is_just_itself(self):
+        self.assertEqual(self.grandchild.get_descendant_ids(), [self.grandchild.id])
+
+    def test_get_ancestors_excludes_self_by_default(self):
+        ancestors = self.grandchild.get_ancestors()
+        self.assertEqual(ancestors, [self.root, self.child])
+
+    def test_get_ancestors_include_self(self):
+        chain = self.grandchild.get_ancestors(include_self=True)
+        self.assertEqual(chain, [self.root, self.child, self.grandchild])
+
+    def test_root_category_has_no_ancestors(self):
+        self.assertEqual(self.root.get_ancestors(), [])
+
+    def test_persian_name_produces_unicode_slug(self):
+        category = Category.objects.create(name='گلدان و آبپاش', creator=self.user)
+        self.assertEqual(category.slug, 'گلدان-و-آبپاش')
+
+    def test_duplicate_name_under_same_parent_is_rejected(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Category.objects.create(name='ابزارآلات', parent=self.root, creator=self.user)
+
+    def test_same_name_allowed_under_different_parents(self):
+        other_root = Category.objects.create(name='محصولات ساختمانی', creator=self.user)
+        # Same name as self.child, but under a different parent - must be allowed.
+        duplicate_name_elsewhere = Category.objects.create(
+            name='ابزارآلات', parent=other_root, creator=self.user
+        )
+        self.assertIsNotNone(duplicate_name_elsewhere.pk)
+
+    def test_category_str_shows_full_path(self):
+        self.assertEqual(str(self.grandchild), f'{self.child} / {self.grandchild.name}')
+        self.assertEqual(str(self.root), self.root.name)
+
+
+class ProductSearchTests(TestCase):
+    """Tests for the header search box (?q=) wired into product_list()."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='search-owner', password='x')
+
+    @staticmethod
+    def _image_file():
+        return SimpleUploadedFile(
+            name='search.gif',
+            content=(
+                b'GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00'
+                b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00'
+                b'\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+            ),
+            content_type='image/gif',
+        )
+
+    def _product(self, name, description='توضیح عادی'):
+        return Product.objects.create(
+            name=name, description=description, price=1000,
+            cover_image=self._image_file(), published=True, creator=self.user,
+        )
+
+    def test_search_matches_name(self):
+        match = self._product('گلدان استوانه‌ای')
+        self._product('پیچ فلزی')
+
+        response = self.client.get(reverse('products:product_list'), {'q': 'گلدان'})
+        self.assertContains(response, match.name)
+        self.assertNotContains(response, 'پیچ فلزی')
+
+    def test_search_matches_description(self):
+        # Distinctive names, chosen so neither collides with the page's own
+        # "N محصول با این عبارت..." result-count sentence.
+        match = self._product('کالای دارای توضیح ویژه', description='این یک کلمه‌ی خاص دارد: چمباتمه')
+        other = self._product('کالای دیگر', description='توضیح دیگر')
+
+        response = self.client.get(reverse('products:product_list'), {'q': 'چمباتمه'})
+        self.assertContains(response, match.name)
+        self.assertNotContains(response, other.name)
+
+    def test_search_is_case_insensitive_for_ascii(self):
+        match = self._product('Wooden Table')
+        response = self.client.get(reverse('products:product_list'), {'q': 'wooden'})
+        self.assertContains(response, match.name)
+
+    def test_no_results_shows_empty_message(self):
+        self._product('یک محصول')
+        response = self.client.get(reverse('products:product_list'), {'q': 'اصلا-چیزی-پیدا-نمیشه'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'نتیجه‌ای برای')
+
+    def test_whitespace_only_query_behaves_like_no_search(self):
+        self._product('محصول معمولی')
+        response = self.client.get(reverse('products:product_list'), {'q': '   '})
+        self.assertEqual(response.context['search_query'], '')
+        self.assertContains(response, 'محصول معمولی')
+
+    def test_pagination_preserves_search_query(self):
+        for i in range(13):
+            self._product(f'محصول جستجو {i}')
+
+        response = self.client.get(reverse('products:product_list'), {'q': 'جستجو'})
+        self.assertTrue(response.context['page_obj'].has_next())
+        self.assertContains(response, 'page=2&q=')
+
+    def test_unpublished_products_excluded_from_search(self):
+        Product.objects.create(
+            name='محصول پنهان', description='x', price=1000,
+            cover_image=self._image_file(), published=False, creator=self.user,
+        )
+        response = self.client.get(reverse('products:product_list'), {'q': 'پنهان'})
+        self.assertNotContains(response, 'محصول پنهان')
+
+
+class CategoryProductsViewTests(TestCase):
+    """Tests for the category detail page: breadcrumbs, children, empty state, 404s."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='view-owner', password='x')
+        self.root = Category.objects.create(name='محصولات بهداشتی', creator=self.user)
+        self.child = Category.objects.create(name='سیفون‌ها', parent=self.root, creator=self.user)
+
+    @staticmethod
+    def _image_file():
+        return SimpleUploadedFile(
+            name='cat.gif',
+            content=(
+                b'GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00'
+                b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00'
+                b'\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+            ),
+            content_type='image/gif',
+        )
+
+    def test_invalid_slug_returns_404(self):
+        response = self.client.get(reverse('products:category_products', args=['does-not-exist']))
+        self.assertEqual(response.status_code, 404)
+
+    def test_breadcrumbs_reflect_full_ancestor_chain(self):
+        response = self.client.get(reverse('products:category_products', args=[self.child.slug]))
+        labels = [c['label'] for c in response.context['breadcrumbs']]
+        self.assertEqual(labels, ['خانه', 'فروشگاه', self.root.name, self.child.name])
+        self.assertIsNone(response.context['breadcrumbs'][-1]['url'])
+
+    def test_direct_children_are_listed_with_product_counts(self):
+        Product.objects.create(
+            name='سیفون کلاسیک', description='x', price=1000,
+            cover_image=self._image_file(), published=True,
+            creator=self.user, category=self.child,
+        )
+        response = self.client.get(reverse('products:category_products', args=[self.root.slug]))
+        children = response.context['children']
+        self.assertEqual(len(children), 1)
+        self.assertEqual(children[0]['category'], self.child)
+        self.assertEqual(children[0]['product_count'], 1)
+
+    def test_descendant_products_shown_without_duplicates(self):
+        product = Product.objects.create(
+            name='سیفون تکی', description='x', price=1000,
+            cover_image=self._image_file(), published=True,
+            creator=self.user, category=self.child,
+        )
+        response = self.client.get(reverse('products:category_products', args=[self.root.slug]))
+        products = list(response.context['products'])
+        self.assertEqual(products.count(product), 1)
+
+    def test_empty_category_shows_friendly_message(self):
+        empty_leaf = Category.objects.create(name='دسته خالی', parent=self.root, creator=self.user)
+        response = self.client.get(reverse('products:category_products', args=[empty_leaf.slug]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'محصولی در این دسته‌بندی پیدا نشد')
+
+
+class CategoryListViewTests(TestCase):
+    """Tests for the top-level category directory page."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='dir-owner', password='x')
+
+    def test_only_top_level_categories_are_listed(self):
+        root = Category.objects.create(name='دسته اصلی', creator=self.user)
+        Category.objects.create(name='دسته فرعی', parent=root, creator=self.user)
+
+        response = self.client.get(reverse('products:category_list'))
+        cards = response.context['category_cards']
+        self.assertEqual(len(cards), 1)
+        self.assertEqual(cards[0]['category'], root)
+
+    def test_empty_state_when_no_categories(self):
+        response = self.client.get(reverse('products:category_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'هنوز دسته‌بندی‌ای ثبت نشده است')
+
+
+class SpecialSalesViewTests(TestCase):
+    """Tests for the special-sales listing page."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='sale-owner', password='x')
+
+    @staticmethod
+    def _image_file():
+        return SimpleUploadedFile(
+            name='sale.gif',
+            content=(
+                b'GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00'
+                b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00'
+                b'\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+            ),
+            content_type='image/gif',
+        )
+
+    def test_only_flagged_and_published_products_shown(self):
+        on_sale = Product.objects.create(
+            name='محصول تخفیف‌دار', description='x', price=1000,
+            cover_image=self._image_file(), published=True,
+            featured_in_special_sales=True, creator=self.user,
+        )
+        Product.objects.create(
+            name='محصول عادی', description='x', price=1000,
+            cover_image=self._image_file(), published=True,
+            featured_in_special_sales=False, creator=self.user,
+        )
+        Product.objects.create(
+            name='تخفیف منتشرنشده', description='x', price=1000,
+            cover_image=self._image_file(), published=False,
+            featured_in_special_sales=True, creator=self.user,
+        )
+
+        response = self.client.get(reverse('products:special_sales'))
+        self.assertContains(response, 'محصول تخفیف‌دار')
+        self.assertNotContains(response, 'محصول عادی')
+        self.assertNotContains(response, 'تخفیف منتشرنشده')
