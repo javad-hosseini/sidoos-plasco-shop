@@ -12,6 +12,8 @@ from decouple import Config, RepositoryEnv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Environment file selection
 ENV_FILE = BASE_DIR / (
     ".env.prod"
