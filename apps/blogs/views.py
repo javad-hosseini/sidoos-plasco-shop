@@ -20,6 +20,7 @@ Architectural decisions:
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils.http import http_date
 
 from apps.blogs.models import Article
 
@@ -86,4 +87,9 @@ def article_detail(request, slug):
         "related_articles": related_articles,
         "breadcrumbs": breadcrumbs,
     }
-    return render(request, "blogs/article_detail.html", context)
+
+    response = render(request, "blogs/article_detail.html", context)
+    # adding Last-Modified timestamp for SEO/Crawler optimization
+    response['Last-Modified'] = http_date(article.updated_at.timestamp())
+
+    return response

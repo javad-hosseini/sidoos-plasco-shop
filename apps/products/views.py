@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
+from django.utils.http import http_date
 from django.views.decorators.http import require_POST
 
 from .forms import CategoryForm
@@ -125,7 +126,11 @@ def product_detail(request, slug):
         'can_view_price': can_view_price,
         'breadcrumbs': breadcrumbs,
     }
-    return render(request, 'products/product_detail.html', context)
+
+    response = render(request, "products/product_detail.html", context)
+    #adding Last-Modified timestamp for SEO/Crawler optimization
+    response['Last-Modified'] = http_date(product.updated_at.timestamp())
+    return response
 
 
 def special_sales(request):
