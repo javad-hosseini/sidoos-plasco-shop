@@ -474,10 +474,11 @@ class ProductSearchTests(TestCase):
         self.assertContains(response, match.name)
 
     def test_no_results_shows_empty_message(self):
+        """Empty search returns 404 with a friendly message (soft 404)."""
         self._product('یک محصول')
         response = self.client.get(reverse('products:product_list'), {'q': 'اصلا-چیزی-پیدا-نمیشه'})
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'نتیجه‌ای برای')
+        # We expect 404, but the page still renders the message
+        self.assertContains(response, 'نتیجه‌ای برای', status_code=404)
 
     def test_whitespace_only_query_behaves_like_no_search(self):
         self._product('محصول معمولی')
@@ -494,12 +495,16 @@ class ProductSearchTests(TestCase):
         self.assertContains(response, 'page=2&q=')
 
     def test_unpublished_products_excluded_from_search(self):
+        """Search for an unpublished product yields 404 (no published results)."""
         Product.objects.create(
             name='محصول پنهان', description='x', price=1000,
             cover_image=self._image_file(), published=False, creator=self.user,
         )
         response = self.client.get(reverse('products:product_list'), {'q': 'پنهان'})
-        self.assertNotContains(response, 'محصول پنهان')
+        # No published product matches → 404
+        self.assertNotContains(response, 'محصول پنهان', status_code=404)
+        # The empty-result message should still appear
+        self.assertContains(response, 'نتیجه‌ای برای', status_code=404)
 
 
 class CategoryProductsViewTests(TestCase):
