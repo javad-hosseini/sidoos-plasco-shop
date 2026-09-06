@@ -8,9 +8,9 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils.http import http_date
 from django.views.decorators.http import require_POST
-
 from .forms import CategoryForm
 from .models import Category, Product, ProductImage, ProductSave, ProductLike
+from config.seo import add_pagination_headers
 
 
 def _can_view_price(user):
@@ -74,7 +74,14 @@ def product_list(request):
         'breadcrumbs': breadcrumbs,
         'can_view_price': can_view_price,
     }
-    return render(request, 'products/product_list.html', context)
+    response = render(request, 'products/product_list.html', context)
+    add_pagination_headers(request, response, page_obj)  #adds pagination (rel="prev" / rel="next") headers to response
+
+    # Tell Google not to index any page beyond page 1
+    if page_obj.number > 1:
+        response['X-Robots-Tag'] = 'noindex, follow'
+
+    return response
 
 
 def product_detail(request, slug):
@@ -127,9 +134,20 @@ def product_detail(request, slug):
         'breadcrumbs': breadcrumbs,
     }
 
+    # Build the absolute canonical URL
+    canonical_url = request.build_absolute_uri(
+        reverse('products:product_detail', kwargs={'slug': product.slug})
+    )
+
+
+
     response = render(request, "products/product_detail.html", context)
     #adding Last-Modified timestamp for SEO/Crawler optimization
     response['Last-Modified'] = http_date(product.updated_at.timestamp())
+    #adding canonical URL to the header response
+    response['Link'] = f'<{canonical_url}>; rel="canonical"'
+    #cache response in CDN and Browsers for 10 minutes
+    response['Cache-Control'] = 'public, max-age=600'
     return response
 
 
@@ -153,7 +171,14 @@ def special_sales(request):
         'selected_category': None,
         'can_view_price': can_view_price,
     }
-    return render(request, 'products/special_sales.html', context)
+    response = render(request, 'products/special_sales.html', context)
+    add_pagination_headers(request, response, page_obj)  #adds pagination (rel="prev" / rel="next") headers to response
+
+    # Tell Google not to index any page beyond page 1
+    if page_obj.number > 1:
+        response['X-Robots-Tag'] = 'noindex, follow'
+
+    return response
 
 
 def category_products(request, slug):
@@ -207,7 +232,14 @@ def category_products(request, slug):
         'breadcrumbs': _category_breadcrumbs(ancestors, selected_category.name),
         'can_view_price': can_view_price,
     }
-    return render(request, 'products/product_list.html', context)
+    response = render(request, 'products/product_list.html', context)
+    add_pagination_headers(request, response, page_obj)  #adds pagination (rel="prev" / rel="next") headers to response
+
+    # Tell Google not to index any page beyond page 1
+    if page_obj.number > 1:
+        response['X-Robots-Tag'] = 'noindex, follow'
+
+    return response
 
 
 def category_list(request):

@@ -23,6 +23,7 @@ from django.urls import reverse
 from django.utils.http import http_date
 
 from apps.blogs.models import Article
+from config.seo import add_pagination_headers
 
 # Number of articles per page. 12 divides evenly into the 3-column
 # desktop / 2-column tablet / 1-column mobile grid described in the
@@ -65,7 +66,13 @@ def article_list(request):
         "articles": page_obj.object_list,
         "breadcrumbs": breadcrumbs,
     }
-    return render(request, "blogs/article_list.html", context)
+    response = render(request, 'blogs/article_list.html', context)# adds pagination (rel="prev" / rel="next") headers to response
+    # Tell Google not to index any page beyond page 1
+    if page_obj.number > 1:
+        response['X-Robots-Tag'] = 'noindex, follow'
+
+    add_pagination_headers(request, response, page_obj)
+    return response
 
 
 def article_detail(request, slug):
@@ -88,8 +95,16 @@ def article_detail(request, slug):
         "breadcrumbs": breadcrumbs,
     }
 
+    #get absolute canonical URL
+    canonical = article.canonical_url or request.build_absolute_uri(
+        reverse('blogs:article_detail', kwargs={'slug': article.slug})
+    )
+
     response = render(request, "blogs/article_detail.html", context)
     # adding Last-Modified timestamp for SEO/Crawler optimization
     response['Last-Modified'] = http_date(article.updated_at.timestamp())
-
+    # adding canonical URL to the header response
+    response['Link'] = f'<{canonical}>; rel="canonical"'
+    #cache response in CDN and Browsers for 10 minutes
+    response['Cache-Control'] = 'public, max-age=600'
     return response
