@@ -20,6 +20,7 @@ from django.urls import reverse
 from PIL import Image
 from io import BytesIO
 
+from .forms import TicketCreateForm, TicketMessageForm
 from .models import Ticket, TicketMessage, TicketAttachment
 from .services import (
     generate_tracking_code,
@@ -29,7 +30,7 @@ from .services import (
     close_ticket,
     reopen_ticket,
 )
-from .validators import validate_ticket_attachment
+from .validators import validate_ticket_attachment, MAX_ATTACHMENTS_PER_MESSAGE
 
 
 User = get_user_model()
@@ -379,3 +380,200 @@ class TicketAttachmentTests(TestCase):
         )
         with self.assertRaises(ValidationError):
             validate_ticket_attachment(file)
+
+
+class TicketFormTests(TestCase):
+    """Form-level validation for TicketCreateForm/TicketMessageForm."""
+
+    def test_ticket_create_form_valid_data(self):
+        form = TicketCreateForm(data={
+            "title": "مشکل در سفارش",
+            "subject": Ticket.Subject.ORDER,
+            "message": "سفارش من هنوز نرسیده است.",
+        })
+        self.assertTrue(form.is_valid())
+
+    def test_ticket_create_form_requires_title(self):
+        form = TicketCreateForm(data={
+            "subject": Ticket.Subject.ORDER,
+            "message": "پیام",
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn("title", form.errors)
+
+    def test_ticket_create_form_rejects_invalid_subject(self):
+        form = TicketCreateForm(data={
+            "title": "عنوان",
+            "subject": "NOT_A_REAL_SUBJECT",
+            "message": "پیام",
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn("subject", form.errors)
+
+    def test_attachments_are_optional(self):
+        form = TicketMessageForm(data={"message": "پیام بدون پیوست"})
+        self.assertTrue(form.is_valid())
+
+    def test_too_many_attachments_rejected(self):
+        def _image():
+            img = Image.new("RGB", (10, 10), color="blue")
+            buf = BytesIO()
+            img.save(buf, format="JPEG")
+            buf.seek(0)
+            return SimpleUploadedFile("a.jpg", buf.read(), content_type="image/jpeg")
+
+        files = [_image() for _ in range(MAX_ATTACHMENTS_PER_MESSAGE + 1)]
+        form = TicketMessageForm(
+            data={"message": "پیام با پیوست زیاد"},
+            files={"attachments": files},
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("attachments", form.errors)
+
+
+class TicketListViewTests(TestCase):
+    """HTTP-level tests for the customer ticket history page."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="owner", password="x")
+        self.other_user = get_user_model().objects.create_user(username="stranger", password="x")
+        self.own_ticket = create_ticket(
+            user=self.user, title="تیکت من", subject=Ticket.Subject.ORDER,
+            message_text="پیام من",
+        )
+        self.other_ticket = create_ticket(
+            user=self.other_user, title="تیکت دیگری", subject=Ticket.Subject.ORDER,
+            message_text="پیام دیگری",
+        )
+
+    def test_requires_login(self):
+        response = self.client.get(reverse("support:ticket_list"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_only_shows_own_tickets(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("support:ticket_list"))
+        self.assertEqual(response.status_code, 200)
+        tickets = list(response.context["tickets"])
+        self.assertIn(self.own_ticket, tickets)
+        self.assertNotIn(self.other_ticket, tickets)
+
+
+class TicketCreateViewTests(TestCase):
+    """HTTP-level tests for creating a new ticket."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="creator", password="x")
+
+    def test_requires_login(self):
+        response = self.client.get(reverse("support:ticket_create"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_get_renders_form(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("support:ticket_create"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["form"], TicketCreateForm)
+
+    def test_valid_post_creates_ticket_and_redirects(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("support:ticket_create"), {
+            "title": "تیکت جدید",
+            "subject": Ticket.Subject.PRODUCT,
+            "message": "توضیح مشکل",
+        })
+        ticket = Ticket.objects.get(user=self.user)
+        self.assertRedirects(
+            response,
+            reverse("support:ticket_detail", args=[ticket.tracking_code]),
+        )
+        self.assertEqual(ticket.title, "تیکت جدید")
+        self.assertEqual(ticket.messages.count(), 1)
+
+    def test_invalid_post_rerenders_with_errors(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("support:ticket_create"), {
+            "title": "",
+            "subject": Ticket.Subject.PRODUCT,
+            "message": "توضیح مشکل",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["form"].is_valid())
+        self.assertEqual(Ticket.objects.count(), 0)
+
+
+class TicketDetailViewTests(TestCase):
+    """HTTP-level tests for viewing/replying to a ticket - ownership is critical here."""
+
+    def setUp(self):
+        self.owner = get_user_model().objects.create_user(username="ticket-owner", password="x")
+        self.stranger = get_user_model().objects.create_user(username="not-owner", password="x")
+        self.support_staff = get_user_model().objects.create_user(
+            username="support-agent", password="x", is_staff=True,
+        )
+        self.ticket = create_ticket(
+            user=self.owner, title="تیکت محرمانه", subject=Ticket.Subject.ACCOUNT,
+            message_text="پیام اولیه",
+        )
+
+    def test_requires_login(self):
+        response = self.client.get(
+            reverse("support:ticket_detail", args=[self.ticket.tracking_code])
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_owner_can_view(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(
+            reverse("support:ticket_detail", args=[self.ticket.tracking_code])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "تیکت محرمانه")
+
+    def test_non_owner_gets_404_not_someone_elses_ticket(self):
+        """Security: a logged-in user must never see another user's ticket."""
+        self.client.force_login(self.stranger)
+        response = self.client.get(
+            reverse("support:ticket_detail", args=[self.ticket.tracking_code])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_nonexistent_tracking_code_404s(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(
+            reverse("support:ticket_detail", args=["000000"])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_owner_can_reply_after_support_message(self):
+        send_support_message(ticket=self.ticket, user=self.support_staff, message_text="پاسخ پشتیبانی")
+        self.client.force_login(self.owner)
+        response = self.client.post(
+            reverse("support:ticket_detail", args=[self.ticket.tracking_code]),
+            {"message": "پاسخ من به پشتیبانی"},
+        )
+        self.assertRedirects(
+            response,
+            reverse("support:ticket_detail", args=[self.ticket.tracking_code]),
+        )
+        self.assertEqual(self.ticket.messages.count(), 3)
+
+    def test_reply_out_of_turn_shows_form_error_not_crash(self):
+        """Customer replying twice in a row is a business-rule violation,
+        not a server error - the view must catch it and re-render."""
+        self.client.force_login(self.owner)
+        response = self.client.post(
+            reverse("support:ticket_detail", args=[self.ticket.tracking_code]),
+            {"message": "پیام دوم بدون پاسخ پشتیبانی"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.ticket.messages.count(), 1)  # nothing new was added
+
+    def test_stranger_cannot_post_message_to_others_ticket(self):
+        self.client.force_login(self.stranger)
+        response = self.client.post(
+            reverse("support:ticket_detail", args=[self.ticket.tracking_code]),
+            {"message": "تلاش برای دخالت"},
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.ticket.messages.count(), 1)

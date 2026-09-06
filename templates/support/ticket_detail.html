@@ -1,707 +1,279 @@
 {% extends "base.html" %}
-{% load static %}
-{% load support_extras %}
+{% load static support_extras %}
 
-{% block title %}گفتگوی تیکت | سیدوس{% endblock %}
+{% block title %}گفتگوی تیکت #{{ ticket.tracking_code }} | سیدوس{% endblock %}
+{% block meta_description %}پیگیری گفتگوی تیکت پشتیبانی سیدوس و ارسال پاسخ به تیم پشتیبانی.{% endblock %}
+
+{% block extra_css %}
+<style>
+  .tk-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:130px; }
+  .tk-inner{ max-width:760px; margin-inline:auto; }
+
+  .tk-crumbs{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:13px; color:var(--cream-soft); margin-bottom:34px; }
+  .tk-crumbs a{ transition:color .3s; }
+  .tk-crumbs a:hover{ color:var(--gold); }
+  .tk-crumbs .sep{ color:var(--gold-soft); }
+  .tk-crumbs .current{ color:var(--cream); }
+
+  .tk-alert{ border:1px solid; padding:16px 18px; font-size:13.5px; line-height:1.8; margin-bottom:24px; }
+  .tk-alert--error{ background:rgba(200,80,60,.08); border-color:rgba(200,80,60,.35); color:#e2a294; }
+  .tk-alert--success{ background:rgba(18,60,54,.25); border-color:var(--emerald); color:var(--cream); }
+
+  /* header card */
+  .tk-head{ background:var(--graphite); border:1px solid rgba(216,207,193,.1); padding:26px 28px; margin-bottom:28px; }
+  .tk-head__top{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+  .tk-head__tracking{ font-family:'Space Mono','Courier New',monospace; font-size:12.5px; color:var(--gold); letter-spacing:.03em; }
+  .tk-head__title{ font-size:20px; font-weight:700; line-height:1.5; margin-bottom:14px; }
+  .tk-head__meta{ display:flex; flex-wrap:wrap; gap:22px; font-size:13px; color:var(--cream-soft); }
+  .tk-head__meta b{ color:var(--cream); font-weight:600; margin-inline-end:4px; }
+
+  .tk-status{ display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:.02em; padding:6px 13px; white-space:nowrap; }
+  .tk-status--wait-support{ background:rgba(18,60,54,.35); color:var(--beige); border:1px solid rgba(18,60,54,.9); }
+  .tk-status--wait-user{ background:var(--gold); color:var(--charcoal); }
+  .tk-status--closed{ background:none; color:var(--cream-soft); border:1px solid rgba(216,207,193,.2); }
+
+  .tk-closed-note{
+    margin-top:18px; padding:14px 16px; border:1px solid rgba(216,207,193,.16);
+    color:var(--cream-soft); font-size:13px; text-align:center;
+  }
+
+  /* conversation */
+  .tk-thread{ display:flex; flex-direction:column; gap:16px; margin-bottom:32px; }
+  .tk-msg{ display:flex; gap:12px; max-width:88%; }
+  .tk-msg--staff{ align-self:flex-start; }
+  .tk-msg--customer{ align-self:flex-end; flex-direction:row-reverse; }
+
+  .tk-msg__avatar{
+    flex:0 0 auto; width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:700; color:var(--charcoal);
+  }
+  .tk-msg--staff .tk-msg__avatar{ background:var(--gold); }
+  .tk-msg--customer .tk-msg__avatar{ background:var(--beige); }
+
+  .tk-msg__body{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .tk-msg__bubble{ background:var(--graphite); border:1px solid rgba(216,207,193,.1); padding:14px 16px; }
+  .tk-msg--customer .tk-msg__bubble{ background:rgba(184,155,94,.07); border-color:rgba(184,155,94,.22); }
+  .tk-msg__sender{ font-size:11.5px; font-weight:700; color:var(--gold); margin-bottom:6px; }
+  .tk-msg__text{ font-size:14px; color:var(--cream); line-height:1.9; white-space:pre-wrap; word-wrap:break-word; }
+  .tk-msg__time{ font-size:11.5px; color:var(--cream-soft); padding:0 4px; }
+
+  .tk-msg__attachments{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .tk-att{
+    display:inline-flex; align-items:center; gap:7px; padding:7px 13px;
+    border:1px solid rgba(216,207,193,.2); color:var(--cream-soft);
+    font-size:12.5px; transition:border-color .3s, color .3s;
+  }
+  .tk-att:hover{ border-color:var(--gold); color:var(--gold); }
+  .tk-att svg{ width:14px; height:14px; }
+
+  /* reply panel */
+  .tk-panel{ background:var(--graphite); border:1px solid rgba(216,207,193,.1); padding:30px 28px; }
+  @media(max-width:560px){ .tk-panel{ padding:22px 18px; } .tk-head{ padding:20px; } }
+  .tk-panel__title{ font-size:15px; font-weight:700; margin-bottom:20px; }
+
+  .tk-form{ display:flex; flex-direction:column; gap:20px; }
+  .tk-field{ display:flex; flex-direction:column; gap:9px; }
+  .tk-field label{ font-size:13.5px; font-weight:700; color:var(--cream); }
+  .tk-field .tk-help{ font-size:12.5px; color:var(--cream-soft); line-height:1.7; }
+  .tk-field .tk-error{ font-size:12.5px; color:#e2a294; }
+  .tk-field textarea{
+    width:100%; background:var(--charcoal); color:var(--cream);
+    border:1px solid rgba(216,207,193,.18); padding:14px 16px;
+    font-family:inherit; font-size:14.5px; resize:vertical; min-height:110px; line-height:1.8;
+    transition:border-color .3s, background .3s;
+  }
+  .tk-field textarea::placeholder{ color:rgba(245,240,232,.32); }
+  .tk-field textarea:focus{ outline:none; border-color:var(--gold); background:#141414; }
+  .tk-field.has-error textarea{ border-color:#c8503c; }
+
+  .tk-file{ position:relative; display:flex; flex-direction:column; gap:10px; }
+  .tk-file__input{ position:absolute; opacity:0; width:0; height:0; }
+  .tk-file__label{
+    display:inline-flex; align-items:center; gap:10px; cursor:pointer;
+    padding:16px 18px; border:1px dashed rgba(216,207,193,.3);
+    color:var(--cream-soft); font-size:13.5px; transition:border-color .3s, color .3s, background .3s;
+  }
+  .tk-file__label:hover{ border-color:var(--gold); color:var(--gold); background:rgba(184,155,94,.06); }
+  .tk-file__label svg{ width:18px; height:18px; flex:0 0 auto; }
+  .tk-file__list{ display:flex; flex-wrap:wrap; gap:8px; }
+  .tk-file__item{ font-size:12.5px; color:var(--gold); border:1px solid rgba(184,155,94,.3); padding:6px 13px; }
+
+  .tk-submit{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    min-height:54px; padding:0 24px; font-size:15px; font-weight:700;
+    background:var(--gold); color:var(--charcoal); border:1px solid var(--gold);
+    transition:background .35s var(--ease), opacity .3s, transform .15s;
+  }
+  .tk-submit:hover{ background:#c9ac6d; }
+  .tk-submit:active{ transform:scale(.98); }
+  .tk-submit:disabled{ opacity:.6; cursor:not-allowed; }
+  .tk-spinner{
+    width:16px; height:16px; border:2px solid var(--charcoal); border-top-color:transparent;
+    border-radius:50%; animation:tk-spin .6s linear infinite; display:inline-block;
+  }
+  @keyframes tk-spin{ to{ transform:rotate(360deg); } }
+
+  .tk-back{ display:inline-flex; align-items:center; gap:8px; color:var(--gold); font-size:13px; margin-top:34px; }
+
+  @media(max-width:560px){
+    .tk-msg{ max-width:100%; }
+    .tk-msg__avatar{ width:32px; height:32px; font-size:11.5px; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<style>
-    /* ============================================================
-       Support Ticket Detail Page Styles
-       ============================================================ */
-    
-    .ticket-detail-page {
-        background-color: var(--color-background, #F7F7F2);
-        min-height: 100vh;
-        padding: 2rem 1rem;
-    }
-
-    .ticket-detail-container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    /* Back Link */
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--color-primary, #245C43);
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        transition: all 180ms ease;
-    }
-
-    .back-link:hover {
-        color: var(--color-primary-dark, #173D2D);
-        transform: translateX(-4px);
-    }
-
-    .back-link__arrow {
-        transition: transform 180ms ease;
-    }
-
-    .back-link:hover .back-link__arrow {
-        transform: translateX(-4px);
-    }
-
-    /* Ticket Header Card */
-    .ticket-header-card {
-        background-color: #ffffff;
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(32, 37, 34, 0.06);
-        margin-bottom: 1.5rem;
-    }
-
-    .ticket-header__top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 1rem;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .ticket-header__tracking {
-        font-family: 'Courier New', monospace;
-        font-size: 0.9rem;
-        color: var(--color-text-muted, #6E756F);
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-
-    .ticket-header__status {
-        display: inline-block;
-        padding: 0.35rem 0.75rem;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .ticket-header__status--waiting-support {
-        background-color: rgba(232, 121, 50, 0.1);
-        color: var(--color-sale, #E87932);
-    }
-
-    .ticket-header__status--waiting-user {
-        background-color: rgba(36, 92, 67, 0.1);
-        color: var(--color-primary, #245C43);
-    }
-
-    .ticket-header__status--closed {
-        background-color: rgba(110, 117, 111, 0.1);
-        color: var(--color-text-muted, #6E756F);
-    }
-
-    .ticket-header__title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--color-text, #202522);
-        margin-bottom: 0.75rem;
-        line-height: 1.4;
-    }
-
-    .ticket-header__meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        font-size: 0.85rem;
-        color: var(--color-text-muted, #6E756F);
-    }
-
-    .ticket-header__meta-item {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    .ticket-header__meta-label {
-        font-weight: 600;
-        color: var(--color-text, #202522);
-    }
-
-    /* Closed Ticket Notice */
-    .ticket-closed-notice {
-        background-color: rgba(110, 117, 111, 0.1);
-        border: 1px solid rgba(110, 117, 111, 0.2);
-        border-radius: 10px;
-        padding: 1rem;
-        margin-top: 1rem;
-        text-align: center;
-        color: var(--color-text-muted, #6E756F);
-        font-size: 0.9rem;
-    }
-
-    /* Conversation */
-    .conversation {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .message {
-        display: flex;
-        gap: 0.75rem;
-        max-width: 85%;
-    }
-
-    .message--user {
-        align-self: flex-start;
-    }
-
-    .message--customer {
-        align-self: flex-end;
-        flex-direction: row-reverse;
-    }
-
-    .message__avatar {
-        flex-shrink: 0;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.9rem;
-        color: #ffffff;
-    }
-
-    .message--user .message__avatar {
-        background-color: var(--color-primary, #245C43);
-    }
-
-    .message--customer .message__avatar {
-        background-color: var(--color-accent, #A8C66C);
-    }
-
-    .message__body {
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-    }
-
-    .message__bubble {
-        background-color: #ffffff;
-        border-radius: 16px;
-        padding: 1rem;
-        box-shadow: 0 2px 8px rgba(32, 37, 34, 0.06);
-    }
-
-    .message--user .message__bubble {
-        border-top-right-radius: 4px;
-    }
-
-    .message--customer .message__bubble {
-        border-top-left-radius: 4px;
-        background-color: rgba(168, 198, 108, 0.1);
-    }
-
-    .message__sender {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--color-text-muted, #6E756F);
-        margin-bottom: 0.25rem;
-    }
-
-    .message__text {
-        font-size: 0.95rem;
-        color: var(--color-text, #202522);
-        line-height: 1.7;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-    }
-
-    .message__time {
-        font-size: 0.75rem;
-        color: var(--color-text-muted, #6E756F);
-    }
-
-    /* Attachments */
-    .message__attachments {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-    }
-
-    .attachment-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.4rem 0.75rem;
-        background-color: rgba(36, 92, 67, 0.1);
-        color: var(--color-primary, #245C43);
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 500;
-        transition: all 180ms ease;
-    }
-
-    .attachment-link:hover {
-        background-color: rgba(36, 92, 67, 0.2);
-    }
-
-    .attachment-link__icon {
-        font-size: 1rem;
-    }
-
-    /* Reply Form */
-    .reply-form-card {
-        background-color: #ffffff;
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(32, 37, 34, 0.06);
-    }
-
-    .reply-form__title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--color-text, #202522);
-        margin-bottom: 1rem;
-    }
-
-    .reply-form {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .form-group label {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: var(--color-text, #202522);
-    }
-
-    .form-group .help-text {
-        font-size: 0.85rem;
-        color: var(--color-text-muted, #6E756F);
-        line-height: 1.5;
-    }
-
-    .form-group textarea {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border: 1.5px solid #e0e0e0;
-        border-radius: 10px;
-        font-size: 0.95rem;
-        color: var(--color-text, #202522);
-        background-color: #ffffff;
-        transition: all 180ms ease;
-        font-family: inherit;
-        resize: vertical;
-        min-height: 100px;
-    }
-
-    .form-group textarea:focus {
-        outline: none;
-        border-color: var(--color-primary, #245C43);
-        box-shadow: 0 0 0 3px rgba(36, 92, 67, 0.1);
-    }
-
-    .error-message {
-        color: #d32f2f;
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
-    }
-
-    /* File Upload */
-    .file-upload {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .file-upload__input {
-        position: absolute;
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .file-upload__label {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        border: 1.5px dashed #c0c0c0;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        color: var(--color-text-muted, #6E756F);
-        transition: all 180ms ease;
-        background-color: #fafafa;
-    }
-
-    .file-upload__label:hover {
-        border-color: var(--color-primary, #245C43);
-        color: var(--color-primary, #245C43);
-        background-color: rgba(36, 92, 67, 0.05);
-    }
-
-    .file-upload__files {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-    }
-
-    .file-upload__file-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.35rem 0.75rem;
-        background-color: rgba(36, 92, 67, 0.1);
-        color: var(--color-primary, #245C43);
-        border-radius: 999px;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-
-    /* Submit Button */
-    .submit-btn {
-        width: 100%;
-        padding: 0.875rem 1.5rem;
-        background-color: var(--color-primary, #245C43);
-        color: #ffffff;
-        border: none;
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 180ms ease;
-        font-family: inherit;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .submit-btn:hover {
-        background-color: var(--color-primary-dark, #173D2D);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(36, 92, 67, 0.2);
-    }
-
-    .submit-btn:active {
-        transform: translateY(0);
-        box-shadow: none;
-    }
-
-    .submit-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    /* Spinner */
-    .spinner {
-        display: inline-block;
-        width: 1rem;
-        height: 1rem;
-        border: 2px solid #ffffff;
-        border-top-color: transparent;
-        border-radius: 50%;
-        animation: spin 0.6s linear infinite;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    /* Alert Messages */
-    .alert {
-        padding: 1rem;
-        border-radius: 10px;
-        margin-bottom: 1.5rem;
-        font-size: 0.9rem;
-        line-height: 1.5;
-    }
-
-    .alert--error {
-        background-color: rgba(211, 47, 47, 0.1);
-        color: #d32f2f;
-        border: 1px solid rgba(211, 47, 47, 0.2);
-    }
-
-    .alert--success {
-        background-color: rgba(36, 92, 67, 0.1);
-        color: var(--color-primary, #245C43);
-        border: 1px solid rgba(36, 92, 67, 0.2);
-    }
-
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        .ticket-detail-page {
-            padding: 1.5rem 0.75rem;
-        }
-
-        .ticket-header-card {
-            padding: 1.25rem;
-        }
-
-        .ticket-header__title {
-            font-size: 1.1rem;
-        }
-
-        .message {
-            max-width: 95%;
-        }
-
-        .reply-form-card {
-            padding: 1.25rem;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .ticket-header__top {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .ticket-header__title {
-            font-size: 1rem;
-        }
-
-        .message {
-            max-width: 100%;
-        }
-
-        .message__avatar {
-            width: 32px;
-            height: 32px;
-            font-size: 0.8rem;
-        }
-
-        .message__bubble {
-            padding: 0.75rem;
-        }
-
-        .message__text {
-            font-size: 0.9rem;
-        }
-
-        .reply-form-card {
-            padding: 1rem;
-        }
-    }
-</style>
-
-<div class="ticket-detail-page">
-    <div class="ticket-detail-container">
-        
-        <!-- Back Link -->
-        <a href="{% url 'support:ticket_list' %}" class="back-link">
-            <span class="back-link__arrow">→</span>
-            <span>بازگشت به لیست تیکت‌ها</span>
-        </a>
-
-        <!-- Alert Messages -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert {% if message.tags == 'error' %}alert--error{% elif message.tags == 'success' %}alert--success{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
+<div class="tk-wrap">
+  <div class="container">
+    <div class="tk-inner">
+
+      <nav class="tk-crumbs reveal" aria-label="مسیر صفحه">
+        <a href="{% url 'home:home' %}">خانه</a>
+        <span class="sep">/</span>
+        <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
+        <span class="sep">/</span>
+        <span class="current">#{{ ticket.tracking_code }}</span>
+      </nav>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="tk-alert {% if message.tags == 'error' %}tk-alert--error{% elif message.tags == 'success' %}tk-alert--success{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="tk-head reveal">
+        <div class="tk-head__top">
+          <span class="tk-head__tracking">#{{ ticket.tracking_code }}</span>
+          {% if ticket.status == 'WAITING_FOR_SUPPORT' %}
+            <span class="tk-status tk-status--wait-support">در انتظار پاسخ پشتیبانی</span>
+          {% elif ticket.status == 'WAITING_FOR_USER' %}
+            <span class="tk-status tk-status--wait-user">در انتظار پاسخ شما</span>
+          {% elif ticket.status == 'CLOSED' %}
+            <span class="tk-status tk-status--closed">بسته شده</span>
+          {% endif %}
+        </div>
+
+        <h1 class="tk-head__title">{{ ticket.title }}</h1>
+
+        <div class="tk-head__meta">
+          <span><b>موضوع:</b>{{ ticket.get_subject_display }}</span>
+          <span><b>تاریخ ایجاد:</b>{{ ticket.created_at|jalali_date }}</span>
+        </div>
+
+        {% if ticket.is_closed %}
+          <div class="tk-closed-note">این تیکت بسته شده است و امکان ارسال پیام جدید وجود ندارد.</div>
         {% endif %}
+      </div>
 
-        <!-- Ticket Header -->
-        <div class="ticket-header-card">
-            <div class="ticket-header__top">
-                <span class="ticket-header__tracking">#{{ ticket.tracking_code }}</span>
-                
-                {% if ticket.status == 'WAITING_FOR_SUPPORT' %}
-                    <span class="ticket-header__status ticket-header__status--waiting-support">
-                        در انتظار پاسخ پشتیبانی
-                    </span>
-                {% elif ticket.status == 'WAITING_FOR_USER' %}
-                    <span class="ticket-header__status ticket-header__status--waiting-user">
-                        در انتظار پاسخ شما
-                    </span>
-                {% elif ticket.status == 'CLOSED' %}
-                    <span class="ticket-header__status ticket-header__status--closed">
-                        بسته شده
-                    </span>
+      <div class="tk-thread reveal">
+        {% for message in messages_list %}
+          <div class="tk-msg {% if message.sender == ticket.user %}tk-msg--customer{% else %}tk-msg--staff{% endif %}">
+            <div class="tk-msg__avatar">
+              {% if message.sender == ticket.user %}
+                {{ ticket.user.get_full_name|default:ticket.user.username|first }}
+              {% else %}
+                س
+              {% endif %}
+            </div>
+            <div class="tk-msg__body">
+              <div class="tk-msg__bubble">
+                <div class="tk-msg__sender">
+                  {% if message.sender == ticket.user %}شما{% else %}پشتیبانی سیدوس{% endif %}
+                </div>
+                <div class="tk-msg__text">{{ message.message }}</div>
+
+                {% if message.attachments.all %}
+                  <div class="tk-msg__attachments">
+                    {% for attachment in message.attachments.all %}
+                      <a href="{{ attachment.file.url }}" class="tk-att" target="_blank">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                        {{ attachment.original_name }}
+                      </a>
+                    {% endfor %}
+                  </div>
                 {% endif %}
+              </div>
+              <span class="tk-msg__time">{{ message.created_at|jalali_datetime }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if ticket.status == 'WAITING_FOR_USER' %}
+        <div class="tk-panel reveal">
+          <h2 class="tk-panel__title">ارسال پاسخ</h2>
+          <form method="post" enctype="multipart/form-data" class="tk-form" id="replyForm">
+            {% csrf_token %}
+
+            <div class="tk-field {% if form.message.errors %}has-error{% endif %}">
+              <label for="{{ form.message.id_for_label }}">پیام شما</label>
+              {{ form.message }}
+              {% if form.message.help_text %}<span class="tk-help">{{ form.message.help_text }}</span>{% endif %}
+              {% for error in form.message.errors %}<span class="tk-error">{{ error }}</span>{% endfor %}
             </div>
 
-            <h1 class="ticket-header__title">{{ ticket.title }}</h1>
-
-            <div class="ticket-header__meta">
-                <span class="ticket-header__meta-item">
-                    <span class="ticket-header__meta-label">موضوع:</span>
-                    <span>{{ ticket.get_subject_display }}</span>
-                </span>
-                <span class="ticket-header__meta-item">
-                    <span class="ticket-header__meta-label">تاریخ ایجاد:</span>
-                    <span>{{ ticket.created_at|jalali_date }}</span>
-                </span>
+            <div class="tk-field {% if form.attachments.errors %}has-error{% endif %}">
+              <label>پیوست‌ها (اختیاری)</label>
+              <div class="tk-file">
+                <input type="file" name="attachments" id="fileInput" class="tk-file__input" multiple accept=".jpg,.jpeg,.png,.webp,.pdf">
+                <label for="fileInput" class="tk-file__label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                  <span>انتخاب فایل‌ها</span>
+                </label>
+                <div class="tk-file__list" id="fileList"></div>
+              </div>
+              {% if form.attachments.help_text %}<span class="tk-help">{{ form.attachments.help_text }}</span>{% endif %}
+              {% for error in form.attachments.errors %}<span class="tk-error">{{ error }}</span>{% endfor %}
             </div>
 
-            {% if ticket.is_closed %}
-                <div class="ticket-closed-notice">
-                    این تیکت بسته شده است و امکان ارسال پیام جدید وجود ندارد.
-                </div>
-            {% endif %}
+            <button type="submit" class="tk-submit" id="submitBtn">
+              <span>ارسال پاسخ</span>
+            </button>
+          </form>
         </div>
-
-        <!-- Conversation -->
-        <div class="conversation">
-            {% for message in messages_list %}
-                <div class="message {% if message.sender == ticket.user %}message--customer{% else %}message--user{% endif %}">
-                    
-                    <div class="message__avatar">
-                        {% if message.sender == ticket.user %}
-                            {{ ticket.user.get_full_name|default:ticket.user.username|first }}
-                        {% else %}
-                            پ
-                        {% endif %}
-                    </div>
-
-                    <div class="message__body">
-                        <div class="message__bubble">
-                            <div class="message__sender">
-                                {% if message.sender == ticket.user %}
-                                    شما
-                                {% else %}
-                                    پشتیبانی سیدوس
-                                {% endif %}
-                            </div>
-                            <div class="message__text">{{ message.message }}</div>
-                            
-                            {% if message.attachments.all %}
-                                <div class="message__attachments">
-                                    {% for attachment in message.attachments.all %}
-                                        <a href="{{ attachment.file.url }}" 
-                                           class="attachment-link" 
-                                           target="_blank">
-                                            <span class="attachment-link__icon">📎</span>
-                                            <span>{{ attachment.original_name }}</span>
-                                        </a>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <span class="message__time">{{ message.created_at|jalali_datetime }}</span>
-                    </div>
-                </div>
-            {% endfor %}
+      {% elif ticket.status == 'WAITING_FOR_SUPPORT' %}
+        <div class="tk-panel reveal">
+          <div class="tk-closed-note">پیام شما ثبت شده است. لطفاً منتظر پاسخ پشتیبانی باشید.</div>
         </div>
+      {% endif %}
 
-        <!-- Reply Form -->
-        {% if ticket.status == 'WAITING_FOR_USER' %}
-            <div class="reply-form-card">
-                <h2 class="reply-form__title">ارسال پاسخ</h2>
-                
-                <form method="post" enctype="multipart/form-data" class="reply-form" id="replyForm">
-                    {% csrf_token %}
-
-                    <!-- Message Field -->
-                    <div class="form-group {% if form.message.errors %}has-error{% endif %}">
-                        <label for="{{ form.message.id_for_label }}">
-                            پیام شما
-                        </label>
-                        {{ form.message }}
-                        {% if form.message.help_text %}
-                            <span class="help-text">{{ form.message.help_text }}</span>
-                        {% endif %}
-                        {% if form.message.errors %}
-                            {% for error in form.message.errors %}
-                                <span class="error-message">{{ error }}</span>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-
-                    <!-- Attachments Field -->
-                    <div class="form-group {% if form.attachments.errors %}has-error{% endif %}">
-                        <label>
-                            پیوست‌ها (اختیاری)
-                        </label>
-                        
-                        <div class="file-upload">
-                            <input type="file" 
-                                   name="attachments" 
-                                   id="fileInput" 
-                                   class="file-upload__input" 
-                                   multiple 
-                                   accept=".jpg,.jpeg,.png,.webp,.pdf">
-                            
-                            <label for="fileInput" class="file-upload__label">
-                                <span class="file-upload__icon">📎</span>
-                                <span>انتخاب فایل‌ها</span>
-                            </label>
-                            
-                            <div class="file-upload__files" id="fileList"></div>
-                        </div>
-                        
-                        {% if form.attachments.help_text %}
-                            <span class="help-text">{{ form.attachments.help_text }}</span>
-                        {% endif %}
-                        
-                        {% if form.attachments.errors %}
-                            {% for error in form.attachments.errors %}
-                                <span class="error-message">{{ error }}</span>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="submit-btn" id="submitBtn">
-                        <span>ارسال پاسخ</span>
-                    </button>
-                </form>
-            </div>
-        {% elif ticket.status == 'WAITING_FOR_SUPPORT' %}
-            <div class="reply-form-card">
-                <div class="ticket-closed-notice" style="margin-top: 0;">
-                    پیام شما ثبت شده است. لطفاً منتظر پاسخ پشتیبانی باشید.
-                </div>
-            </div>
-        {% endif %}
+      <a href="{% url 'support:ticket_list' %}" class="tk-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+        بازگشت به لیست تیکت‌ها
+      </a>
 
     </div>
+  </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-    // File upload preview
-    const fileInput = document.getElementById('fileInput');
-    const fileList = document.getElementById('fileList');
-    const submitBtn = document.getElementById('submitBtn');
-    const replyForm = document.getElementById('replyForm');
+(function(){
+  var fileInput = document.getElementById('fileInput');
+  var fileList = document.getElementById('fileList');
+  var submitBtn = document.getElementById('submitBtn');
+  var replyForm = document.getElementById('replyForm');
+  if(!fileInput) return;
 
-    if (fileInput && fileList) {
-        fileInput.addEventListener('change', function() {
-            fileList.innerHTML = '';
-            
-            if (this.files.length > 0) {
-                Array.from(this.files).forEach(file => {
-                    const fileItem = document.createElement('span');
-                    fileItem.className = 'file-upload__file-item';
-                    fileItem.textContent = file.name;
-                    fileList.appendChild(fileItem);
-                });
-            }
-        });
-    }
+  fileInput.addEventListener('change', function(){
+    fileList.innerHTML = '';
+    Array.from(this.files).forEach(function(file){
+      var item = document.createElement('span');
+      item.className = 'tk-file__item';
+      item.textContent = file.name;
+      fileList.appendChild(item);
+    });
+  });
 
-    if (replyForm && submitBtn) {
-        replyForm.addEventListener('submit', function(e) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner"></span><span>در حال ارسال...</span>';
-        });
-    }
+  if(replyForm && submitBtn){
+    replyForm.addEventListener('submit', function(){
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="tk-spinner"></span><span>در حال ارسال...</span>';
+    });
+  }
+})();
 </script>
 {% endblock %}

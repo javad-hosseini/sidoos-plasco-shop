@@ -1,459 +1,176 @@
 {% extends "base.html" %}
-{% load static %}
-{% load support_extras %}
-
+{% load static support_extras %}
 
 {% block title %}پشتیبانی | سیدوس{% endblock %}
+{% block meta_description %}درخواست‌های پشتیبانی خود را در سیدوس مشاهده و پیگیری کنید یا درخواست جدیدی ثبت نمایید.{% endblock %}
+
+{% block extra_css %}
+<style>
+  .tk-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:130px; }
+
+  /* breadcrumb — shared language with product_detail.html / category_list.html */
+  .tk-crumbs{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:13px; color:var(--cream-soft); margin-bottom:34px; }
+  .tk-crumbs a{ transition:color .3s; }
+  .tk-crumbs a:hover{ color:var(--gold); }
+  .tk-crumbs .sep{ color:var(--gold-soft); }
+  .tk-crumbs .current{ color:var(--cream); }
+
+  /* intro header */
+  .tk-intro{ display:flex; justify-content:space-between; align-items:flex-end; gap:32px; margin-bottom:48px; flex-wrap:wrap; }
+  .tk-intro h1{ font-size:clamp(26px,3.4vw,40px); line-height:1.3; margin-top:16px; }
+  .tk-intro p{ color:var(--cream-soft); font-size:14.5px; line-height:1.95; max-width:420px; margin-top:14px; }
+
+  .tk-btn{
+    display:inline-flex; align-items:center; gap:10px; white-space:nowrap;
+    min-height:50px; padding:0 24px; font-size:14px; font-weight:700;
+    background:var(--gold); color:var(--charcoal); border:1px solid var(--gold);
+    transition:background .35s var(--ease), transform .15s;
+  }
+  .tk-btn:hover{ background:#c9ac6d; }
+  .tk-btn:active{ transform:scale(.98); }
+  .tk-btn svg{ width:17px; height:17px; }
+
+  /* status pills */
+  .tk-status{ display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:.02em; padding:6px 13px; white-space:nowrap; }
+  .tk-status--wait-support{ background:rgba(18,60,54,.35); color:var(--beige); border:1px solid rgba(18,60,54,.9); }
+  .tk-status--wait-user{ background:var(--gold); color:var(--charcoal); }
+  .tk-status--closed{ background:none; color:var(--cream-soft); border:1px solid rgba(216,207,193,.2); }
+
+  /* ticket cards */
+  .tk-list{ display:flex; flex-direction:column; gap:16px; }
+  .tk-card{
+    display:block; background:var(--graphite); border:1px solid rgba(216,207,193,.1);
+    padding:24px 26px; transition:border-color .35s, transform .4s var(--ease);
+  }
+  .tk-card:hover{ border-color:var(--gold-soft); transform:translateY(-4px); }
+  .tk-card__top{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:14px; }
+  .tk-card__tracking{ font-family:'Space Mono','Courier New',monospace; font-size:12.5px; color:var(--gold); letter-spacing:.03em; }
+  .tk-card__title{ font-size:17px; font-weight:700; color:var(--cream); line-height:1.6; margin-bottom:8px; }
+  .tk-card__preview{
+    font-size:13.5px; color:var(--cream-soft); line-height:1.9; margin-bottom:18px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .tk-card__bottom{ display:flex; justify-content:space-between; align-items:center; gap:14px; padding-top:16px; border-top:1px solid rgba(216,207,193,.1); }
+  .tk-card__date{ font-size:12.5px; color:var(--cream-soft); }
+  .tk-card__action{ display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--gold); }
+  .tk-card__action svg{ width:15px; height:15px; transition:transform .3s var(--ease); }
+  .tk-card:hover .tk-card__action svg{ transform:translateX(-4px); }
+
+  /* empty state */
+  .tk-empty{ border:1px solid rgba(216,207,193,.14); background:var(--graphite); padding:74px 30px; text-align:center; }
+  .tk-empty svg{ width:42px; height:42px; color:var(--gold-soft); margin:0 auto 20px; }
+  .tk-empty h2{ font-size:19px; margin-bottom:10px; }
+  .tk-empty p{ color:var(--cream-soft); font-size:14px; max-width:400px; margin:0 auto 28px; line-height:1.9; }
+
+  /* pagination */
+  .tk-pagination{ display:flex; justify-content:center; align-items:center; gap:8px; margin-top:48px; flex-wrap:wrap; }
+  .tk-page{
+    display:inline-flex; align-items:center; justify-content:center; min-width:42px; height:42px;
+    padding:0 12px; font-size:13.5px; font-weight:600; color:var(--cream-soft);
+    border:1px solid rgba(216,207,193,.16); transition:border-color .3s, color .3s, background .3s;
+  }
+  .tk-page:hover{ border-color:var(--gold-soft); color:var(--cream); }
+  .tk-page--active{ background:var(--gold); color:var(--charcoal); border-color:var(--gold); }
+  .tk-page--disabled{ opacity:.35; pointer-events:none; }
+
+  @media(max-width:560px){
+    .tk-intro{ flex-direction:column; align-items:flex-start; }
+    .tk-btn{ width:100%; justify-content:center; }
+    .tk-card__bottom{ flex-direction:column; align-items:flex-start; gap:10px; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<style>
-    /* ============================================================
-       Support Ticket List Page Styles
-       ============================================================ */
-    
-    .support-page {
-        background-color: var(--color-background, #F7F7F2);
-        min-height: 100vh;
-        padding: 2rem 1rem;
-    }
+<div class="tk-wrap">
+  <div class="container">
 
-    .support-container {
-        max-width: 900px;
-        margin: 0 auto;
-    }
+    <nav class="tk-crumbs reveal" aria-label="مسیر صفحه">
+      <a href="{% url 'home:home' %}">خانه</a>
+      <span class="sep">/</span>
+      <span class="current">پشتیبانی</span>
+    </nav>
 
-    /* Page Header */
-    .support-header {
-        margin-bottom: 2.5rem;
-        text-align: center;
-    }
+    <div class="tk-intro reveal">
+      <div>
+        <div class="eyebrow">مرکز پشتیبانی سیدوس</div>
+        <h1>درخواست‌های پشتیبانی</h1>
+        <p>سوابق گفتگوهای شما با تیم پشتیبانی سیدوس، همراه با وضعیت هر درخواست.</p>
+      </div>
+      <a href="{% url 'support:ticket_create' %}" class="tk-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        ثبت درخواست جدید
+      </a>
+    </div>
 
-    .support-header__title {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--color-text, #202522);
-        margin-bottom: 0.5rem;
-        line-height: 1.3;
-    }
-
-    .support-header__subtitle {
-        font-size: 1rem;
-        color: var(--color-text-muted, #6E756F);
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
-    }
-
-    .support-header__cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background-color: var(--color-primary, #245C43);
-        color: #ffffff;
-        padding: 0.75rem 1.5rem;
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 180ms ease;
-        border: none;
-        cursor: pointer;
-    }
-
-    .support-header__cta:hover {
-        background-color: var(--color-primary-dark, #173D2D);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(36, 92, 67, 0.2);
-    }
-
-    .support-header__cta:active {
-        transform: translateY(0);
-        box-shadow: none;
-    }
-
-    /* Ticket Cards */
-    .ticket-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .ticket-card {
-        background-color: #ffffff;
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(32, 37, 34, 0.06);
-        transition: all 180ms ease;
-        border: 1px solid transparent;
-        text-decoration: none;
-        display: block;
-        color: inherit;
-    }
-
-    .ticket-card:hover {
-        box-shadow: 0 6px 20px rgba(32, 37, 34, 0.1);
-        border-color: var(--color-accent, #A8C66C);
-        transform: translateY(-2px);
-    }
-
-    .ticket-card:focus-visible {
-        outline: 2px solid var(--color-primary, #245C43);
-        outline-offset: 2px;
-    }
-
-    .ticket-card__top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-        gap: 1rem;
-    }
-
-    .ticket-card__tracking {
-        font-family: 'Courier New', monospace;
-        font-size: 0.9rem;
-        color: var(--color-text-muted, #6E756F);
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-
-    .ticket-card__status {
-        display: inline-block;
-        padding: 0.35rem 0.75rem;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .ticket-card__status--waiting-support {
-        background-color: rgba(232, 121, 50, 0.1);
-        color: var(--color-sale, #E87932);
-    }
-
-    .ticket-card__status--waiting-user {
-        background-color: rgba(36, 92, 67, 0.1);
-        color: var(--color-primary, #245C43);
-    }
-
-    .ticket-card__status--closed {
-        background-color: rgba(110, 117, 111, 0.1);
-        color: var(--color-text-muted, #6E756F);
-    }
-
-    .ticket-card__title {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--color-text, #202522);
-        margin-bottom: 0.5rem;
-        line-height: 1.4;
-    }
-
-    .ticket-card__preview {
-        font-size: 0.95rem;
-        color: var(--color-text-muted, #6E756F);
-        margin-bottom: 1rem;
-        line-height: 1.6;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .ticket-card__bottom {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .ticket-card__date {
-        font-size: 0.85rem;
-        color: var(--color-text-muted, #6E756F);
-    }
-
-    .ticket-card__action {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        color: var(--color-primary, #245C43);
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 180ms ease;
-    }
-
-    .ticket-card__action-arrow {
-        transition: transform 180ms ease;
-    }
-
-    .ticket-card:hover .ticket-card__action-arrow {
-        transform: translateX(-4px);
-    }
-
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 1rem;
-        background-color: #ffffff;
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(32, 37, 34, 0.06);
-    }
-
-    .empty-state__icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        color: var(--color-accent, #A8C66C);
-    }
-
-    .empty-state__title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--color-text, #202522);
-        margin-bottom: 0.75rem;
-    }
-
-    .empty-state__text {
-        font-size: 0.95rem;
-        color: var(--color-text-muted, #6E756F);
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
-    }
-
-    /* Pagination */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 2rem;
-        flex-wrap: wrap;
-    }
-
-    .pagination__link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 2.5rem;
-        height: 2.5rem;
-        padding: 0 0.75rem;
-        border-radius: 8px;
-        background-color: #ffffff;
-        color: var(--color-text, #202522);
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 180ms ease;
-        border: 1px solid #e0e0e0;
-    }
-
-    .pagination__link:hover {
-        background-color: var(--color-primary, #245C43);
-        color: #ffffff;
-        border-color: var(--color-primary, #245C43);
-    }
-
-    .pagination__link--active {
-        background-color: var(--color-primary, #245C43);
-        color: #ffffff;
-        border-color: var(--color-primary, #245C43);
-    }
-
-    .pagination__link--disabled {
-        opacity: 0.5;
-        pointer-events: none;
-    }
-
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        .support-page {
-            padding: 1.5rem 0.75rem;
-        }
-
-        .support-header__title {
-            font-size: 1.5rem;
-        }
-
-        .support-header__subtitle {
-            font-size: 0.9rem;
-        }
-
-        .support-header__cta {
-            width: 100%;
-            justify-content: center;
-            padding: 0.875rem 1rem;
-        }
-
-        .ticket-card {
-            padding: 1.25rem;
-        }
-
-        .ticket-card__top {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .ticket-card__bottom {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.75rem;
-        }
-
-        .ticket-card__action {
-            width: 100%;
-            justify-content: space-between;
-            padding-top: 0.5rem;
-            border-top: 1px solid #f0f0f0;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .support-header__title {
-            font-size: 1.25rem;
-        }
-
-        .ticket-card__title {
-            font-size: 1rem;
-        }
-
-        .ticket-card__preview {
-            font-size: 0.85rem;
-        }
-
-        .pagination__link {
-            min-width: 2rem;
-            height: 2rem;
-            font-size: 0.8rem;
-            padding: 0 0.5rem;
-        }
-    }
-</style>
-
-<div class="support-page">
-    <div class="support-container">
-
-        <!-- Page Header -->
-        <header class="support-header">
-            <h1 class="support-header__title">پشتیبانی</h1>
-            <p class="support-header__subtitle">
-                درخواست‌های پشتیبانی خود را مشاهده و پیگیری کنید.
-            </p>
-            <a href="{% url 'support:ticket_create' %}" class="support-header__cta">
-                <span>+</span>
-                <span>ثبت درخواست جدید</span>
-            </a>
-        </header>
-
-        <!-- Ticket List -->
-        {% if tickets %}
-            <div class="ticket-list">
-                {% for ticket in tickets %}
-                    <a href="{% url 'support:ticket_detail' tracking_code=ticket.tracking_code %}"
-                       class="ticket-card">
-
-                        <div class="ticket-card__top">
-                            <span class="ticket-card__tracking">#{{ ticket.tracking_code }}</span>
-
-                            {% if ticket.status == 'WAITING_FOR_SUPPORT' %}
-                                <span class="ticket-card__status ticket-card__status--waiting-support">
-                                    در انتظار پاسخ پشتیبانی
-                                </span>
-                            {% elif ticket.status == 'WAITING_FOR_USER' %}
-                                <span class="ticket-card__status ticket-card__status--waiting-user">
-                                    در انتظار پاسخ شما
-                                </span>
-                            {% elif ticket.status == 'CLOSED' %}
-                                <span class="ticket-card__status ticket-card__status--closed">
-                                    بسته شده
-                                </span>
-                            {% endif %}
-                        </div>
-
-                        <h2 class="ticket-card__title">{{ ticket.title }}</h2>
-
-                        {% if ticket.latest_message %}
-                            <p class="ticket-card__preview">
-                                {{ ticket.latest_message }}
-                            </p>
-                        {% endif %}
-
-                        <div class="ticket-card__bottom">
-                            <span class="ticket-card__date">
-                                {{ ticket.created_at|jalali_date }}
-                            </span>
-
-                            <span class="ticket-card__action">
-                                <span>مشاهده گفتگو</span>
-                                <span class="ticket-card__action-arrow">←</span>
-                            </span>
-                        </div>
-                    </a>
-                {% endfor %}
+    {% if tickets %}
+      <div class="tk-list reveal">
+        {% for ticket in tickets %}
+          <a href="{% url 'support:ticket_detail' tracking_code=ticket.tracking_code %}" class="tk-card">
+            <div class="tk-card__top">
+              <span class="tk-card__tracking">#{{ ticket.tracking_code }}</span>
+              {% if ticket.status == 'WAITING_FOR_SUPPORT' %}
+                <span class="tk-status tk-status--wait-support">در انتظار پاسخ پشتیبانی</span>
+              {% elif ticket.status == 'WAITING_FOR_USER' %}
+                <span class="tk-status tk-status--wait-user">در انتظار پاسخ شما</span>
+              {% elif ticket.status == 'CLOSED' %}
+                <span class="tk-status tk-status--closed">بسته شده</span>
+              {% endif %}
             </div>
 
-            <!-- Pagination -->
-            {% if is_paginated %}
-                <nav class="pagination" aria-label="صفحه‌بندی">
-                    {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}"
-                           class="pagination__link">
-                            قبلی
-                        </a>
-                    {% else %}
-                        <span class="pagination__link pagination__link--disabled">
-                            قبلی
-                        </span>
-                    {% endif %}
+            <h2 class="tk-card__title">{{ ticket.title }}</h2>
 
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <span class="pagination__link pagination__link--active">
-                                {{ num }}
-                            </span>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <a href="?page={{ num }}" class="pagination__link">
-                                {{ num }}
-                            </a>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}"
-                           class="pagination__link">
-                            بعدی
-                        </a>
-                    {% else %}
-                        <span class="pagination__link pagination__link--disabled">
-                            بعدی
-                        </span>
-                    {% endif %}
-                </nav>
+            {% if ticket.latest_message %}
+              <p class="tk-card__preview">{{ ticket.latest_message }}</p>
             {% endif %}
 
-        <!-- Empty State -->
-        {% else %}
-            <div class="empty-state">
-                <div class="empty-state__icon">
-                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M32 56C45.2548 56 56 45.2548 56 32C56 18.7452 45.2548 8 32 8C18.7452 8 8 18.7452 8 32C8 45.2548 18.7452 56 32 56Z"
-                              fill="currentColor" opacity="0.2"/>
-                        <path d="M24 28C24 26.3431 25.3431 25 27 25H37C38.6569 25 40 26.3431 40 28V32C40 33.6569 38.6569 35 37 35H27C25.3431 35 24 33.6569 24 32V28Z"
-                              fill="currentColor" opacity="0.5"/>
-                        <path d="M28 39H36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <h2 class="empty-state__title">
-                    هنوز درخواست پشتیبانی ثبت نکرده‌اید
-                </h2>
-                <p class="empty-state__text">
-                    اگر سوال یا مشکلی دارید، می‌توانید درخواست جدیدی برای
-                    تیم پشتیبانی سیدوس ثبت کنید.
-                </p>
-                <a href="{% url 'support:ticket_create' %}" class="support-header__cta">
-                    <span>+</span>
-                    <span>ثبت درخواست جدید</span>
-                </a>
+            <div class="tk-card__bottom">
+              <span class="tk-card__date">{{ ticket.created_at|jalali_date }}</span>
+              <span class="tk-card__action">
+                مشاهده گفتگو
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+              </span>
             </div>
-        {% endif %}
+          </a>
+        {% endfor %}
+      </div>
 
-    </div>
+      {% if is_paginated %}
+        <nav class="tk-pagination" aria-label="صفحه‌بندی">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="tk-page">قبلی</a>
+          {% else %}
+            <span class="tk-page tk-page--disabled">قبلی</span>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <span class="tk-page tk-page--active">{{ num|persian_digits }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <a href="?page={{ num }}" class="tk-page">{{ num|persian_digits }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="tk-page">بعدی</a>
+          {% else %}
+            <span class="tk-page tk-page--disabled">بعدی</span>
+          {% endif %}
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <div class="tk-empty reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <h2>هنوز درخواست پشتیبانی ثبت نکرده‌اید</h2>
+        <p>اگر سؤال یا مشکلی دارید، می‌توانید درخواست جدیدی برای تیم پشتیبانی سیدوس ثبت کنید.</p>
+        <a href="{% url 'support:ticket_create' %}" class="tk-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          ثبت درخواست جدید
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
 </div>
 {% endblock %}

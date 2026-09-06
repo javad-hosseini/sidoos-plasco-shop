@@ -12,6 +12,8 @@ from decouple import Config, RepositoryEnv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Environment file selection
 ENV_FILE = BASE_DIR / (
     ".env.prod"
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
 
     # Third-party apps
     'taggit',
@@ -56,6 +59,11 @@ INSTALLED_APPS = [
     'apps.support.apps.SupportConfig',
     'apps.translation.apps.TranslationConfig',
 ]
+
+# Jazzmin admin theme config (branding, layout, language chooser, RTL CSS)
+# lives in its own module for readability; it must be imported here since
+# Django only reads settings defined directly on this module.
+from .jazzmin import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS
 
 # CKEditor config
 CKEDITOR_5_CONFIGS = {
@@ -93,6 +101,7 @@ CKEDITOR_5_CONFIGS = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

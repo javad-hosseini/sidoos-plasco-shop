@@ -1,0 +1,23 @@
+{% comment %}
+  Recursive category node for the navbar mega-menu.
+  Expects `node` (a Category) in context. Includes itself for children,
+  so arbitrarily deep parent/children trees render as a nested accordion.
+{% endcomment %}
+{% load static %}
+<li class="cat-node{% if node.children.all %} cat-node--has-children{% endif %}">
+  <div class="cat-node__row">
+    <a href="{% url 'products:category_products' node.slug %}" class="cat-node__link">{{ node.name }}</a>
+    {% if node.children.all %}
+      <button type="button" class="cat-node__toggle" aria-expanded="false" aria-label="باز/بستن زیرشاخه‌ها">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    {% endif %}
+  </div>
+  {% if node.children.all %}
+    <ul class="cat-node__children" hidden>
+      {% for child in node.children.all %}
+        {% include 'partials/category_menu_node.html' with node=child %}
+      {% endfor %}
+    </ul>
+  {% endif %}
+</li>

@@ -1,0 +1,16 @@
+{% comment %}
+  Shared breadcrumb trail. Expects `breadcrumbs`: a list of
+  {"label": ..., "url": ...} dicts, in order from the home page down to
+  the current page. The last item is rendered as the current,
+  non-clickable crumb regardless of whether it has a url.
+{% endcomment %}
+<nav class="crumbs reveal" aria-label="مسیر صفحه">
+  {% for crumb in breadcrumbs %}
+    {% if not forloop.last and crumb.url %}
+      <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+      <span class="sep">/</span>
+    {% else %}
+      <span class="current">{{ crumb.label }}</span>
+    {% endif %}
+  {% endfor %}
+</nav>

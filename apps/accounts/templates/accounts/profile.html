@@ -1,80 +1,295 @@
 {% extends "base.html" %}
+{% load static humanize blog_extras %}
 
-{% block title %}Profile{% endblock %}
+{% block title %}حساب کاربری من | سیدوس{% endblock %}
+{% block meta_description %}پنل کاربری سیدوس — محصولات ذخیره‌شده و پسندیده‌ی شما.{% endblock %}
 
-{% block content %}
-<div class="container profile-page">
-    <h1>Welcome, {{ user.username }}</h1>
-
-    <section class="panel">
-        <h2>Saved Products</h2>
-        {% if saved_entries %}
-            <ul class="item-list">
-                {% for entry in saved_entries %}
-                    <li>
-                        <a href="{% url 'products:product_detail' entry.product.slug %}">{{ entry.product.name }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="empty-state">You have not saved any products yet.</p>
-        {% endif %}
-    </section>
-
-    <section class="panel">
-        <h2>Liked Products</h2>
-        {% if liked_entries %}
-            <ul class="item-list">
-                {% for entry in liked_entries %}
-                    <li>
-                        <a href="{% url 'products:product_detail' entry.product.slug %}">{{ entry.product.name }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="empty-state">You have not liked any products yet.</p>
-        {% endif %}
-    </section>
-
-    <a href="{% url 'accounts:logout' %}" class="btn-logout">Logout</a>
-</div>
+{% block fonts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer">
 {% endblock %}
 
-{% block base_extra_style %}
-.profile-page {
-    padding-block: var(--space-6);
-}
+{% block extra_css %}
+<style>
+  .pf-wrap{ padding-top:calc(var(--header-height) + 40px); padding-bottom:120px; }
 
-.panel {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-5);
-    margin-bottom: var(--space-5);
-}
+  /* ===== identity header ===== */
+  .pf-hero{
+    display:flex; align-items:center; gap:26px; flex-wrap:wrap;
+    background:linear-gradient(180deg, var(--graphite), var(--charcoal));
+    border:1px solid rgba(216,207,193,.12);
+    padding:32px; margin-bottom:22px;
+  }
+  .pf-avatar{
+    width:84px; height:84px; flex:0 0 auto;
+    display:grid; place-items:center;
+    border:1px solid var(--gold-soft); color:var(--gold);
+    font-family:var(--font-display); font-size:34px; font-weight:600;
+    background:rgba(184,155,94,.06);
+  }
+  .pf-id{ flex:1; min-width:220px; }
+  .pf-id h1{ font-size:clamp(20px,2.4vw,27px); font-weight:800; margin-bottom:6px; }
+  .pf-id .pf-username{ color:var(--cream-soft); font-size:13px; }
+  .pf-badges{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .pf-badge{
+    display:inline-flex; align-items:center; gap:7px;
+    font-size:11.5px; letter-spacing:.02em;
+    border:1px solid rgba(184,155,94,.28); color:var(--gold);
+    padding:6px 12px;
+  }
+  .pf-badge--muted{ border-color:rgba(216,207,193,.2); color:var(--cream-soft); }
+  .pf-badge i{ font-size:11px; }
 
-.item-list {
-    list-style: disc;
-    padding-inline-start: var(--space-6);
-}
+  .pf-logout{
+    display:inline-flex; align-items:center; gap:9px;
+    border:1px solid rgba(216,207,193,.22); color:var(--cream);
+    background:none; font-family:inherit; font-size:13px; font-weight:600;
+    padding:12px 20px; cursor:pointer;
+    transition:border-color .3s, background .3s, color .3s;
+  }
+  .pf-logout:hover{ border-color:#e87932; color:#f0b48c; background:rgba(232,121,50,.08); }
 
-.item-list li {
-    margin-bottom: var(--space-2);
-}
+  /* ===== details + quick links ===== */
+  .pf-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:46px; }
+  @media(max-width:760px){ .pf-grid{ grid-template-columns:1fr; } }
 
-.item-list a {
-    color: var(--color-primary);
-}
+  .pf-panel{
+    border:1px solid rgba(216,207,193,.12); background:var(--graphite);
+    padding:24px;
+  }
+  .pf-panel h2{
+    font-size:13px; letter-spacing:.03em; color:var(--gold);
+    font-weight:700; margin-bottom:18px;
+    display:flex; align-items:center; gap:9px;
+  }
+  .pf-rows{ display:flex; flex-direction:column; gap:13px; }
+  .pf-row{ display:flex; justify-content:space-between; align-items:center; gap:14px; font-size:13.5px; }
+  .pf-row span:first-child{ color:var(--cream-soft); display:flex; align-items:center; gap:9px; }
+  .pf-row span:first-child i{ width:15px; text-align:center; color:var(--gold); }
+  .pf-row span:last-child{ color:var(--cream); font-weight:600; }
+  .pf-note{ margin-top:16px; font-size:12px; color:var(--cream-soft); line-height:1.9; }
+  .pf-note a{ color:var(--gold); }
 
-.empty-state {
-    color: var(--color-text-muted);
-}
+  .pf-links{ display:flex; flex-direction:column; gap:10px; }
+  .pf-link{
+    display:flex; align-items:center; gap:12px;
+    border:1px solid rgba(216,207,193,.12); padding:14px 16px;
+    font-size:13.5px; color:var(--cream-soft);
+    transition:border-color .3s, color .3s, background .3s, padding-inline-start .3s;
+  }
+  .pf-link:hover{ border-color:var(--gold-soft); color:var(--cream); background:rgba(184,155,94,.05); padding-inline-start:22px; }
+  .pf-link i{ color:var(--gold); width:18px; text-align:center; }
+  .pf-link .pf-link__arrow{ margin-inline-start:auto; color:var(--cream-soft); font-size:11px; }
 
-.btn-logout {
-    display: inline-block;
-    padding: 10px 16px;
-    border-radius: var(--radius-sm);
-    background: #c0392b;
-    color: #fff;
-}
+  /* ===== collections ===== */
+  .pf-section{ margin-bottom:56px; }
+  .pf-section__head{
+    display:flex; align-items:center; gap:12px; margin-bottom:24px;
+    padding-bottom:14px; border-bottom:1px solid rgba(216,207,193,.12);
+  }
+  .pf-section__head h2{ font-size:19px; font-weight:800; }
+  .pf-count{
+    font-size:12px; color:var(--charcoal); background:var(--gold);
+    padding:3px 10px; font-weight:700;
+  }
+
+  .pf-cards{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:18px; }
+  .pf-card{
+    display:flex; flex-direction:column;
+    background:var(--graphite); border:1px solid rgba(216,207,193,.1);
+    transition:border-color .4s, transform .5s var(--ease);
+  }
+  .pf-card:hover{ border-color:var(--gold-soft); transform:translateY(-6px); }
+  .pf-card__media{ aspect-ratio:1/1; overflow:hidden; background:#141814; }
+  .pf-card__media img{ width:100%; height:100%; object-fit:cover; transition:transform .9s var(--ease); }
+  .pf-card:hover .pf-card__media img{ transform:scale(1.07); }
+  .pf-card__body{ padding:16px 16px 18px; display:flex; flex-direction:column; gap:7px; flex:1; }
+  .pf-card__cat{ font-size:11px; color:var(--gold); }
+  .pf-card__name{ font-size:14px; font-weight:600; line-height:1.6; flex:1; }
+  .pf-card__price{ font-size:13px; font-weight:700; color:var(--cream); }
+  .pf-card__price .old{ color:var(--cream-soft); text-decoration:line-through; font-weight:400; font-size:11.5px; margin-inline-start:6px; }
+  .pf-card__price--muted{ color:var(--cream-soft); font-weight:400; font-size:12px; }
+
+  .pf-empty{
+    display:flex; flex-direction:column; align-items:flex-start; gap:14px;
+    border:1px dashed rgba(216,207,193,.18); padding:34px;
+    color:var(--cream-soft); font-size:14px;
+  }
+  .pf-empty i{ font-size:24px; color:var(--gold-soft); }
+  .pf-empty a{
+    display:inline-flex; align-items:center; gap:8px;
+    color:var(--charcoal); background:var(--gold); font-weight:700; font-size:13px;
+    padding:11px 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pf-wrap">
+  <div class="container">
+
+    {# ===== identity ===== #}
+    <div class="pf-hero reveal">
+      <div class="pf-avatar">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>
+      <div class="pf-id">
+        <h1>{{ user.get_full_name|default:user.username }}</h1>
+        <div class="pf-username">
+          <i class="fa-solid fa-at" aria-hidden="true"></i> {{ user.username }}
+        </div>
+        <div class="pf-badges">
+          {% if user.has_price_access %}
+            <span class="pf-badge"><i class="fa-solid fa-tags"></i> دسترسی به قیمت عمده</span>
+          {% else %}
+            <span class="pf-badge pf-badge--muted"><i class="fa-solid fa-lock"></i> قیمت‌ها در انتظار تأیید</span>
+          {% endif %}
+          {% if user.is_staff %}
+            <span class="pf-badge"><i class="fa-solid fa-user-shield"></i> کارشناس سیدوس</span>
+          {% endif %}
+        </div>
+      </div>
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="pf-logout">
+          <i class="fa-solid fa-right-from-bracket"></i> خروج از حساب
+        </button>
+      </form>
+    </div>
+
+    {# ===== details + quick links ===== #}
+    <div class="pf-grid">
+      <div class="pf-panel reveal">
+        <h2><i class="fa-solid fa-id-card"></i> اطلاعات حساب</h2>
+        <div class="pf-rows">
+          <div class="pf-row">
+            <span><i class="fa-solid fa-user"></i> نام</span>
+            <span>{{ user.get_full_name|default:"ثبت نشده" }}</span>
+          </div>
+          <div class="pf-row">
+            <span><i class="fa-solid fa-mobile-screen"></i> موبایل</span>
+            <span dir="ltr">{{ user.phone_number|default:"ثبت نشده"|persian_digits }}</span>
+          </div>
+          <div class="pf-row">
+            <span><i class="fa-solid fa-envelope"></i> ایمیل</span>
+            <span dir="ltr">{{ user.email|default:"ثبت نشده" }}</span>
+          </div>
+          <div class="pf-row">
+            <span><i class="fa-solid fa-calendar-check"></i> عضویت از</span>
+            <span>{{ user.date_joined|jalali_date }}</span>
+          </div>
+        </div>
+        <p class="pf-note">
+          برای ویرایش اطلاعات حساب با
+          <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
+          در تماس باشید.
+        </p>
+      </div>
+
+      <div class="pf-panel reveal reveal-delay-1">
+        <h2><i class="fa-solid fa-compass"></i> دسترسی سریع</h2>
+        <div class="pf-links">
+          <a href="{% url 'products:product_list' %}" class="pf-link">
+            <i class="fa-solid fa-store"></i> فروشگاه
+            <span class="pf-link__arrow"><i class="fa-solid fa-chevron-left"></i></span>
+          </a>
+          <a href="{% url 'products:special_sales' %}" class="pf-link">
+            <i class="fa-solid fa-tag"></i> پیشنهادهای ویژه
+            <span class="pf-link__arrow"><i class="fa-solid fa-chevron-left"></i></span>
+          </a>
+          <a href="{% url 'support:ticket_list' %}" class="pf-link">
+            <i class="fa-solid fa-headset"></i> پشتیبانی و تیکت‌ها
+            <span class="pf-link__arrow"><i class="fa-solid fa-chevron-left"></i></span>
+          </a>
+          <a href="{% url 'blogs:article_list' %}" class="pf-link">
+            <i class="fa-solid fa-book-open"></i> مجله سیدوس
+            <span class="pf-link__arrow"><i class="fa-solid fa-chevron-left"></i></span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {# ===== saved ===== #}
+    <section class="pf-section reveal">
+      <div class="pf-section__head">
+        <i class="fa-solid fa-bookmark" style="color:var(--gold)"></i>
+        <h2>محصولات ذخیره‌شده</h2>
+        {% if saved_entries %}<span class="pf-count">{{ saved_entries|length|persian_digits }}</span>{% endif %}
+      </div>
+
+      {% if saved_entries %}
+        <div class="pf-cards">
+          {% for entry in saved_entries %}
+            {% with product=entry.product %}
+            <a class="pf-card" href="{% url 'products:product_detail' product.slug %}">
+              <div class="pf-card__media">
+                {% if product.cover_image %}<img src="{{ product.cover_image.url }}" alt="{{ product.name }}" loading="lazy">{% endif %}
+              </div>
+              <div class="pf-card__body">
+                {% if product.category %}<span class="pf-card__cat">{{ product.category.name }}</span>{% endif %}
+                <span class="pf-card__name">{{ product.name }}</span>
+                {% if user.has_price_access %}
+                  {% if product.call_for_price %}
+                    <span class="pf-card__price pf-card__price--muted">تماس برای قیمت</span>
+                  {% elif product.on_sale_price %}
+                    <span class="pf-card__price">{{ product.on_sale_price|intcomma|persian_digits }} تومان<span class="old">{{ product.price|intcomma|persian_digits }}</span></span>
+                  {% else %}
+                    <span class="pf-card__price">{{ product.price|intcomma|persian_digits }} تومان</span>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </a>
+            {% endwith %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="pf-empty">
+          <i class="fa-regular fa-bookmark"></i>
+          <p>هنوز محصولی ذخیره نکرده‌اید. با دکمه‌ی «ذخیره محصول» در صفحه‌ی هر کالا، آن را برای دسترسی بعدی نگه دارید.</p>
+          <a href="{% url 'products:product_list' %}"><i class="fa-solid fa-store"></i> رفتن به فروشگاه</a>
+        </div>
+      {% endif %}
+    </section>
+
+    {# ===== liked ===== #}
+    <section class="pf-section reveal">
+      <div class="pf-section__head">
+        <i class="fa-solid fa-heart" style="color:var(--gold)"></i>
+        <h2>محصولات پسندیده</h2>
+        {% if liked_entries %}<span class="pf-count">{{ liked_entries|length|persian_digits }}</span>{% endif %}
+      </div>
+
+      {% if liked_entries %}
+        <div class="pf-cards">
+          {% for entry in liked_entries %}
+            {% with product=entry.product %}
+            <a class="pf-card" href="{% url 'products:product_detail' product.slug %}">
+              <div class="pf-card__media">
+                {% if product.cover_image %}<img src="{{ product.cover_image.url }}" alt="{{ product.name }}" loading="lazy">{% endif %}
+              </div>
+              <div class="pf-card__body">
+                {% if product.category %}<span class="pf-card__cat">{{ product.category.name }}</span>{% endif %}
+                <span class="pf-card__name">{{ product.name }}</span>
+                {% if user.has_price_access %}
+                  {% if product.call_for_price %}
+                    <span class="pf-card__price pf-card__price--muted">تماس برای قیمت</span>
+                  {% elif product.on_sale_price %}
+                    <span class="pf-card__price">{{ product.on_sale_price|intcomma|persian_digits }} تومان<span class="old">{{ product.price|intcomma|persian_digits }}</span></span>
+                  {% else %}
+                    <span class="pf-card__price">{{ product.price|intcomma|persian_digits }} تومان</span>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </a>
+            {% endwith %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="pf-empty">
+          <i class="fa-regular fa-heart"></i>
+          <p>هنوز محصولی نپسندیده‌اید. محصولاتی که می‌پسندید اینجا جمع می‌شوند.</p>
+          <a href="{% url 'products:product_list' %}"><i class="fa-solid fa-store"></i> رفتن به فروشگاه</a>
+        </div>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
 {% endblock %}

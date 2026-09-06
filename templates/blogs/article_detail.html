@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load blog_extras %}
+
+{% block title %}{{ article.meta_title|default:article.title }} | سیدوس{% endblock %}
+{% block meta_description %}{{ article.meta_description|default:article.summary }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ad-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:130px; }
+
+  .ad-header{ max-width:760px; margin:0 auto 40px; }
+  .ad-header h1{ font-size:clamp(26px,4vw,42px); line-height:1.4; margin-top:16px; }
+  .ad-meta{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--cream-soft); margin-top:18px; }
+  .ad-meta-dot{ opacity:.6; }
+
+  .ad-cover{ max-width:960px; margin:0 auto 50px; aspect-ratio:16/8; overflow:hidden; background:#141814; }
+  .ad-cover img{ width:100%; height:100%; object-fit:cover; }
+  @media(max-width:640px){ .ad-cover{ aspect-ratio:16/11; } }
+
+  .ad-body{ max-width:760px; margin:0 auto; }
+
+  /* article-specific tweak on top of the shared .rte rich-text renderer */
+  .ad-body .rte{ max-width:none; font-size:15.5px; }
+  .ad-body .rte img{ width:100%; height:auto; }
+
+  .ad-tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:40px; padding-top:30px; border-top:1px solid rgba(216,207,193,.1); }
+  .ad-tag{ font-size:12px; color:var(--cream-soft); border:1px solid rgba(216,207,193,.16); padding:5px 14px; }
+
+  .ad-back{
+    display:inline-flex; align-items:center; gap:8px; margin-top:40px;
+    font-size:13px; color:var(--cream-soft); transition:color .3s;
+  }
+  .ad-back:hover{ color:var(--gold); }
+  .ad-back svg{ width:14px; height:14px; }
+
+  /* ===== related articles (same card language as article_list.html) ===== */
+  .ad-related{ margin-top:110px; }
+  .ad-related .section-head{ display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:32px; flex-wrap:wrap; }
+  .ad-related .section-head h2{ font-size:clamp(20px,2.6vw,26px); }
+
+  .mag-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:26px; }
+  @media(max-width:1000px){ .mag-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media(max-width:640px){ .mag-grid{ grid-template-columns:1fr; } }
+
+  .mag-card{
+    display:flex; flex-direction:column; background:var(--graphite);
+    border:1px solid rgba(216,207,193,.1); overflow:hidden;
+    transition:border-color .4s var(--ease), transform .5s var(--ease);
+  }
+  .mag-card:hover{ border-color:var(--gold-soft); transform:translateY(-6px); }
+  .mag-card__media{ display:block; aspect-ratio:16/10; overflow:hidden; background:#141814; }
+  .mag-card__media img{ width:100%; height:100%; object-fit:cover; transition:transform .9s var(--ease); }
+  .mag-card:hover .mag-card__media img{ transform:scale(1.05); }
+  .mag-card__media--fallback{ display:flex; align-items:center; justify-content:center; color:var(--gold-soft); }
+  .mag-card__body{ display:flex; flex-direction:column; gap:10px; padding:22px; flex:1; }
+  .mag-card__meta{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--cream-soft); }
+  .mag-card__meta-dot{ opacity:.6; }
+  .mag-card__title{ font-size:17px; line-height:1.6; font-weight:700; }
+  .mag-card__title a{ transition:color .3s; }
+  .mag-card__title a:hover{ color:var(--gold); }
+  .mag-card__summary{ color:var(--cream-soft); font-size:13.5px; line-height:1.9; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .mag-card__tags{ list-style:none; display:flex; flex-wrap:wrap; gap:6px; }
+  .mag-card__tag{ font-size:11px; color:var(--cream-soft); border:1px solid rgba(216,207,193,.16); padding:3px 10px; }
+  .mag-card__cta{ display:inline-flex; align-items:center; gap:8px; margin-top:auto; padding-top:10px; font-size:12.5px; font-weight:700; color:var(--gold); transition:gap .3s; }
+  .mag-card__cta svg{ transition:transform .3s var(--ease); }
+  .mag-card:hover .mag-card__cta svg{ transform:translateX(-4px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ad-wrap">
+  <div class="container">
+
+    {% include 'partials/breadcrumbs.html' %}
+
+    <div class="ad-header reveal">
+      <div class="eyebrow">مجله سیدوس</div>
+      <h1>{{ article.title }}</h1>
+      <div class="ad-meta">
+        <span>{{ article.published_at|jalali_date }}</span>
+        <span class="ad-meta-dot" aria-hidden="true">·</span>
+        <span>{{ article.reading_time|persian_digits }} دقیقه مطالعه</span>
+      </div>
+    </div>
+
+    {% if article.featured_image %}
+    <div class="ad-cover reveal">
+      <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
+    </div>
+    {% endif %}
+
+    <div class="ad-body reveal">
+      <div class="rte">{{ article.content|safe }}</div>
+
+      {% if article.tags.all %}
+      <div class="ad-tags">
+        {% for tag in article.tags.all %}
+        <span class="ad-tag">{{ tag.name }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <a href="{% url 'blogs:article_list' %}" class="ad-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg>
+        بازگشت به مجله سیدوس
+      </a>
+    </div>
+
+    {% if related_articles %}
+    <section class="ad-related reveal">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">ادامه مطالعه</div>
+          <h2>مقالات مرتبط</h2>
+        </div>
+      </div>
+      <div class="mag-grid">
+        {% for related in related_articles %}
+          {% include "blogs/partials/article_card.html" with article=related %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

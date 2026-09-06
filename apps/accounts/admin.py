@@ -2,7 +2,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
-from django.utils.translation import gettext_lazy as _
 
 # Get the custom User model
 User = get_user_model()
@@ -22,12 +21,12 @@ class UserAdmin(BaseUserAdmin):
     # Fields to display when editing a user
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'email', 'phone_number')}),
-        (_('Permissions'), {
+        ('اطلاعات شخصی', {'fields': ('first_name', 'last_name', 'email', 'phone_number')}),
+        ('دسترسی‌ها', {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
-        (_('Custom Fields'), {'fields': ('has_price_access',)}),  # Added custom field
+        ('تاریخ‌های مهم', {'fields': ('last_login', 'date_joined')}),
+        ('فیلدهای اختصاصی', {'fields': ('has_price_access',)}),  # Added custom field
     )
 
     # Fields to display when creating a new user

@@ -4,335 +4,136 @@
 {% block title %}مجله سیدوس | مقالات و مطالب کاربردی{% endblock %}
 {% block meta_description %}مطالب کاربردی، راهنمای خرید و آشنایی با محصولات پلاستیکی و باغبانی سیدوس.{% endblock %}
 
-{% block content %}
-
-    {# ===== Breadcrumb ===== #}
-    <nav class="breadcrumb" aria-label="مسیر صفحه">
-        <ol class="breadcrumb__list">
-            <li><a href="#">خانه</a></li>
-            <li aria-hidden="true" class="breadcrumb__sep">/</li>
-            <li aria-current="page">مجله سیدوس</li>
-        </ol>
-    </nav>
-
-    {# ===== Magazine header ===== #}
-    <header class="magazine-header">
-        <h1 class="magazine-header__title">مجله سیدوس</h1>
-        <p class="magazine-header__subtitle">
-            مطالب کاربردی، راهنمای خرید و آشنایی با محصولات سیدوس برای انتخاب بهتر
-        </p>
-    </header>
-
-    {# ===== Article grid ===== #}
-    {% if articles %}
-        <div class="article-grid">
-            {% for article in articles %}
-                {% include "blogs/partials/article_card.html" %}
-            {% endfor %}
-        </div>
-
-        {# ===== Pagination ===== #}
-        {% if page_obj.paginator.num_pages > 1 %}
-            <nav class="pagination" aria-label="صفحه‌بندی مقالات">
-                {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}" class="pagination__link pagination__link--prev">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-                        <span>قبلی</span>
-                    </a>
-                {% else %}
-                    <span class="pagination__link pagination__link--prev pagination__link--disabled" aria-disabled="true">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-                        <span>قبلی</span>
-                    </span>
-                {% endif %}
-
-                <span class="pagination__status">
-                    صفحه {{ page_obj.number|persian_digits }} از {{ page_obj.paginator.num_pages|persian_digits }}
-                </span>
-
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="pagination__link pagination__link--next">
-                        <span>بعدی</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-                    </a>
-                {% else %}
-                    <span class="pagination__link pagination__link--next pagination__link--disabled" aria-disabled="true">
-                        <span>بعدی</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-                    </span>
-                {% endif %}
-            </nav>
-        {% endif %}
-    {% else %}
-        {# ===== Empty state ===== #}
-        <div class="magazine-empty">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-            </svg>
-            <p>در حال حاضر مقاله‌ای برای نمایش وجود ندارد.</p>
-        </div>
-    {% endif %}
-
-{% endblock %}
-
 {% block extra_css %}
 <style>
-    /* =========================================================
-       Breadcrumb
-    ========================================================= */
-    .breadcrumb {
-        padding-top: var(--space-md);
-    }
-    .breadcrumb__list {
-        list-style: none;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin: 0;
-        padding: 0;
-        font-size: var(--font-size-sm);
-        color: var(--color-text-muted);
-    }
-    .breadcrumb__list a {
-        color: var(--color-text-muted);
-        transition: color var(--transition-fast);
-    }
-    .breadcrumb__list a:hover {
-        color: var(--color-primary);
-    }
-    .breadcrumb__sep {
-        color: var(--color-text-muted);
-        opacity: 0.6;
-    }
-    .breadcrumb__list li[aria-current="page"] {
-        color: var(--color-text);
-    }
+  .mag-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:130px; }
 
-    /* =========================================================
-       Magazine header
-    ========================================================= */
-    .magazine-header {
-        padding-block: var(--space-lg) var(--space-md);
-        text-align: center;
-        max-width: 640px;
-        margin-inline: auto;
-    }
-    .magazine-header__title {
-        margin: 0 0 var(--space-xs);
-        font-size: 32px;
-        font-weight: 800;
-        color: var(--color-primary-dark);
-    }
-    .magazine-header__subtitle {
-        margin: 0;
-        color: var(--color-text-muted);
-        font-size: var(--font-size-lg);
-    }
+  /* ===== header ===== */
+  .mag-header{ text-align:center; max-width:640px; margin:0 auto 56px; }
+  .mag-header h1{ font-size:clamp(28px,3.6vw,44px); line-height:1.3; margin-top:16px; }
+  .mag-header p{ color:var(--cream-soft); font-size:15px; line-height:2; margin-top:16px; }
 
-    /* =========================================================
-       Article grid
-    ========================================================= */
-    .article-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: var(--space-lg);
-        padding-block: var(--space-lg);
-    }
-    @media (max-width: 1024px) {
-        .article-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--space-md);
-        }
-    }
-    @media (max-width: 640px) {
-        .article-grid {
-            grid-template-columns: 1fr;
-        }
-    }
+  /* ===== article grid ===== */
+  .mag-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:26px; }
+  @media(max-width:1000px){ .mag-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media(max-width:640px){ .mag-grid{ grid-template-columns:1fr; } }
 
-    /* =========================================================
-       Article card
-    ========================================================= */
-    .article-card {
-        display: flex;
-        flex-direction: column;
-        background: var(--color-surface);
-        border-radius: var(--radius-md);
-        border: 1px solid rgba(32, 37, 34, 0.06);
-        box-shadow: var(--shadow-sm);
-        overflow: hidden;
-        transition: box-shadow var(--transition-base), transform var(--transition-base);
-    }
-    .article-card:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-2px);
-    }
+  .mag-card{
+    display:flex; flex-direction:column; background:var(--graphite);
+    border:1px solid rgba(216,207,193,.1); overflow:hidden;
+    transition:border-color .4s var(--ease), transform .5s var(--ease);
+  }
+  .mag-card:hover{ border-color:var(--gold-soft); transform:translateY(-6px); }
 
-    .article-card__media {
-        display: block;
-        aspect-ratio: 16 / 10;
-        background: var(--color-background);
-        overflow: hidden;
-    }
-    .article-card__image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform var(--transition-base);
-    }
-    .article-card:hover .article-card__image {
-        transform: scale(1.04);
-    }
-    .article-card__image--fallback {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--color-accent);
-        background: linear-gradient(135deg, var(--color-background), #ECEFE4);
-    }
+  .mag-card__media{ display:block; aspect-ratio:16/10; overflow:hidden; background:#141814; }
+  .mag-card__media img{ width:100%; height:100%; object-fit:cover; transition:transform .9s var(--ease); }
+  .mag-card:hover .mag-card__media img{ transform:scale(1.05); }
+  .mag-card__media--fallback{ display:flex; align-items:center; justify-content:center; color:var(--gold-soft); }
 
-    .article-card__body {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: var(--space-md);
-        flex: 1;
-    }
+  .mag-card__body{ display:flex; flex-direction:column; gap:10px; padding:22px; flex:1; }
+  .mag-card__meta{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--cream-soft); }
+  .mag-card__meta-dot{ opacity:.6; }
 
-    .article-card__meta {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: var(--font-size-sm);
-        color: var(--color-text-muted);
-    }
-    .article-card__meta-dot {
-        opacity: 0.6;
-    }
+  .mag-card__title{ font-size:17px; line-height:1.6; font-weight:700; }
+  .mag-card__title a{ transition:color .3s; }
+  .mag-card__title a:hover{ color:var(--gold); }
 
-    .article-card__title {
-        margin: 0;
-        font-size: 19px;
-        line-height: 1.5;
-        font-weight: 700;
-    }
-    .article-card__title a {
-        color: var(--color-text);
-        transition: color var(--transition-fast);
-    }
-    .article-card__title a:hover {
-        color: var(--color-primary);
-    }
+  .mag-card__summary{
+    color:var(--cream-soft); font-size:13.5px; line-height:1.9;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
 
-    .article-card__summary {
-        margin: 0;
-        color: var(--color-text-muted);
-        font-size: var(--font-size-sm);
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
+  .mag-card__tags{ list-style:none; display:flex; flex-wrap:wrap; gap:6px; }
+  .mag-card__tag{ font-size:11px; color:var(--cream-soft); border:1px solid rgba(216,207,193,.16); padding:3px 10px; }
 
-    .article-card__tags {
-        list-style: none;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin: 0;
-        padding: 0;
-    }
-    .article-card__tag {
-        font-size: 12px;
-        color: var(--color-primary-dark);
-        background: rgba(168, 198, 108, 0.18);
-        padding: 3px 10px;
-        border-radius: 999px;
-    }
+  .mag-card__cta{
+    display:inline-flex; align-items:center; gap:8px; margin-top:auto; padding-top:10px;
+    font-size:12.5px; font-weight:700; color:var(--gold); transition:gap .3s;
+  }
+  .mag-card__cta svg{ transition:transform .3s var(--ease); }
+  .mag-card:hover .mag-card__cta svg{ transform:translateX(-4px); }
 
-    .article-card__cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: auto;
-        padding-top: 8px;
-        font-size: var(--font-size-sm);
-        font-weight: 700;
-        color: var(--color-primary);
-        transition: gap var(--transition-fast), color var(--transition-fast);
-    }
-    .article-card__cta-arrow {
-        transition: transform var(--transition-fast);
-    }
-    .article-card__cta:hover {
-        color: var(--color-primary-dark);
-        gap: 10px;
-    }
+  /* ===== pagination (same language as products pages) ===== */
+  .mag-pagination{ display:flex; align-items:center; justify-content:center; gap:28px; margin-top:70px; }
+  .mag-pagination__link{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; color:var(--beige); padding:12px 20px;
+    border:1px solid rgba(216,207,193,.16); transition:border-color .3s var(--ease), color .3s var(--ease), background .3s var(--ease);
+  }
+  .mag-pagination__link:hover{ border-color:var(--gold); color:var(--gold); background:rgba(184,155,94,.06); }
+  .mag-pagination__link--disabled{ opacity:.35; pointer-events:none; }
+  .mag-pagination__status{ font-size:13px; color:var(--cream-soft); white-space:nowrap; font-family:var(--font-display); letter-spacing:.02em; }
 
-    /* =========================================================
-       Pagination
-    ========================================================= */
-    .pagination {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--space-md);
-        padding-block: var(--space-lg);
-    }
-    .pagination__link {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: var(--font-size-sm);
-        font-weight: 600;
-        color: var(--color-primary-dark);
-        padding: 10px 16px;
-        border-radius: var(--radius-sm);
-        border: 1px solid rgba(32, 37, 34, 0.1);
-        min-height: 44px;
-        transition: background-color var(--transition-fast), border-color var(--transition-fast);
-    }
-    .pagination__link:hover {
-        background: var(--color-background);
-        border-color: var(--color-primary);
-    }
-    .pagination__link--disabled {
-        color: var(--color-text-muted);
-        opacity: 0.5;
-        pointer-events: none;
-    }
-    .pagination__status {
-        font-size: var(--font-size-sm);
-        color: var(--color-text-muted);
-        white-space: nowrap;
-    }
-    @media (max-width: 480px) {
-        .pagination {
-            gap: var(--space-sm);
-        }
-        .pagination__link span {
-            display: none;
-        }
-        .pagination__link {
-            padding: 10px 14px;
-        }
-    }
+  /* ===== empty state ===== */
+  .mag-empty{
+    display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center;
+    padding:90px 0; color:var(--cream-soft); border:1px solid rgba(216,207,193,.14); background:var(--graphite);
+  }
+  .mag-empty svg{ color:var(--gold-soft); }
 
-    /* =========================================================
-       Empty state
-    ========================================================= */
-    .magazine-empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--space-sm);
-        text-align: center;
-        color: var(--color-text-muted);
-        padding-block: var(--space-xl);
-    }
-    .magazine-empty svg {
-        color: var(--color-accent);
-    }
+  @media(max-width:480px){
+    .mag-pagination{ gap:16px; flex-wrap:wrap; }
+    .mag-pagination__link span{ display:none; }
+  }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="mag-wrap">
+  <div class="container">
+
+    {% include 'partials/breadcrumbs.html' %}
+
+    <div class="mag-header reveal">
+      <div class="eyebrow">مجله سیدوس</div>
+      <h1>مقالات و مطالب کاربردی</h1>
+      <p>راهنمای خرید و آشنایی با محصولات سیدوس، برای انتخابی دقیق‌تر و آگاهانه‌تر.</p>
+    </div>
+
+    {% if articles %}
+      <div class="mag-grid reveal">
+        {% for article in articles %}
+          {% include "blogs/partials/article_card.html" %}
+        {% endfor %}
+      </div>
+
+      {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="mag-pagination reveal" aria-label="صفحه‌بندی مقالات">
+        {% if page_obj.has_previous %}
+          <a href="?page=1" class="mag-pagination__link">اول</a>
+          <a href="?page={{ page_obj.previous_page_number }}" class="mag-pagination__link">
+            <span>قبلی</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+          </a>
+        {% else %}
+          <span class="mag-pagination__link mag-pagination__link--disabled">اول</span>
+          <span class="mag-pagination__link mag-pagination__link--disabled"><span>قبلی</span></span>
+        {% endif %}
+
+        <span class="mag-pagination__status">صفحه {{ page_obj.number|persian_digits }} از {{ page_obj.paginator.num_pages|persian_digits }}</span>
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="mag-pagination__link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg>
+            <span>بعدی</span>
+          </a>
+          <a href="?page={{ page_obj.paginator.num_pages }}" class="mag-pagination__link">آخر</a>
+        {% else %}
+          <span class="mag-pagination__link mag-pagination__link--disabled"><span>بعدی</span></span>
+          <span class="mag-pagination__link mag-pagination__link--disabled">آخر</span>
+        {% endif %}
+      </nav>
+      {% endif %}
+    {% else %}
+      <div class="mag-empty reveal">
+        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        <p>در حال حاضر مقاله‌ای برای نمایش وجود ندارد.</p>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
 {% endblock %}
