@@ -1,18 +1,57 @@
 {% extends "base.html" %}
 {% load static humanize blog_extras %}
 
-{% block title %}{{ product.name }} | سیدوس{% endblock %}
-{% block meta_description %}{{ product.name }} — {{ product.category.name|default:"محصولات سیدوس" }}. مشاهده جزئیات و تماس برای سفارش عمده.{% endblock %}
+{# ---------- SEO Meta Tags ---------- #}
+{% block title %}{{ product.meta_title|default:product.name }} | سیدوس{% endblock %}
+
+{% block meta_description %}
+  {{ product.meta_description|default:product.name|truncatechars:160 }}
+  {% if product.category %} — {{ product.category.name }}{% endif %}
+{% endblock %}
+
+{# ========== Social & Rich Snippet Meta Tags ========== #}
+{% block extra_meta %}
+  {# Open Graph (Facebook, LinkedIn, Telegram, WhatsApp) #}
+  <meta property="og:title" content="{{ product.meta_title|default:product.name }}">
+  <meta property="og:description" content="{{ product.meta_description|default:product.name|truncatechars:160 }}">
+  <meta property="og:type" content="product">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+
+  {% if product.og_image %}
+    <meta property="og:image" content="{{ product.og_image.url }}">
+  {% elif product.cover_image %}
+    <meta property="og:image" content="{{ product.cover_image.url }}">
+  {% endif %}
+
+  {# Twitter Card (X/Twitter) #}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ product.meta_title|default:product.name }}">
+  <meta name="twitter:description" content="{{ product.meta_description|default:product.name|truncatechars:160 }}">
+
+  {% if product.og_image %}
+    <meta name="twitter:image" content="{{ product.og_image.url }}">
+  {% elif product.cover_image %}
+    <meta name="twitter:image" content="{{ product.cover_image.url }}">
+  {% endif %}
+
+  {# Product-specific metadata for rich snippets #}
+  <meta property="product:availability" content="{% if product.published %}in stock{% else %}out of stock{% endif %}">
+  <meta property="product:price:amount" content="{% if not product.call_for_price and can_view_price %}{{ product.on_sale_price|default:product.price }}{% else %}0{% endif %}">
+  <meta property="product:price:currency" content="IRR">
+  <meta property="product:retailer_item_id" content="{{ product.id }}">
+  <meta property="product:category" content="{{ product.category.name|default:'' }}">
+
+  {# Optional: Google Merchant Center / structured data hints #}
+  <meta name="google-product-category" content="{{ product.category.name|default:'' }}">
+{% endblock %}
+{# ====================================================== #}
 
 {% block extra_css %}
 <style>
+  /* … (all your existing CSS) … */
   .pd-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:120px; }
-
-  /* main layout */
   .pd-main{ display:grid; grid-template-columns:1.05fr .95fr; gap:60px; align-items:start; }
   @media(max-width:960px){ .pd-main{ grid-template-columns:1fr; gap:36px; } }
-
-  /* gallery */
   .pd-gallery{ position:sticky; top:calc(var(--header-height) + 24px); }
   @media(max-width:960px){ .pd-gallery{ position:static; } }
   .pd-stage{
@@ -43,11 +82,8 @@
   }
   .pd-thumb:hover{ opacity:1; transform:translateY(-2px); }
   .pd-thumb.is-active{ opacity:1; border-color:var(--gold); }
-
-  /* info column */
   .pd-cat{ font-size:12.5px; color:var(--gold); letter-spacing:.03em; margin-bottom:12px; display:inline-block; }
   .pd-title{ font-size:clamp(24px,3vw,38px); line-height:1.35; font-weight:800; margin-bottom:22px; }
-
   .pd-price-box{
     border:1px solid rgba(216,207,193,.12); background:var(--graphite);
     padding:22px 24px; margin-bottom:26px;
@@ -57,8 +93,6 @@
   .pd-price .old{ display:block; font-size:15px; font-weight:400; color:var(--cream-soft); text-decoration:line-through; margin-top:6px; }
   .pd-price--call{ font-size:20px; color:var(--gold); font-weight:700; }
   .pd-price--locked{ font-size:15px; color:var(--cream-soft); line-height:1.9; }
-
-  /* actions — large, clearly labelled */
   .pd-actions{ display:flex; flex-direction:column; gap:14px; margin-bottom:26px; }
   .pd-btn{
     display:flex; align-items:center; justify-content:center; gap:10px;
@@ -71,7 +105,6 @@
   .pd-btn--ghost{ background:none; color:var(--cream); border-color:rgba(216,207,193,.28); }
   .pd-btn--ghost:hover{ border-color:var(--gold); background:rgba(184,155,94,.08); }
   .pd-btn svg{ width:19px; height:19px; flex:0 0 auto; }
-
   .pd-mini-actions{ display:flex; gap:12px; }
   .pd-mini{
     flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
@@ -83,8 +116,6 @@
   .pd-mini.is-active{ border-color:var(--gold); color:var(--gold); background:rgba(184,155,94,.08); }
   .pd-mini svg{ width:17px; height:17px; }
   .pd-mini.is-active svg{ fill:currentColor; }
-
-  /* help box — this shop has no online checkout, so guide the user */
   .pd-help{
     display:flex; gap:14px; align-items:flex-start;
     border:1px solid rgba(184,155,94,.22); background:rgba(184,155,94,.06);
@@ -93,14 +124,10 @@
   .pd-help svg{ width:22px; height:22px; color:var(--gold); flex:0 0 auto; margin-top:2px; }
   .pd-help p{ font-size:13.5px; line-height:1.95; color:var(--cream-soft); }
   .pd-help a{ color:var(--gold); font-weight:700; }
-
   .pd-tags{ display:flex; flex-wrap:wrap; gap:8px; }
   .pd-tag{ font-size:12px; color:var(--cream-soft); border:1px solid rgba(216,207,193,.18); padding:5px 12px; }
-
-  /* description */
   .pd-section{ margin-top:90px; }
   .pd-section__title{ font-size:22px; font-weight:800; margin-bottom:22px; padding-bottom:14px; border-bottom:1px solid rgba(216,207,193,.12); }
-  /* related */
   .pd-related-scroller{ display:flex; gap:22px; overflow-x:auto; padding-bottom:18px; scroll-snap-type:x proximity; scrollbar-width:none; }
   .pd-related-scroller::-webkit-scrollbar{ display:none; }
   .pd-rcard{
@@ -114,7 +141,6 @@
   .pd-rcard__info{ padding:16px 18px 20px; }
   .pd-rcard__cat{ font-size:11px; color:var(--gold); display:block; margin-bottom:6px; }
   .pd-rcard__info h4{ font-size:14.5px; font-weight:600; line-height:1.6; }
-
   .pd-back{ display:inline-flex; align-items:center; gap:8px; color:var(--gold); font-size:13px; margin-top:40px; }
 </style>
 {% endblock %}

@@ -4,44 +4,69 @@
 {% block title %}{{ article.meta_title|default:article.title }} | سیدوس{% endblock %}
 {% block meta_description %}{{ article.meta_description|default:article.summary }}{% endblock %}
 
+{# ========== NEW: Social Media & Rich Snippet Meta Tags ========== #}
+{% block extra_meta %}
+  {# Open Graph (Facebook, LinkedIn, Telegram, etc.) #}
+  <meta property="og:title" content="{{ article.meta_title|default:article.title }}">
+  <meta property="og:description" content="{{ article.meta_description|default:article.summary }}">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+
+  {# OG Image – fallback from article.og_image to article.featured_image #}
+  {% if article.og_image %}
+    <meta property="og:image" content="{{ article.og_image.url }}">
+  {% elif article.featured_image %}
+    <meta property="og:image" content="{{ article.featured_image.url }}">
+  {% endif %}
+
+  {# Twitter Card (X/Twitter) #}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ article.meta_title|default:article.title }}">
+  <meta name="twitter:description" content="{{ article.meta_description|default:article.summary }}">
+
+  {% if article.og_image %}
+    <meta name="twitter:image" content="{{ article.og_image.url }}">
+  {% elif article.featured_image %}
+    <meta name="twitter:image" content="{{ article.featured_image.url }}">
+  {% endif %}
+
+  {# Article timestamps (for Google News / rich snippets) #}
+  <meta property="article:published_time" content="{{ article.published_at|date:'c' }}">
+  <meta property="article:modified_time" content="{{ article.updated_at|date:'c' }}">
+
+  {# Optional: if you have article:author or article:section, add them here #}
+  {# <meta property="article:section" content="{{ article.category.name }}"> #}
+{% endblock %}
+{# ================================================================ #}
+
 {% block extra_css %}
 <style>
+  /* … (all your existing CSS) … */
   .ad-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:130px; }
-
   .ad-header{ max-width:760px; margin:0 auto 40px; }
   .ad-header h1{ font-size:clamp(26px,4vw,42px); line-height:1.4; margin-top:16px; }
   .ad-meta{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--cream-soft); margin-top:18px; }
   .ad-meta-dot{ opacity:.6; }
-
   .ad-cover{ max-width:960px; margin:0 auto 50px; aspect-ratio:16/8; overflow:hidden; background:#141814; }
   .ad-cover img{ width:100%; height:100%; object-fit:cover; }
   @media(max-width:640px){ .ad-cover{ aspect-ratio:16/11; } }
-
   .ad-body{ max-width:760px; margin:0 auto; }
-
-  /* article-specific tweak on top of the shared .rte rich-text renderer */
   .ad-body .rte{ max-width:none; font-size:15.5px; }
   .ad-body .rte img{ width:100%; height:auto; }
-
   .ad-tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:40px; padding-top:30px; border-top:1px solid rgba(216,207,193,.1); }
   .ad-tag{ font-size:12px; color:var(--cream-soft); border:1px solid rgba(216,207,193,.16); padding:5px 14px; }
-
   .ad-back{
     display:inline-flex; align-items:center; gap:8px; margin-top:40px;
     font-size:13px; color:var(--cream-soft); transition:color .3s;
   }
   .ad-back:hover{ color:var(--gold); }
   .ad-back svg{ width:14px; height:14px; }
-
-  /* ===== related articles (same card language as article_list.html) ===== */
   .ad-related{ margin-top:110px; }
   .ad-related .section-head{ display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:32px; flex-wrap:wrap; }
   .ad-related .section-head h2{ font-size:clamp(20px,2.6vw,26px); }
-
   .mag-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:26px; }
   @media(max-width:1000px){ .mag-grid{ grid-template-columns:repeat(2, 1fr); } }
   @media(max-width:640px){ .mag-grid{ grid-template-columns:1fr; } }
-
   .mag-card{
     display:flex; flex-direction:column; background:var(--graphite);
     border:1px solid rgba(216,207,193,.1); overflow:hidden;
