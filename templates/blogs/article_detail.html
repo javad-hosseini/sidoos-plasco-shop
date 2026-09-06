@@ -4,44 +4,40 @@
 {% block title %}{{ article.meta_title|default:article.title }} | سیدوس{% endblock %}
 {% block meta_description %}{{ article.meta_description|default:article.summary }}{% endblock %}
 
-{# ========== NEW: Social Media & Rich Snippet Meta Tags ========== #}
+{# ========== Social & Rich Snippet Meta Tags ========== #}
 {% block extra_meta %}
-  {# Open Graph (Facebook, LinkedIn, Telegram, etc.) #}
+  {# Open Graph #}
   <meta property="og:title" content="{{ article.meta_title|default:article.title }}">
   <meta property="og:description" content="{{ article.meta_description|default:article.summary }}">
   <meta property="og:type" content="article">
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
-  {# OG Image – fallback from article.og_image to article.featured_image #}
+  {# OG Image – absolute URL (fixed) #}
   {% if article.og_image %}
-    <meta property="og:image" content="{{ article.og_image.url }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ article.og_image.url }}">
   {% elif article.featured_image %}
-    <meta property="og:image" content="{{ article.featured_image.url }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}">
   {% endif %}
 
-  {# Twitter Card (X/Twitter) #}
+  {# Twitter Card #}
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ article.meta_title|default:article.title }}">
   <meta name="twitter:description" content="{{ article.meta_description|default:article.summary }}">
 
   {% if article.og_image %}
-    <meta name="twitter:image" content="{{ article.og_image.url }}">
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ article.og_image.url }}">
   {% elif article.featured_image %}
-    <meta name="twitter:image" content="{{ article.featured_image.url }}">
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}">
   {% endif %}
 
-  {# Article timestamps (for Google News / rich snippets) #}
+  {# Article timestamps #}
   <meta property="article:published_time" content="{{ article.published_at|date:'c' }}">
   <meta property="article:modified_time" content="{{ article.updated_at|date:'c' }}">
-
-  {# Optional: if you have article:author or article:section, add them here #}
-  {# <meta property="article:section" content="{{ article.category.name }}"> #}
 {% endblock %}
 {# ================================================================ #}
 
 {% block extra_css %}
 <style>
-  /* … (all your existing CSS) … */
   .ad-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:130px; }
   .ad-header{ max-width:760px; margin:0 auto 40px; }
   .ad-header h1{ font-size:clamp(26px,4vw,42px); line-height:1.4; margin-top:16px; }

@@ -11,44 +11,43 @@
 
 {# ========== Social & Rich Snippet Meta Tags ========== #}
 {% block extra_meta %}
-  {# Open Graph (Facebook, LinkedIn, Telegram, WhatsApp) #}
+  {# Open Graph #}
   <meta property="og:title" content="{{ product.meta_title|default:product.name }}">
   <meta property="og:description" content="{{ product.meta_description|default:product.name|truncatechars:160 }}">
   <meta property="og:type" content="product">
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
+  {# OG Image – absolute URL (fixed) #}
   {% if product.og_image %}
-    <meta property="og:image" content="{{ product.og_image.url }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.og_image.url }}">
   {% elif product.cover_image %}
-    <meta property="og:image" content="{{ product.cover_image.url }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.cover_image.url }}">
   {% endif %}
 
-  {# Twitter Card (X/Twitter) #}
+  {# Twitter Card #}
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ product.meta_title|default:product.name }}">
   <meta name="twitter:description" content="{{ product.meta_description|default:product.name|truncatechars:160 }}">
 
   {% if product.og_image %}
-    <meta name="twitter:image" content="{{ product.og_image.url }}">
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.og_image.url }}">
   {% elif product.cover_image %}
-    <meta name="twitter:image" content="{{ product.cover_image.url }}">
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.cover_image.url }}">
   {% endif %}
 
-  {# Product-specific metadata for rich snippets #}
+  {# Product metadata #}
   <meta property="product:availability" content="{% if product.published %}in stock{% else %}out of stock{% endif %}">
   <meta property="product:price:amount" content="{% if not product.call_for_price and can_view_price %}{{ product.on_sale_price|default:product.price }}{% else %}0{% endif %}">
   <meta property="product:price:currency" content="IRR">
   <meta property="product:retailer_item_id" content="{{ product.id }}">
   <meta property="product:category" content="{{ product.category.name|default:'' }}">
-
-  {# Optional: Google Merchant Center / structured data hints #}
   <meta name="google-product-category" content="{{ product.category.name|default:'' }}">
 {% endblock %}
 {# ====================================================== #}
 
 {% block extra_css %}
 <style>
-  /* … (all your existing CSS) … */
+  /* … (all your existing CSS – unchanged) … */
   .pd-wrap{ padding-top:calc(var(--header-height) + 34px); padding-bottom:120px; }
   .pd-main{ display:grid; grid-template-columns:1.05fr .95fr; gap:60px; align-items:start; }
   @media(max-width:960px){ .pd-main{ grid-template-columns:1fr; gap:36px; } }
