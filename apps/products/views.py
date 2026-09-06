@@ -75,6 +75,13 @@ def product_list(request):
         'can_view_price': can_view_price,
     }
     response = render(request, 'products/product_list.html', context)
+
+
+    #404 response for search queries with no results, but still render the page with a message
+    if search_query and not products.exists():
+        messages.info(request, f'هیچ محصولی با عبارت «{search_query}» پیدا نشد.')
+        response.status_code = 404  # Keep the page but send 404 status
+
     add_pagination_headers(request, response, page_obj)  #adds pagination (rel="prev" / rel="next") headers to response
 
     # Tell Google not to index any page beyond page 1
