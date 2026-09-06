@@ -1,0 +1,98 @@
+name: Django CI - PostgreSQL & SQLite Testing
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+        database: ["postgresql", "sqlite"]
+
+    services:
+      postgresql:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libpq-dev \
+          build-essential \
+          pkg-config \
+          gettext
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install psycopg2-binary flake8 coverage dj-database-url
+
+    - name: Create .env.dev file
+      run: |
+        cat > .env.dev << EOF
+        SECRET_KEY=test-secret-key-not-for-production
+        DEBUG=True
+        ALLOWED_HOSTS=localhost,127.0.0.1,testserver
+        APP_ENV=test
+        DB_NAME=test_db
+        DB_USER=test_user
+        DB_PASSWORD=test_password
+        DB_HOST=localhost
+        DB_PORT=5432
+        EOF
+
+    - name: Configure PostgreSQL database
+      if: matrix.database == 'postgresql'
+      run: |
+        echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db" >> .env.dev
+
+    - name: Configure SQLite database
+      if: matrix.database == 'sqlite'
+      run: |
+        echo "DATABASE_URL=sqlite:///db.sqlite3" >> .env.dev
+
+    - name: Debug - Show .env.dev content
+      run: |
+        echo "=== .env.dev content ==="
+        cat .env.dev
+        echo "========================"
+
+    - name: Run Django checks
+      env:
+        DJANGO_ENV: test
+      run: |
+        python manage.py check
+
+    - name: Run tests
+      env:
+        DJANGO_ENV: test
+      run: |
+        python manage.py test apps/ --verbosity=3
