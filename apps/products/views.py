@@ -171,12 +171,17 @@ def special_sales(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
+    breadcrumbs = _shop_breadcrumbs() + [
+        {'label': 'پیشنهادهای ویژه', 'url': None},
+    ]
+
     context = {
         'page_obj': page_obj,
         'products': page_obj.object_list,
         'title': 'Special Sales',
         'selected_category': None,
         'can_view_price': can_view_price,
+        'breadcrumbs': breadcrumbs,
     }
     response = render(request, 'products/special_sales.html', context)
     add_pagination_headers(request, response, page_obj)  #adds pagination (rel="prev" / rel="next") headers to response

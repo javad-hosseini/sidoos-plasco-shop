@@ -17,6 +17,7 @@
     display:flex; align-items:center; gap:26px; flex-wrap:wrap;
     background:linear-gradient(180deg, var(--graphite), var(--charcoal));
     border:1px solid rgba(216,207,193,.12);
+    border-radius:var(--radius-lg);
     padding:32px; margin-bottom:22px;
   }
   .pf-avatar{
@@ -25,6 +26,7 @@
     border:1px solid var(--gold-soft); color:var(--gold);
     font-family:var(--font-display); font-size:34px; font-weight:600;
     background:rgba(184,155,94,.06);
+    border-radius:var(--radius-md);
   }
   .pf-id{ flex:1; min-width:220px; }
   .pf-id h1{ font-size:clamp(20px,2.4vw,27px); font-weight:800; margin-bottom:6px; }
@@ -34,6 +36,7 @@
     display:inline-flex; align-items:center; gap:7px;
     font-size:11.5px; letter-spacing:.02em;
     border:1px solid rgba(184,155,94,.28); color:var(--gold);
+    border-radius:var(--radius-xs);
     padding:6px 12px;
   }
   .pf-badge--muted{ border-color:rgba(216,207,193,.2); color:var(--cream-soft); }
@@ -42,6 +45,7 @@
   .pf-logout{
     display:inline-flex; align-items:center; gap:9px;
     border:1px solid rgba(216,207,193,.22); color:var(--cream);
+    border-radius:var(--radius-sm);
     background:none; font-family:inherit; font-size:13px; font-weight:600;
     padding:12px 20px; cursor:pointer;
     transition:border-color .3s, background .3s, color .3s;
@@ -54,6 +58,7 @@
 
   .pf-panel{
     border:1px solid rgba(216,207,193,.12); background:var(--graphite);
+    border-radius:var(--radius-md);
     padding:24px;
   }
   .pf-panel h2{
@@ -73,12 +78,103 @@
   .pf-link{
     display:flex; align-items:center; gap:12px;
     border:1px solid rgba(216,207,193,.12); padding:14px 16px;
+    border-radius:var(--radius-sm);
     font-size:13.5px; color:var(--cream-soft);
     transition:border-color .3s, color .3s, background .3s, padding-inline-start .3s;
   }
   .pf-link:hover{ border-color:var(--gold-soft); color:var(--cream); background:rgba(184,155,94,.05); padding-inline-start:22px; }
   .pf-link i{ color:var(--gold); width:18px; text-align:center; }
   .pf-link .pf-link__arrow{ margin-inline-start:auto; color:var(--cream-soft); font-size:11px; }
+
+  button.pf-link{
+    width:100%; text-align:right; cursor:pointer; font-family:inherit;
+    background:rgba(184,155,94,.04); border-color:rgba(184,155,94,.22);
+  }
+  button.pf-link:hover{ background:rgba(184,155,94,.1); border-color:var(--gold); }
+  .pf-link__badge{
+    font-size:10px; background:var(--gold); color:var(--charcoal);
+    padding:2px 7px; border-radius:var(--radius-xs); font-weight:700;
+  }
+
+  /* ===== Price List Modal ===== */
+  .pf-modal-backdrop{
+    position:fixed; inset:0;
+    background:rgba(17,17,17,.78);
+    backdrop-filter:blur(8px);
+    z-index:200;
+    opacity:0; pointer-events:none;
+    transition:opacity .35s var(--ease);
+  }
+  .pf-modal-backdrop.is-open{ opacity:1; pointer-events:auto; }
+
+  .pf-modal{
+    position:fixed; top:50%; left:50%;
+    transform:translate(-50%, -46%) scale(.96);
+    width:min(580px, 92vw); max-height:86vh;
+    background:var(--charcoal);
+    border:1px solid rgba(184,155,94,.35);
+    border-radius:var(--radius-lg);
+    box-shadow:0 24px 60px rgba(0,0,0,.75), 0 0 35px rgba(184,155,94,.12);
+    z-index:210;
+    display:flex; flex-direction:column;
+    opacity:0; pointer-events:none;
+    transition:opacity .35s var(--ease), transform .35s var(--ease);
+    overflow:hidden;
+  }
+  .pf-modal.is-open{ opacity:1; pointer-events:auto; transform:translate(-50%, -50%) scale(1); }
+
+  .pf-modal__head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 26px; border-bottom:1px solid rgba(216,207,193,.12);
+    background:var(--graphite);
+  }
+  .pf-modal__title-wrap{ display:flex; align-items:center; gap:12px; }
+  .pf-modal__head h2{ font-size:18px; font-weight:700; color:var(--cream); }
+  .pf-modal__close{
+    font-size:26px; line-height:1; color:var(--cream-soft);
+    padding:4px 8px; border-radius:var(--radius-xs);
+    transition:color .2s, background .2s;
+  }
+  .pf-modal__close:hover{ color:var(--cream); background:rgba(216,207,193,.1); }
+
+  .pf-modal__body{ padding:26px; overflow-y:auto; }
+  .pf-modal__intro{ font-size:13.5px; color:var(--cream-soft); line-height:1.9; margin-bottom:20px; }
+
+  .pf-file-list{ display:flex; flex-direction:column; gap:12px; }
+  .pf-file-item{
+    display:flex; align-items:center; gap:16px;
+    background:var(--graphite); border:1px solid rgba(216,207,193,.12);
+    border-radius:var(--radius-md); padding:16px 18px;
+    transition:border-color .3s, background .3s;
+  }
+  .pf-file-item:hover{ border-color:var(--gold-soft); background:rgba(184,155,94,.03); }
+  .pf-file-icon{
+    width:44px; height:44px; flex:0 0 auto;
+    display:grid; place-items:center; font-size:22px;
+    background:rgba(216,207,193,.06); border-radius:var(--radius-sm);
+  }
+  .pf-file-info{ flex:1; min-width:0; }
+  .pf-file-title{ font-size:14.5px; font-weight:700; color:var(--cream); display:block; margin-bottom:4px; }
+  .pf-file-desc{ font-size:12.5px; color:var(--cream-soft); display:block; margin-bottom:6px; line-height:1.6; }
+  .pf-file-meta{ display:flex; align-items:center; gap:10px; font-size:11.5px; color:var(--cream-soft); flex-wrap:wrap; }
+  .pf-file-format{
+    background:rgba(184,155,94,.15); color:var(--gold);
+    font-weight:700; padding:2px 8px; border-radius:var(--radius-xs);
+  }
+  .pf-file-download{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--gold); color:var(--charcoal);
+    font-size:13px; font-weight:700; padding:10px 18px;
+    border-radius:var(--radius-sm); white-space:nowrap;
+    transition:background .3s var(--ease), transform .15s;
+  }
+  .pf-file-download:hover{ background:#c9ac6d; transform:translateY(-1px); }
+  .pf-file-empty{
+    text-align:center; padding:40px 20px;
+    border:1px dashed rgba(216,207,193,.18); border-radius:var(--radius-md);
+    color:var(--cream-soft); font-size:13.5px; line-height:2;
+  }
+  .pf-file-empty i{ font-size:36px; color:var(--gold-soft); margin-bottom:14px; display:block; }
 
   /* ===== collections ===== */
   .pf-section{ margin-bottom:56px; }
@@ -89,6 +185,7 @@
   .pf-section__head h2{ font-size:19px; font-weight:800; }
   .pf-count{
     font-size:12px; color:var(--charcoal); background:var(--gold);
+    border-radius:var(--radius-xs);
     padding:3px 10px; font-weight:700;
   }
 
@@ -96,9 +193,14 @@
   .pf-card{
     display:flex; flex-direction:column;
     background:var(--graphite); border:1px solid rgba(216,207,193,.1);
-    transition:border-color .4s, transform .5s var(--ease);
+    border-radius:var(--radius-md); overflow:hidden;
+    transition:border-color .4s, transform .5s var(--ease), box-shadow .4s var(--ease);
   }
-  .pf-card:hover{ border-color:var(--gold-soft); transform:translateY(-6px); }
+  .pf-card:hover{
+    border-color:var(--gold-soft);
+    transform:translateY(-6px);
+    box-shadow:0 14px 30px rgba(0,0,0,.45), 0 0 20px rgba(184,155,94,.08);
+  }
   .pf-card__media{ aspect-ratio:1/1; overflow:hidden; background:#141814; }
   .pf-card__media img{ width:100%; height:100%; object-fit:cover; transition:transform .9s var(--ease); }
   .pf-card:hover .pf-card__media img{ transform:scale(1.07); }
@@ -111,13 +213,14 @@
 
   .pf-empty{
     display:flex; flex-direction:column; align-items:flex-start; gap:14px;
-    border:1px dashed rgba(216,207,193,.18); padding:34px;
+    border:1px dashed rgba(216,207,193,.18); border-radius:var(--radius-md); padding:34px;
     color:var(--cream-soft); font-size:14px;
   }
   .pf-empty i{ font-size:24px; color:var(--gold-soft); }
   .pf-empty a{
     display:inline-flex; align-items:center; gap:8px;
     color:var(--charcoal); background:var(--gold); font-weight:700; font-size:13px;
+    border-radius:var(--radius-sm);
     padding:11px 20px;
   }
 </style>
@@ -186,6 +289,11 @@
       <div class="pf-panel reveal reveal-delay-1">
         <h2><i class="fa-solid fa-compass"></i> دسترسی سریع</h2>
         <div class="pf-links">
+          <button type="button" class="pf-link" id="openPriceListModal" aria-haspopup="dialog" aria-controls="priceListModal">
+            <i class="fa-solid fa-file-invoice-dollar"></i> دانلود لیست قیمت
+            <span class="pf-link__badge">جدید</span>
+            <span class="pf-link__arrow"><i class="fa-solid fa-chevron-left"></i></span>
+          </button>
           <a href="{% url 'products:product_list' %}" class="pf-link">
             <i class="fa-solid fa-store"></i> فروشگاه
             <span class="pf-link__arrow"><i class="fa-solid fa-chevron-left"></i></span>
@@ -290,6 +398,95 @@
       {% endif %}
     </section>
 
+    {# ===== Price List Modal ===== #}
+    <div class="pf-modal-backdrop" id="priceListBackdrop" aria-hidden="true"></div>
+    <div class="pf-modal" id="priceListModal" role="dialog" aria-modal="true" aria-labelledby="priceListModalTitle" aria-hidden="true">
+      <div class="pf-modal__head">
+        <div class="pf-modal__title-wrap">
+          <i class="fa-solid fa-file-invoice-dollar" style="color:var(--gold); font-size:18px;"></i>
+          <h2 id="priceListModalTitle">لیست‌های قیمت سیدوس</h2>
+        </div>
+        <button type="button" class="pf-modal__close" id="closePriceListModal" aria-label="بستن پنجره">&times;</button>
+      </div>
+      <div class="pf-modal__body">
+        <p class="pf-modal__intro">فایل‌های به‌روز لیست قیمت عمده‌فروشی سیدوس جهت دریافت و بررسی در دسترس شما قرار دارد.</p>
+        
+        {% if price_lists %}
+          <div class="pf-file-list">
+            {% for pl in price_lists %}
+              <div class="pf-file-item">
+                <div class="pf-file-icon">
+                  {% if pl.get_file_extension == 'PDF' %}
+                    <i class="fa-solid fa-file-pdf" style="color:#e87932;"></i>
+                  {% else %}
+                    <i class="fa-solid fa-file-image" style="color:#245c43;"></i>
+                  {% endif %}
+                </div>
+                <div class="pf-file-info">
+                  <span class="pf-file-title">{{ pl.title }}</span>
+                  {% if pl.description %}<span class="pf-file-desc">{{ pl.description }}</span>{% endif %}
+                  <div class="pf-file-meta">
+                    <span class="pf-file-format">{{ pl.get_file_extension }}</span>
+                    {% if pl.get_file_size_formatted %}
+                      <span class="pf-file-size" dir="ltr">{{ pl.get_file_size_formatted }}</span>
+                    {% endif %}
+                    <span class="pf-file-date">{{ pl.created_at|jalali_date }}</span>
+                  </div>
+                </div>
+                <a href="{{ pl.get_download_url }}" class="pf-file-download" download>
+                  <i class="fa-solid fa-download"></i>
+                  <span>دانلود</span>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="pf-file-empty">
+            <i class="fa-regular fa-folder-open"></i>
+            <p>در حال حاضر فایل لیست قیمتی بارگذاری نشده است. لطفاً بعداً بررسی فرمایید یا با واحد پشتیبانی تماس بگیرید.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 </div>
+
+<script>
+(function(){
+  var openBtn = document.getElementById('openPriceListModal');
+  var closeBtn = document.getElementById('closePriceListModal');
+  var modal = document.getElementById('priceListModal');
+  var backdrop = document.getElementById('priceListBackdrop');
+  if(!openBtn || !modal || !backdrop) return;
+
+  function openModal(){
+    modal.classList.add('is-open');
+    backdrop.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    backdrop.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    if(closeBtn) closeBtn.focus();
+  }
+
+  function closeModal(){
+    modal.classList.remove('is-open');
+    backdrop.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    backdrop.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    openBtn.focus();
+  }
+
+  openBtn.addEventListener('click', openModal);
+  if(closeBtn) closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && modal.classList.contains('is-open')){
+      closeModal();
+    }
+  });
+})();
+</script>
 {% endblock %}

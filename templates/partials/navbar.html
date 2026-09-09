@@ -71,6 +71,7 @@
   .nav-login{
     display:inline-flex; align-items:center; gap:8px;
     border:1px solid var(--gold-soft); color:var(--cream);
+    border-radius:var(--radius-sm);
     padding:9px 20px; font-size:13px; letter-spacing:.02em;
     transition:background .35s var(--ease), color .35s var(--ease), border-color .35s;
   }
@@ -179,17 +180,18 @@
 <header id="siteHeader" class="site-header">
 
   <div class="site-header__group site-header__group--right">
-    <nav class="nav-primary" aria-label="ناوبری اصلی">
-      <a href="{% url 'home:home' %}">خانه</a>
-      <a href="{% url 'products:product_list' %}">فروشگاه</a>
-      <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
-      <a href="{% url 'blogs:article_list' %}">مقالات</a>
-      <a href="{% url 'products:special_sales' %}">پیشنهادهای ویژه</a>
-    </nav>
     <button class="cat-toggle" id="catToggle" aria-haspopup="true" aria-expanded="false" aria-controls="catPanel">
       <span class="cat-toggle-text">دسته‌بندی‌ها</span>
       <span class="burger-icon"><span></span><span></span><span></span></span>
     </button>
+    <nav class="nav-primary" aria-label="ناوبری اصلی">
+      <a href="{% url 'home:home' %}">خانه</a>
+      <a href="{% url 'products:product_list' %}">فروشگاه</a>
+      <a href="{% url 'products:special_sales' %}">پیشنهادهای ویژه</a>
+      <a href="{% url 'blogs:article_list' %}">مقالات</a>
+      <a href="{% url 'home:home' %}#about">درباره ما</a>
+      <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
+    </nav>
   </div>
 
   <div class="site-header__group site-header__group--center">
@@ -200,6 +202,13 @@
   </div>
 
   <div class="site-header__group site-header__group--left">
+    <form class="nav-search" action="{% url 'products:product_list' %}" method="get" role="search">
+      <button type="submit" aria-label="جستجو">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.4" y2="16.4"/></svg>
+      </button>
+      <input type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="جستجوی محصول…" aria-label="جستجوی محصول">
+    </form>
+
     {% if user.is_authenticated %}
       <a href="{% url 'accounts:profile' %}" class="nav-auth-icon" aria-label="حساب کاربری">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.8-4 5-6 8-6s6.2 2 8 6"/></svg>
@@ -210,13 +219,6 @@
         <span>ورود</span>
       </a>
     {% endif %}
-
-    <form class="nav-search" action="{% url 'products:product_list' %}" method="get" role="search">
-      <button type="submit" aria-label="جستجو">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.4" y2="16.4"/></svg>
-      </button>
-      <input type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="جستجوی محصول…" aria-label="جستجوی محصول">
-    </form>
   </div>
 </header>
 
@@ -231,9 +233,10 @@
   <div class="cat-panel__mobile-nav">
     <a href="{% url 'home:home' %}">خانه</a>
     <a href="{% url 'products:product_list' %}">فروشگاه</a>
-    <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
-    <a href="{% url 'blogs:article_list' %}">مقالات</a>
     <a href="{% url 'products:special_sales' %}">پیشنهادهای ویژه</a>
+    <a href="{% url 'blogs:article_list' %}">مقالات</a>
+    <a href="{% url 'home:home' %}#about">درباره ما</a>
+    <a href="{% url 'support:ticket_list' %}">پشتیبانی</a>
   </div>
 
   <ul class="cat-tree" id="catTree">

@@ -22,6 +22,7 @@
   .site-footer .footer-social{ display:flex; gap:12px; margin-top:24px; }
   .site-footer .footer-social a{
     width:36px; height:36px; border:1px solid rgba(216,207,193,.2);
+    border-radius:var(--radius-sm);
     display:flex; align-items:center; justify-content:center;
     transition:border-color .3s, background .3s;
   }
@@ -35,7 +36,18 @@
   .site-footer .footer-bottom .latin{ font-size:11px; }
 
   @media(max-width:1100px){ .site-footer .footer-grid{ grid-template-columns:1fr 1fr; } }
-  @media(max-width:640px){ .site-footer .footer-grid{ grid-template-columns:1fr; gap:36px; } }
+  @media(max-width:640px){
+    .site-footer{ text-align:center; }
+    .site-footer .footer-grid{ grid-template-columns:1fr; gap:36px; justify-items:center; }
+    .site-footer .footer-brand{ display:flex; flex-direction:column; align-items:center; }
+    .site-footer .footer-brand p{ margin-inline:auto; text-align:center; }
+    .site-footer .footer-contact{ align-items:center; }
+    .site-footer .footer-social{ justify-content:center; }
+    .site-footer .footer-col{ display:flex; flex-direction:column; align-items:center; width:100%; }
+    .site-footer .footer-col ul{ align-items:center; }
+    .site-footer .footer-col a:hover{ padding-inline-start:0; }
+    .site-footer .footer-bottom{ justify-content:center; text-align:center; flex-direction:column; gap:8px; }
+  }
 </style>
 
 <footer class="site-footer" id="site-footer">

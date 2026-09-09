@@ -7,6 +7,8 @@ managed entirely from the Django admin:
 - HeroSlide: one slide of the homepage hero slider.
 """
 
+import os
+import uuid
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import NoReverseMatch, reverse
@@ -324,3 +326,124 @@ class NewsletterSubscriber(models.Model):
 
     def __str__(self):
         return self.email
+
+
+def validate_price_list_file(file):
+    """
+    Validate that the uploaded price-list file is strictly one of:
+    PDF, JPG, JPEG, PNG.
+
+    Performs multi-layer validation:
+    1. File extension validation (lowercase normalized).
+    2. Maximum file size check (50 MB) to prevent denial-of-service.
+    3. Binary magic bytes signature check to prevent extension spoofing
+       and executable upload attacks.
+    """
+    ext = os.path.splitext(file.name)[1].lower()
+    allowed_extensions = {".pdf", ".jpg", ".jpeg", ".png"}
+    if ext not in allowed_extensions:
+        raise ValidationError(
+            _("فرمت فایل مجاز نیست. فقط فایل‌های PDF، JPG، JPEG و PNG مجاز هستند.")
+        )
+
+    # Max file size limit: 50MB
+    max_size = 50 * 1024 * 1024
+    if file.size > max_size:
+        raise ValidationError(_("حجم فایل نمی‌تواند بیشتر از ۵۰ مگابایت باشد."))
+
+    # Validate file binary magic bytes signature
+    pos = file.tell()
+    file.seek(0)
+    header = file.read(16)
+    file.seek(pos)
+
+    is_valid = False
+    if ext == ".pdf" and header.startswith(b"%PDF-"):
+        is_valid = True
+    elif ext in (".jpg", ".jpeg") and header.startswith(b"\xff\xd8\xff"):
+        is_valid = True
+    elif ext == ".png" and header.startswith(b"\x89PNG\r\n\x1a\n"):
+        is_valid = True
+
+    if not is_valid:
+        raise ValidationError(
+            _("محتوای فایل بارگذاری‌شده با پسوند آن همخوانی ندارد یا نامعتبر است.")
+        )
+
+
+def price_list_upload_path(instance, filename):
+    """
+    Generate a safe, randomized upload path for price-list files to prevent
+    path traversal, collisions, shell injection, or user-controlled filename issues.
+    """
+    ext = os.path.splitext(filename)[1].lower()
+    safe_name = f"price_list_{uuid.uuid4().hex[:12]}{ext}"
+    return f"price_lists/{safe_name}"
+
+
+class PriceList(models.Model):
+    """
+    Downloadable price list file managed by administrators for authenticated users.
+    """
+    title = models.CharField(
+        max_length=200,
+        verbose_name="عنوان لیست قیمت",
+        help_text="نام یا عنوان فایل لیست قیمت (مثلاً: لیست قیمت عمده پاییز ۱۴۰۳).",
+    )
+    file = models.FileField(
+        upload_to=price_list_upload_path,
+        validators=[validate_price_list_file],
+        verbose_name="فایل لیست قیمت",
+        help_text="فایل با فرمت‌های مجاز PDF، JPG، JPEG، یا PNG.",
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="توضیحات",
+        help_text="توضیحات اختیاری درباره این لیست قیمت.",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="در صورت غیرفعال بودن، این لیست قیمت برای کاربران نمایش داده نمی‌شود.",
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="ترتیب نمایش",
+        help_text="کوچک‌تر = نمایش جلوتر.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+
+    class Meta:
+        verbose_name = "لیست قیمت"
+        verbose_name_plural = "لیست‌های قیمت"
+        ordering = ["order", "-created_at"]
+
+    def __str__(self):
+        return self.title
+
+    def get_file_extension(self):
+        """Return the uppercase file extension without dot, e.g. 'PDF' or 'JPG'."""
+        if not self.file:
+            return ""
+        ext = os.path.splitext(self.file.name)[1].lower().replace(".", "")
+        return ext.upper()
+
+    def get_file_size_formatted(self):
+        """Return a human-readable file size string."""
+        if not self.file:
+            return ""
+        try:
+            size_bytes = self.file.size
+            if size_bytes < 1024:
+                return f"{size_bytes} B"
+            elif size_bytes < 1024 * 1024:
+                return f"{size_bytes / 1024:.1f} KB"
+            else:
+                return f"{size_bytes / (1024 * 1024):.1f} MB"
+        except (OSError, ValueError):
+            return ""
+
+    def get_download_url(self):
+        """Return the protected download URL for this price list."""
+        return reverse("home:price_list_download", kwargs={"pk": self.pk})

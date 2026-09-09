@@ -4,20 +4,17 @@
 {# ---------- SEO Meta Tags ---------- #}
 {% block title %}{{ product.meta_title|default:product.name }} | سیدوس{% endblock %}
 
-{% block meta_description %}
-  {{ product.meta_description|default:product.name|truncatechars:160 }}
-  {% if product.category %} — {{ product.category.name }}{% endif %}
-{% endblock %}
+{% block meta_description %}{{ product.meta_description|default:product.description|striptags|truncatewords:30 }}{% endblock %}
 
 {# ========== Social & Rich Snippet Meta Tags ========== #}
 {% block extra_meta %}
   {# Open Graph #}
   <meta property="og:title" content="{{ product.meta_title|default:product.name }}">
-  <meta property="og:description" content="{{ product.meta_description|default:product.name|truncatechars:160 }}">
+  <meta property="og:description" content="{{ product.meta_description|default:product.description|striptags|truncatewords:30 }}">
   <meta property="og:type" content="product">
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
-  {# OG Image – absolute URL (fixed) #}
+  {# OG Image – absolute URL #}
   {% if product.og_image %}
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.og_image.url }}">
   {% elif product.cover_image %}
@@ -27,7 +24,7 @@
   {# Twitter Card #}
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ product.meta_title|default:product.name }}">
-  <meta name="twitter:description" content="{{ product.meta_description|default:product.name|truncatechars:160 }}">
+  <meta name="twitter:description" content="{{ product.meta_description|default:product.description|striptags|truncatewords:30 }}">
 
   {% if product.og_image %}
     <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.og_image.url }}">
@@ -43,6 +40,33 @@
   <meta property="product:category" content="{{ product.category.name|default:'' }}">
   <meta name="google-product-category" content="{{ product.category.name|default:'' }}">
 {% endblock %}
+
+{% block schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.meta_title|default:product.name|escapejs }}",
+  "description": "{{ product.meta_description|default:product.description|striptags|truncatewords:30|escapejs }}",
+  {% if product.og_image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ product.og_image.url }}",{% elif product.cover_image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ product.cover_image.url }}",{% endif %}
+  {% if product.category %}"category": "{{ product.category.name|escapejs }}",{% endif %}
+  "url": "{{ canonical_url|default:request.build_absolute_uri }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "سیدوس"
+  }
+  {% if not product.call_for_price and product.price %},
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ canonical_url|default:request.build_absolute_uri }}",
+    "priceCurrency": "IRR",
+    "price": "{{ product.on_sale_price|default:product.price }}",
+    "availability": "{% if product.published %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+  }
+  {% endif %}
+}
+</script>
+{% endblock %}
 {# ====================================================== #}
 
 {% block extra_css %}
@@ -56,6 +80,7 @@
   .pd-stage{
     position:relative; aspect-ratio:1/1; overflow:hidden;
     background:#141814; border:1px solid rgba(216,207,193,.12);
+    border-radius:var(--radius-md);
   }
   .pd-stage img{
     position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
@@ -67,16 +92,19 @@
     position:absolute; top:16px; right:16px; z-index:2;
     background:var(--emerald); color:var(--cream); font-size:12px;
     padding:7px 14px; letter-spacing:.02em;
+    border-radius:var(--radius-xs);
   }
   .pd-stage__sale{
     position:absolute; top:16px; left:16px; z-index:2;
     background:var(--gold); color:var(--charcoal); font-weight:800; font-size:15px;
     padding:8px 14px; line-height:1;
+    border-radius:var(--radius-xs);
   }
   .pd-thumbs{ display:flex; gap:12px; margin-top:14px; flex-wrap:wrap; }
   .pd-thumb{
     width:74px; height:74px; object-fit:cover; cursor:pointer;
     border:1px solid rgba(216,207,193,.16); opacity:.6;
+    border-radius:var(--radius-sm);
     transition:opacity .3s, border-color .3s, transform .3s;
   }
   .pd-thumb:hover{ opacity:1; transform:translateY(-2px); }
@@ -86,6 +114,7 @@
   .pd-price-box{
     border:1px solid rgba(216,207,193,.12); background:var(--graphite);
     padding:22px 24px; margin-bottom:26px;
+    border-radius:var(--radius-md);
   }
   .pd-price{ font-size:26px; font-weight:800; color:var(--cream); }
   .pd-price .unit{ font-size:15px; font-weight:400; color:var(--cream-soft); margin-inline-start:4px; }
@@ -96,7 +125,8 @@
   .pd-btn{
     display:flex; align-items:center; justify-content:center; gap:10px;
     min-height:54px; padding:0 24px; font-size:15px; font-weight:700;
-    border:1px solid var(--gold); transition:background .35s var(--ease), color .35s var(--ease), transform .15s;
+    border:1px solid var(--gold); border-radius:var(--radius-sm);
+    transition:background .35s var(--ease), color .35s var(--ease), transform .15s;
   }
   .pd-btn:active{ transform:scale(.98); }
   .pd-btn--primary{ background:var(--gold); color:var(--charcoal); }
@@ -109,6 +139,7 @@
     flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
     min-height:48px; font-size:13.5px; font-weight:600;
     border:1px solid rgba(216,207,193,.2); color:var(--cream-soft);
+    border-radius:var(--radius-sm);
     transition:border-color .3s, color .3s, background .3s;
   }
   .pd-mini:hover{ border-color:var(--gold-soft); color:var(--cream); }
@@ -119,21 +150,40 @@
     display:flex; gap:14px; align-items:flex-start;
     border:1px solid rgba(184,155,94,.22); background:rgba(184,155,94,.06);
     padding:18px 20px; margin-bottom:24px;
+    border-radius:var(--radius-md);
   }
   .pd-help svg{ width:22px; height:22px; color:var(--gold); flex:0 0 auto; margin-top:2px; }
   .pd-help p{ font-size:13.5px; line-height:1.95; color:var(--cream-soft); }
   .pd-help a{ color:var(--gold); font-weight:700; }
   .pd-tags{ display:flex; flex-wrap:wrap; gap:8px; }
-  .pd-tag{ font-size:12px; color:var(--cream-soft); border:1px solid rgba(216,207,193,.18); padding:5px 12px; }
+  .pd-tag{
+    font-size:12px;
+    color:var(--gold);
+    border:1px solid rgba(184,155,94,.35);
+    background:rgba(184,155,94,.08);
+    border-radius:var(--radius-xs);
+    padding:5px 12px;
+    transition:background .3s, border-color .3s;
+  }
+  .pd-tag:hover{
+    background:rgba(184,155,94,.16);
+    border-color:var(--gold);
+  }
   .pd-section{ margin-top:90px; }
   .pd-section__title{ font-size:22px; font-weight:800; margin-bottom:22px; padding-bottom:14px; border-bottom:1px solid rgba(216,207,193,.12); }
   .pd-related-scroller{ display:flex; gap:22px; overflow-x:auto; padding-bottom:18px; scroll-snap-type:x proximity; scrollbar-width:none; }
   .pd-related-scroller::-webkit-scrollbar{ display:none; }
   .pd-rcard{
     flex:0 0 240px; scroll-snap-align:start; background:var(--graphite);
-    border:1px solid rgba(216,207,193,.1); transition:border-color .4s, transform .5s var(--ease);
+    border:1px solid rgba(216,207,193,.1);
+    border-radius:var(--radius-md); overflow:hidden;
+    transition:border-color .4s, transform .5s var(--ease), box-shadow .4s var(--ease);
   }
-  .pd-rcard:hover{ border-color:var(--gold-soft); transform:translateY(-6px); }
+  .pd-rcard:hover{
+    border-color:var(--gold-soft);
+    transform:translateY(-6px);
+    box-shadow:0 12px 28px rgba(0,0,0,.45), 0 0 16px rgba(184,155,94,.08);
+  }
   .pd-rcard__media{ height:220px; overflow:hidden; background:#141814; }
   .pd-rcard__media img{ width:100%; height:100%; object-fit:cover; transition:transform .9s var(--ease); }
   .pd-rcard:hover .pd-rcard__media img{ transform:scale(1.07); }

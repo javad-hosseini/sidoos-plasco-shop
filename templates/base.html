@@ -9,9 +9,9 @@
 {% block extra_meta %}{% endblock %}
 {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="preload" href="{% static 'fonts/vazirmatn-arabic-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{% static 'fonts/vazirmatn-arabic-700-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{% static 'fonts/fonts.css' %}">
 {% block fonts %}{% endblock %}
 
 <style>
@@ -45,8 +45,12 @@
     --font-display:'Cormorant Garamond','Vazirmatn',serif;
 
     --container-max:1280px;
-    --radius-sm:4px;
-    --radius-md:8px;
+    --radius-xs:4px;
+    --radius-sm:8px;
+    --radius-md:12px;
+    --radius-lg:18px;
+    --radius-xl:24px;
+    --radius-pill:9999px;
 
     --fs-xs:.8125rem; --fs-sm:.9375rem; --fs-base:1rem; --fs-md:1.125rem;
     --fs-lg:1.375rem; --fs-xl:1.75rem; --fs-2xl:2.25rem;
@@ -73,6 +77,29 @@
   html {
     scroll-behavior:smooth;
     scroll-padding-top:var(--header-height);
+    scrollbar-width:thin;
+    scrollbar-color:rgba(184,155,94,.4) var(--charcoal);
+  }
+
+  /* Custom Scrollbar (WebKit) */
+  ::-webkit-scrollbar {
+    width:8px;
+    height:8px;
+  }
+  ::-webkit-scrollbar-track {
+    background:var(--charcoal);
+  }
+  ::-webkit-scrollbar-thumb {
+    background:rgba(184,155,94,.35);
+    border-radius:var(--radius-pill);
+    border:2px solid var(--charcoal);
+    transition:background .3s;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background:var(--gold);
+  }
+  ::-webkit-scrollbar-corner {
+    background:var(--charcoal);
   }
 
   body {
@@ -103,18 +130,20 @@
 
   /* shared display accents */
   .eyebrow {
-    font-family:var(--font-display);
-    font-style:italic;
+    font-family:var(--font-body);
+    font-weight:700;
     letter-spacing:.04em;
     color:var(--gold);
-    font-size:15px;
+    font-size:16px;
+    line-height:1.4;
     display:inline-flex;
     align-items:center;
     gap:10px;
+    margin-bottom:8px;
   }
   .eyebrow::before {
     content:'';
-    width:26px; height:1px; background:var(--gold);
+    width:28px; height:2px; background:var(--gold);
     display:inline-block;
   }
   .latin {
@@ -130,10 +159,11 @@
     background:var(--gold); color:var(--charcoal);
     padding:16px 34px; font-size:14px; letter-spacing:.02em; font-weight:700;
     border:1px solid var(--gold);
-    transition:background .4s var(--ease), color .4s var(--ease), letter-spacing .4s;
+    border-radius:var(--radius-sm);
+    transition:background .4s var(--ease), color .4s var(--ease), letter-spacing .4s, box-shadow .4s var(--ease);
     position:relative; overflow:hidden;
   }
-  .btn-gold:hover{ letter-spacing:.06em; }
+  .btn-gold:hover{ letter-spacing:.06em; box-shadow:0 8px 24px rgba(184,155,94,.28); }
 
   /* shared rich-text renderer for CKEditor-authored HTML fields
      (Product.description, Article.content, ...) */
@@ -229,6 +259,7 @@
 </style>
 
 {% block extra_css %}{% endblock %}
+{% block schema %}{% endblock %}
 </head>
 <body>
 
@@ -256,24 +287,24 @@
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
   let w, h, particles = [];
-  const colors = ['rgba(245,240,232,ALPHA)','rgba(184,155,94,ALPHA)','rgba(18,60,54,ALPHA)'];
+  const colors = ['rgba(184,155,94,ALPHA)','rgba(184,155,94,ALPHA)','rgba(245,240,232,ALPHA)','rgba(18,60,54,ALPHA)'];
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function resize(){ w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-  function density(){ return Math.min(70, Math.max(28, Math.floor((w*h)/28000))); }
+  function density(){ return Math.min(95, Math.max(40, Math.floor((w*h)/20000))); }
   function makeParticles(){
     const n = density();
     particles = [];
     for(let i=0;i<n;i++){
       particles.push({
         x: Math.random()*w, y: Math.random()*h,
-        r: Math.random()*1.6 + 0.4,
-        baseAlpha: Math.random()*0.35 + 0.08,
+        r: Math.random()*1.8 + 0.5,
+        baseAlpha: Math.random()*0.42 + 0.12,
         alpha: 0,
-        twinkleSpeed: Math.random()*0.015 + 0.004,
+        twinkleSpeed: Math.random()*0.016 + 0.005,
         twinklePhase: Math.random()*Math.PI*2,
-        vx: (Math.random()-0.5)*0.06,
-        vy: -(Math.random()*0.05 + 0.01),
+        vx: (Math.random()-0.5)*0.07,
+        vy: -(Math.random()*0.05 + 0.015),
         colorIdx: Math.floor(Math.random()*colors.length)
       });
     }
