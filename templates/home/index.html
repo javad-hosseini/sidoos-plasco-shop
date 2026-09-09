@@ -13,16 +13,23 @@
   .section-pad{ padding:130px 0; }
   .section-head{
     display:flex; justify-content:space-between; align-items:flex-end;
-    margin-bottom:64px; gap:30px; flex-wrap:wrap;
+    margin-bottom:48px; gap:24px; flex-wrap:wrap;
   }
-  .section-title{ font-size:clamp(28px,3.4vw,44px); margin-top:14px; position:relative; overflow:hidden; }
+  .section-title{ font-size:clamp(28px,3.4vw,44px); margin-top:10px; position:relative; overflow:hidden; }
   .section-title::after{
     content:''; position:absolute; inset:0; transform:translateX(-120%);
     background:linear-gradient(90deg, transparent, rgba(245,240,232,.35), transparent);
   }
   .reveal.in .section-title::after{ animation:titleSweep 1.1s var(--ease) .2s forwards; }
   @keyframes titleSweep{ to{ transform:translateX(120%); } }
-  .section-desc{ max-width:360px; color:var(--cream-soft); font-size:14.5px; line-height:1.95; }
+  .section-desc{
+    max-width:560px;
+    color:var(--cream-soft);
+    font-size:14.5px;
+    line-height:1.95;
+    margin-top:12px;
+    text-align:right;
+  }
   .divider{ width:100%; height:1px; background:linear-gradient(90deg, transparent, rgba(184,155,94,.5), transparent); }
 
   /* ===== HERO ===== */
@@ -285,8 +292,8 @@
       <div>
         <div class="eyebrow">تعهد ما</div>
         <h2 class="section-title">چرا سیدوس؟</h2>
+        <p class="section-desc">چهار ستونی که هر محصول سیدوس روی آن‌ها بنا شده؛ از انتخاب مواد اولیه تا رسیدن به دستان شما.</p>
       </div>
-      <p class="section-desc">چهار ستونی که هر محصول سیدوس روی آن‌ها بنا شده؛ از انتخاب مواد اولیه تا رسیدن به دستان شما.</p>
     </div>
   </div>
   <div class="container" style="padding:0;">
@@ -326,8 +333,8 @@
       <div>
         <div class="eyebrow">پرفروش‌ترین‌ها</div>
         <h2 class="section-title">محصولات پرفروش</h2>
+        <p class="section-desc">محصولاتی که بیشترین استقبال را از سوی مشتریان سیدوس داشته‌اند.</p>
       </div>
-      <p class="section-desc">محصولاتی که بیشترین استقبال را از سوی مشتریان سیدوس داشته‌اند.</p>
     </div>
   </div>
   <div class="container reveal" style="padding-left:0;">
@@ -358,8 +365,8 @@
       <div>
         <div class="eyebrow">مجموعه‌ها</div>
         <h2 class="section-title">دسته‌بندی‌های منتخب</h2>
+        <p class="section-desc">از محصولات آشپزخانه تا اقلام ساختمانی و باغبانی، هر مجموعه روایتی از کیفیت است.</p>
       </div>
-      <p class="section-desc">از محصولات آشپزخانه تا اقلام ساختمانی و باغبانی، هر مجموعه روایتی از کیفیت است.</p>
     </div>
     {% if featured_categories %}
     <div class="cat-grid reveal">
@@ -386,8 +393,8 @@
       <div>
         <div class="eyebrow">پیشنهاد ویژه</div>
         <h2 class="section-title">فروش ویژه سیدوس</h2>
+        <p class="section-desc">محصولاتی که همین حالا با شرایط ویژه ارائه می‌شوند.</p>
       </div>
-      <p class="section-desc">محصولاتی که همین حالا با شرایط ویژه ارائه می‌شوند.</p>
     </div>
   </div>
   <div class="container reveal" style="padding-left:0;">
