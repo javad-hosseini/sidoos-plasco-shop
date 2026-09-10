@@ -24,9 +24,18 @@ class ProductAdmin(admin.ModelAdmin):
         'is_featured',
         'featured_order',
         'category',
+        'meta_title',          # SEO title
+        'meta_description',    # <-- FIXED: Now in list_display
+        'canonical_url',       # <-- FIXED: Now in list_display
         'created_at'
     )
-    list_editable = ('is_featured', 'featured_order')
+    list_editable = (
+        'is_featured',
+        'featured_order',
+        'meta_title',          # Bulk-edit SEO titles
+        'meta_description',    # Bulk-edit meta descriptions
+        'canonical_url',       # Bulk-edit canonical URLs
+    )
     list_filter = (
         'published',
         'featured_in_special_sales',
@@ -35,7 +44,12 @@ class ProductAdmin(admin.ModelAdmin):
         'call_for_price',
         'created_at'
     )
-    search_fields = ('name', 'description')
+    search_fields = (
+        'name',
+        'description',
+        'meta_title',
+        'meta_description',
+    )
     readonly_fields = ('slug', 'created_at', 'updated_at', 'discount_percentage')
     autocomplete_fields = ('category', 'creator')
 
@@ -49,6 +63,10 @@ class ProductAdmin(admin.ModelAdmin):
         ('قیمت‌گذاری', {
             'fields': ('price', 'on_sale_price', 'call_for_price', 'discount_percentage'),
             'description': 'برای پنهان کردن قیمت و نمایش «تماس بگیرید»، «تماس برای قیمت» را فعال کنید. درصد تخفیف به‌طور خودکار محاسبه می‌شود.'
+        }),
+        ('بهینه‌سازی موتور جستجو (SEO)', {
+            'fields': ('meta_title', 'meta_description', 'og_image', 'canonical_url'),
+            'description': 'این فیلدها برای بهبود رتبه در گوگل و شبکه‌های اجتماعی استفاده می‌شوند. در صورت خالی بودن، مقادیر پیش‌فرض (نام محصول) استفاده خواهد شد.'
         }),
         ('وضعیت و نمایش', {
             'fields': (
@@ -127,7 +145,6 @@ class ProductSaveAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)
 
     def has_add_permission(self, request):
-        # ذخیره محصولات فقط از طریق سایت انجام می‌شود، نه از پنل مدیریت.
         return False
 
 
@@ -139,5 +156,4 @@ class ProductLikeAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)
 
     def has_add_permission(self, request):
-        # پسندیدن محصولات فقط از طریق سایت انجام می‌شود، نه از پنل مدیریت.
         return False

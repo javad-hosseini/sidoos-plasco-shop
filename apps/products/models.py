@@ -63,9 +63,6 @@ class Category(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        # allow_unicode=True so Persian category names produce a readable
-        # slug instead of slugify() silently stripping all non-ASCII text
-        # (which is what Product.save() already does correctly below).
         if not self.slug:
             base_slug = slugify(self.name, allow_unicode=True) or 'category'
             candidate = base_slug
@@ -96,7 +93,6 @@ class Category(models.Model):
         return descendant_ids
 
     def get_ancestors(self, include_self=False):
-        """Return this category's chain from the root down to itself (or its parent), for breadcrumbs."""
         chain = []
         node = self if include_self else self.parent
 
@@ -205,6 +201,32 @@ class Product(models.Model):
         help_text="دسته‌بندی‌ای که این محصول به آن تعلق دارد.",
     )
 
+    # ========== NEW: SEO Metadata (matching Article model) ==========
+    meta_title = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="عنوان سئو",
+        help_text="عنوانی که موتورهای جستجو برای این محصول نمایش می‌دهند. بهتر است کوتاه، دقیق و مرتبط با محتوای محصول باشد.",
+    )
+    meta_description = models.TextField(
+        blank=True,
+        verbose_name="توضیحات سئو",
+        help_text="توضیح کوتاهی درباره محتوای محصول که می‌تواند در نتایج موتورهای جستجو نمایش داده شود.",
+    )
+    og_image = models.ImageField(
+        upload_to="products/og-images/%Y/%m/",
+        null=True,
+        blank=True,
+        verbose_name="تصویر اشتراک‌گذاری",
+        help_text="تصویری که هنگام اشتراک‌گذاری محصول در شبکه‌های اجتماعی نمایش داده می‌شود.",
+    )
+    canonical_url = models.URLField(
+        blank=True,
+        verbose_name="آدرس canonical",
+        help_text="در صورت نیاز، آدرس اصلی و ترجیحی این محصول را وارد کنید.",
+    )
+    # ================================================================
+
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -234,17 +256,16 @@ class Product(models.Model):
             ),
             models.CheckConstraint(
                 check=models.Q(call_for_price=False) | (
-                    models.Q(price=0) & models.Q(on_sale_price__isnull=True)
+                        models.Q(price=0) & models.Q(on_sale_price__isnull=True)
                 ),
                 name='product_call_for_price_invariants',
             ),
         ]
-    
+
     def clean(self):
         super().clean()
 
         if self.call_for_price:
-            # Call-for-price products have no public monetary price.
             self.price = 0
             if self.on_sale_price is not None:
                 raise ValidationError({
@@ -257,7 +278,6 @@ class Product(models.Model):
             })
 
     def save(self, *args, **kwargs):
-        # Auto-generate a unique slug when not provided.
         if not self.slug:
             base_slug = slugify(self.name, allow_unicode=True) or 'product'
             candidate = base_slug
@@ -273,12 +293,11 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def get_discount_percentage(self):
-        """Calculate discount percentage if on_sale_price is set."""
         if self.on_sale_price and self.price and self.price > 0:
             discount = ((self.price - self.on_sale_price) / self.price) * 100
             return round(discount, 2)
         return None
-    
+
     def __str__(self):
         return self.name
 

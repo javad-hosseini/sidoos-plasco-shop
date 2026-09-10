@@ -1,12 +1,22 @@
+import os
+
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
 from apps.blogs.models import Article
 from apps.products.models import Product
 from .forms import NewsletterSubscriptionForm
-from .models import BestSeller, FeaturedCategory, HeroSlide, NewsletterSubscriber, SpecialSaleFeature
+from .models import (
+    BestSeller,
+    FeaturedCategory,
+    HeroSlide,
+    NewsletterSubscriber,
+    PriceList,
+    SpecialSaleFeature,
+)
 
 # How many items each homepage section shows at most.
 FEATURED_LIMIT = 12
@@ -124,3 +134,50 @@ def robots_txt(request):
         "Sitemap: " + request.build_absolute_uri("/sitemap.xml"),
     ]
     return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")
+
+
+@login_required
+def price_list_download(request, pk):
+    """
+    Secure download view for authenticated users to access administrative price-list files.
+
+    Security guarantees:
+    - Requires active user authentication (@login_required).
+    - Fetches only existing, active PriceList objects by database ID (pk) — never user-supplied file paths.
+    - Checks whether the physical file exists in storage before attempting retrieval.
+    - Serves through Django FileResponse as an attachment to avoid inline script execution.
+    - Raises Http404 on missing or non-existent files.
+    """
+    price_list = get_object_or_404(PriceList, pk=pk, is_active=True)
+
+    if not price_list.file:
+        raise Http404("فایل مورد نظر یافت نشد.")
+
+    try:
+        if not price_list.file.storage.exists(price_list.file.name):
+            raise Http404("فایل مورد نظر در سرور یافت نشد.")
+        file_obj = price_list.file.open("rb")
+    except (OSError, ValueError):
+        raise Http404("خطا در باز کردن فایل مورد نظر.")
+
+    filename = os.path.basename(price_list.file.name)
+    response = FileResponse(file_obj, as_attachment=True, filename=filename)
+    return response
+
+
+@login_required
+def price_list_api(request):
+    """Return JSON list of available price lists for authenticated users."""
+    items = PriceList.objects.filter(is_active=True).order_by("order", "-created_at")
+    data = [
+        {
+            "id": item.pk,
+            "title": item.title,
+            "description": item.description,
+            "file_type": item.get_file_extension(),
+            "file_size": item.get_file_size_formatted(),
+            "download_url": item.get_download_url(),
+        }
+        for item in items
+    ]
+    return JsonResponse({"success": True, "price_lists": data})

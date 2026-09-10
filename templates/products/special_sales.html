@@ -5,13 +5,9 @@
 {% block meta_description %}پیشنهادهای ویژه و تخفیف‌دار سیدوس؛ محصولات منتخب با شرایط خرید ویژه برای فروشگاه‌ها و عمده‌فروشان.{% endblock %}
 
 {% block breadcrumb %}
-<nav class="ss-breadcrumb container reveal" aria-label="مسیر صفحه">
-  <ol class="ss-breadcrumb__list">
-    <li><a href="{% url 'home:home' %}">خانه</a></li>
-    <li aria-hidden="true" class="ss-breadcrumb__sep">/</li>
-    <li aria-current="page">پیشنهادهای ویژه</li>
-  </ol>
-</nav>
+<div class="container ss-breadcrumb-wrap">
+  {% include 'partials/breadcrumbs.html' %}
+</div>
 {% endblock %}
 
 {% block extra_css %}
@@ -20,13 +16,9 @@
      Special Sales — page-level styles (extends cinematic theme)
      ============================================================ */
 
-  /* ===== breadcrumb ===== */
-  .ss-breadcrumb{ padding-top:26px; }
-  .ss-breadcrumb__list{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--cream-soft); }
-  .ss-breadcrumb__list a{ transition:color .3s var(--ease); }
-  .ss-breadcrumb__list a:hover{ color:var(--gold); }
-  .ss-breadcrumb__sep{ opacity:.5; }
-  .ss-breadcrumb__list li[aria-current="page"]{ color:var(--gold); }
+  /* ===== canonical breadcrumb ===== */
+  .ss-breadcrumb-wrap{ padding-top:calc(var(--header-height) + 24px); }
+  .ss-breadcrumb-wrap .crumbs{ margin-bottom:14px; }
 
   /* ===== SALE HERO BANNER ===== */
   .ss-hero{
@@ -87,19 +79,29 @@
     position:relative; z-index:2; background:var(--charcoal);
     border-top:1px solid rgba(184,155,94,.25); border-bottom:1px solid rgba(184,155,94,.25);
     overflow:hidden; white-space:nowrap;
+    display:flex; direction:ltr; user-select:none;
   }
   .ss-ticker__track{
-    display:inline-flex; align-items:center; gap:0;
-    animation:ssTicker 26s linear infinite;
+    display:flex; width:max-content; flex-shrink:0;
+    animation:ssTicker 38s linear infinite;
     will-change:transform;
+  }
+  .ss-ticker:hover .ss-ticker__track{
+    animation-play-state:paused;
+  }
+  .ss-ticker__group{
+    display:flex; align-items:center; flex-shrink:0;
   }
   .ss-ticker__item{
     display:inline-flex; align-items:center; gap:14px;
     font-size:12.5px; letter-spacing:.03em; color:var(--beige);
-    padding:14px 34px;
+    padding:14px 34px; direction:rtl;
   }
   .ss-ticker__item svg{ width:13px; height:13px; color:var(--gold); flex:none; }
-  @keyframes ssTicker{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  @keyframes ssTicker{
+    from{ transform:translate3d(0, 0, 0); }
+    to{ transform:translate3d(-50%, 0, 0); }
+  }
   @media (prefers-reduced-motion: reduce){
     .ss-ticker__track{ animation:none; }
     .ss-hero__orb{ animation:none; }
@@ -115,11 +117,16 @@
   .ss-card{
     display:flex; flex-direction:column; background:var(--graphite);
     border:1px solid rgba(216,207,193,.1);
+    border-radius:var(--radius-md); overflow:hidden;
     opacity:0; transform:translateY(30px);
-    transition:opacity .7s var(--ease), transform .7s var(--ease), border-color .4s var(--ease);
+    transition:opacity .7s var(--ease), transform .7s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
   }
   .ss-card.in{ opacity:1; transform:translateY(0); }
-  .ss-card:hover{ border-color:var(--gold-soft); transform:translateY(-6px); }
+  .ss-card:hover{
+    border-color:var(--gold-soft);
+    transform:translateY(-6px);
+    box-shadow: 0 14px 30px rgba(0,0,0,.45), 0 0 20px rgba(184,155,94,.08);
+  }
 
   .ss-card__media{ position:relative; aspect-ratio:1/1; overflow:hidden; background:#141814; }
   .ss-card__media img{ width:100%; height:100%; object-fit:cover; transition:transform .9s var(--ease); }
@@ -133,6 +140,7 @@
     display:flex; align-items:center; gap:6px;
     background:var(--gold); color:var(--charcoal);
     font-size:12px; font-weight:700; padding:7px 12px;
+    border-radius:var(--radius-xs);
   }
   .ss-card__badge i{
     width:6px; height:6px; border-radius:50%; background:var(--charcoal);
@@ -154,7 +162,19 @@
   .ss-card__price--muted a:hover{ text-decoration:underline; }
 
   .ss-card__tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
-  .ss-card__tag{ font-size:11px; color:var(--cream-soft); border:1px solid rgba(216,207,193,.16); padding:3px 10px; }
+  .ss-card__tag{
+    font-size:11px;
+    color:var(--gold);
+    border:1px solid rgba(184,155,94,.35);
+    background:rgba(184,155,94,.08);
+    border-radius:var(--radius-xs);
+    padding:3px 10px;
+    transition:background .3s, border-color .3s;
+  }
+  .ss-card__tag:hover{
+    background:rgba(184,155,94,.16);
+    border-color:var(--gold);
+  }
 
   /* ===== EMPTY STATE ===== */
   .ss-empty{
@@ -172,7 +192,9 @@
   .ss-pagination__link{
     display:inline-flex; align-items:center; gap:8px;
     font-size:13px; color:var(--beige); padding:12px 20px;
-    border:1px solid rgba(216,207,193,.16); transition:border-color .3s var(--ease), color .3s var(--ease), background .3s var(--ease);
+    border:1px solid rgba(216,207,193,.16);
+    border-radius:var(--radius-sm);
+    transition:border-color .3s var(--ease), color .3s var(--ease), background .3s var(--ease);
   }
   .ss-pagination__link:hover{ border-color:var(--gold); color:var(--gold); background:rgba(184,155,94,.06); }
   .ss-pagination__link--disabled{ opacity:.35; pointer-events:none; }
@@ -210,12 +232,22 @@
 <!-- ===== TICKER ===== -->
 <div class="ss-ticker" aria-hidden="true">
   <div class="ss-ticker__track">
-    {% for i in "12" %}
-    <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 5.6L20 9l-4.4 3.8L17 19l-5-3.4L7 19l1.4-6.2L4 9l5.6-1.4z"/></svg>قیمت‌های ویژه‌ی زمان‌دار</span>
-    <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h13M11 6l6 6-6 6M16 4h4v4M20 8v12H8"/></svg>ارسال سریع سراسر کشور</span>
-    <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>ضمانت اصالت کالا</span>
-    <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 21c-4-3-8-6.5-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 4.5-4 8-10 11z"/></svg>مشاوره‌ی خرید رایگان</span>
-    {% endfor %}
+    <div class="ss-ticker__group">
+      {% for i in "1234" %}
+      <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 5.6L20 9l-4.4 3.8L17 19l-5-3.4L7 19l1.4-6.2L4 9l5.6-1.4z"/></svg>قیمت‌های ویژه‌ی زمان‌دار</span>
+      <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h13M11 6l6 6-6 6M16 4h4v4M20 8v12H8"/></svg>ارسال سریع سراسر کشور</span>
+      <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>ضمانت اصالت کالا</span>
+      <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 21c-4-3-8-6.5-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 4.5-4 8-10 11z"/></svg>مشاوره‌ی خرید رایگان</span>
+      {% endfor %}
+    </div>
+    <div class="ss-ticker__group" aria-hidden="true">
+      {% for i in "1234" %}
+      <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 5.6L20 9l-4.4 3.8L17 19l-5-3.4L7 19l1.4-6.2L4 9l5.6-1.4z"/></svg>قیمت‌های ویژه‌ی زمان‌دار</span>
+      <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h13M11 6l6 6-6 6M16 4h4v4M20 8v12H8"/></svg>ارسال سریع سراسر کشور</span>
+      <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>ضمانت اصالت کالا</span>
+      <span class="ss-ticker__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 21c-4-3-8-6.5-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 4.5-4 8-10 11z"/></svg>مشاوره‌ی خرید رایگان</span>
+      {% endfor %}
+    </div>
   </div>
 </div>
 

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import BestSeller, FeaturedCategory, HeroSlide, NewsletterSubscriber, SpecialSaleFeature
+from .models import BestSeller, FeaturedCategory, HeroSlide, NewsletterSubscriber, PriceList, SpecialSaleFeature
 
 
 @admin.register(HeroSlide)
@@ -265,3 +265,48 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         # مشترکین فقط از طریق فرم خبرنامه در صفحه اصلی سایت ثبت می‌شوند.
         return False
+
+
+@admin.register(PriceList)
+class PriceListAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "file_format_badge",
+        "file_size_display",
+        "is_active",
+        "order",
+        "created_at",
+    )
+    list_editable = ("is_active", "order")
+    list_filter = ("is_active",)
+    search_fields = ("title", "description")
+    readonly_fields = ("created_at", "updated_at", "file_format_badge", "file_size_display")
+
+    fieldsets = (
+        ("اطلاعات فایل", {
+            "fields": ("title", "file", "description"),
+        }),
+        ("نمایش و ترتیب", {
+            "fields": ("is_active", "order"),
+        }),
+        ("اطلاعات تکمیلی", {
+            "fields": ("file_format_badge", "file_size_display", "created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+
+    @admin.display(description="فرمت فایل")
+    def file_format_badge(self, obj):
+        ext = obj.get_file_extension()
+        if not ext:
+            return "-"
+        color = "#e87932" if ext == "PDF" else "#245c43"
+        return format_html(
+            '<span style="background:{};color:#fff;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:bold;">{}</span>',
+            color,
+            ext,
+        )
+
+    @admin.display(description="حجم فایل")
+    def file_size_display(self, obj):
+        return obj.get_file_size_formatted() or "-"

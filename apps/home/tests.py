@@ -327,3 +327,116 @@ class NewsletterSubscribeViewTests(TestCase):
         enforcing_client = Client(enforce_csrf_checks=True)
         response = enforcing_client.post(self.url, {"email": "csrf-check@example.com"})
         self.assertEqual(response.status_code, 403)
+
+
+class PriceListTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="buyer", password="x")
+
+    def _make_pdf(self, content=b"%PDF-1.4 test content"):
+        return SimpleUploadedFile(name="price_list.pdf", content=content, content_type="application/pdf")
+
+    def _make_jpg(self, content=b"\xff\xd8\xff\xe0\x00\x10JFIF\x00 test"):
+        return SimpleUploadedFile(name="price_list.jpg", content=content, content_type="image/jpeg")
+
+    def _make_png(self, content=b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR test"):
+        return SimpleUploadedFile(name="price_list.png", content=content, content_type="image/png")
+
+    def test_valid_pdf_file_validation(self):
+        from apps.home.models import PriceList
+
+        pl = PriceList(title="لیست قیمت بهاره", file=self._make_pdf())
+        pl.full_clean()
+        pl.save()
+        self.assertTrue(pl.pk)
+        self.assertTrue(pl.file.name.startswith("price_lists/"))
+        self.assertTrue(pl.file.name.endswith(".pdf"))
+
+    def test_valid_jpg_file_validation(self):
+        from apps.home.models import PriceList
+
+        pl = PriceList(title="لیست عکس", file=self._make_jpg())
+        pl.full_clean()
+        pl.save()
+        self.assertTrue(pl.pk)
+        self.assertTrue(pl.file.name.endswith(".jpg"))
+
+    def test_valid_png_file_validation(self):
+        from apps.home.models import PriceList
+
+        pl = PriceList(title="لیست PNG", file=self._make_png())
+        pl.full_clean()
+        pl.save()
+        self.assertTrue(pl.pk)
+        self.assertTrue(pl.file.name.endswith(".png"))
+
+    def test_disallowed_extension_rejected(self):
+        from apps.home.models import PriceList
+
+        bad_file = SimpleUploadedFile(name="malicious.exe", content=b"MZ\x90\x00", content_type="application/octet-stream")
+        pl = PriceList(title="فایل مخرب", file=bad_file)
+        with self.assertRaises(ValidationError):
+            pl.full_clean()
+
+    def test_spoofed_pdf_magic_bytes_rejected(self):
+        from apps.home.models import PriceList
+
+        fake_pdf = SimpleUploadedFile(name="fake.pdf", content=b"print('hello hacker')", content_type="application/pdf")
+        pl = PriceList(title="پی‌دی‌اف جعلی", file=fake_pdf)
+        with self.assertRaises(ValidationError):
+            pl.full_clean()
+
+    def test_unauthenticated_download_redirects_to_login(self):
+        from apps.home.models import PriceList
+
+        pl = PriceList.objects.create(title="لیست عمومی", file=self._make_pdf())
+        url = reverse("home:price_list_download", kwargs={"pk": pl.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("accounts:login"), response["Location"])
+
+    def test_authenticated_download_success(self):
+        from apps.home.models import PriceList
+
+        pl = PriceList.objects.create(title="لیست برای کاربران", file=self._make_pdf())
+        self.client.force_login(self.user)
+        url = reverse("home:price_list_download", kwargs={"pk": pl.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("attachment", response["Content-Disposition"])
+
+    def test_inactive_price_list_download_returns_404(self):
+        from apps.home.models import PriceList
+
+        pl = PriceList.objects.create(title="لیست غیرفعال", file=self._make_pdf(), is_active=False)
+        self.client.force_login(self.user)
+        url = reverse("home:price_list_download", kwargs={"pk": pl.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_nonexistent_price_list_download_returns_404(self):
+        self.client.force_login(self.user)
+        url = reverse("home:price_list_download", kwargs={"pk": 99999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_price_list_api_requires_login(self):
+        url = reverse("home:price_list_api")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+
+    def test_price_list_api_returns_active_lists(self):
+        from apps.home.models import PriceList
+
+        pl1 = PriceList.objects.create(title="لیست ۱", file=self._make_pdf(), is_active=True)
+        PriceList.objects.create(title="لیست غیرفعال", file=self._make_pdf(), is_active=False)
+
+        self.client.force_login(self.user)
+        url = reverse("home:price_list_api")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data["price_lists"]), 1)
+        self.assertEqual(data["price_lists"][0]["title"], "لیست ۱")
+        self.assertEqual(data["price_lists"][0]["id"], pl1.id)
+
