@@ -62,6 +62,16 @@ class ArticleModelTests(TestCase):
         article = Article.objects.create(**self.article_data)
         self.assertEqual(str(article), "راهنمای خرید گلدان پلاستیکی")
 
+    def test_article_get_absolute_url(self) -> None:
+        """
+        Tests that get_absolute_url returns the correct article detail URL.
+        """
+        article = Article.objects.create(**self.article_data)
+        self.assertEqual(
+            article.get_absolute_url(),
+            reverse("blogs:article_detail", kwargs={"slug": article.slug}),
+        )
+
     def test_slug_uniqueness(self) -> None:
         """
         Tests that slug must be unique across articles.

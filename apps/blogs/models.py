@@ -32,6 +32,7 @@ import re
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django_ckeditor_5.fields import CKEditor5Field
 from taggit.managers import TaggableManager
@@ -218,6 +219,15 @@ class Article(models.Model):
             The article title string.
         """
         return self.title
+
+    def get_absolute_url(self) -> str:
+        """
+        Returns the absolute URL for the article detail view.
+
+        Returns:
+            The canonical URL path string for the article.
+        """
+        return reverse("blogs:article_detail", kwargs={"slug": self.slug})
 
     def clean(self) -> None:
         """

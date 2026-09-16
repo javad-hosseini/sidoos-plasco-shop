@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}سوالات متداول | سیدوس{% endblock %}
+{% block meta_description %}پاسخ به پرتکرارترین پرسش‌های مشتریان در مورد نحوه ثبت سفارش عمده، استعلام قیمت، شرایط تسویه و ارسال محصولات سیدوس.{% endblock %}
+
+{% block extra_css %}
+<style>
+  .info-page-wrap{
+    padding-top:calc(var(--header-height) + 34px);
+    padding-bottom:120px;
+  }
+  .info-hero{
+    margin-bottom:44px;
+    border-bottom:1px solid var(--color-border);
+    padding-bottom:34px;
+  }
+  .info-eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; font-weight:600; color:var(--gold);
+    margin-bottom:12px;
+  }
+  .info-title{
+    font-size:clamp(26px, 3.2vw, 38px);
+    font-weight:800;
+    color:var(--cream);
+    margin-bottom:14px;
+  }
+  .info-lead{
+    font-size:16px;
+    line-height:2.1;
+    color:var(--cream-soft);
+    max-width:860px;
+  }
+
+  .info-card{
+    background:var(--graphite);
+    border:1px solid var(--color-border);
+    border-radius:var(--radius-md);
+    padding:36px;
+    margin-bottom:32px;
+    box-shadow:var(--card-shadow);
+  }
+  .info-card h2{
+    font-size:19px;
+    font-weight:700;
+    color:var(--cream);
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .info-card h2 i{
+    color:var(--gold);
+    font-size:18px;
+  }
+  .info-card p{
+    font-size:15px;
+    line-height:2.2;
+    color:var(--cream-soft);
+    margin-bottom:18px;
+    text-align:justify;
+  }
+  .info-card p:last-child{ margin-bottom:0; }
+
+  /* Accordion FAQs */
+  .faq-list{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    margin-top:28px;
+  }
+  .faq-item{
+    background:rgba(245,240,232,.03);
+    border:1px solid var(--color-border);
+    border-radius:var(--radius-sm);
+    overflow:hidden;
+    transition:border-color .3s;
+  }
+  .faq-item[open]{
+    border-color:var(--gold-soft);
+  }
+  .faq-summary{
+    padding:18px 24px;
+    font-size:15.5px;
+    font-weight:700;
+    color:var(--cream);
+    cursor:pointer;
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    user-select:none;
+  }
+  .faq-summary::-webkit-details-marker{ display:none; }
+  .faq-summary i{
+    color:var(--gold);
+    transition:transform .3s;
+  }
+  .faq-item[open] .faq-summary i{
+    transform:rotate(180deg);
+  }
+  .faq-content{
+    padding:0 24px 22px;
+    font-size:14.5px;
+    line-height:2.1;
+    color:var(--cream-soft);
+  }
+
+  /* Contact support callout */
+  .contact-callout{
+    background:linear-gradient(135deg, rgba(18,60,54,.08) 0%, rgba(148,111,40,.08) 100%);
+    border:1px solid var(--gold-soft);
+    border-radius:var(--radius-md);
+    padding:36px;
+    margin-top:44px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:26px;
+  }
+  .contact-callout__text h3{
+    font-size:19px; font-weight:800; color:var(--cream); margin-bottom:8px;
+  }
+  .contact-callout__text p{
+    font-size:14px; color:var(--cream-soft); line-height:1.9;
+  }
+  .contact-callout__info{
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .contact-badge{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:10px 18px; border-radius:var(--radius-sm);
+    background:var(--graphite); border:1px solid var(--color-border);
+    font-size:14px; font-weight:700; color:var(--cream);
+    text-decoration:none; transition:border-color .3s, color .3s;
+  }
+  .contact-badge:hover{
+    border-color:var(--gold); color:var(--gold);
+  }
+  .contact-badge i{ color:var(--gold); }
+  .contact-callout__actions{
+    display:flex; gap:12px; flex-wrap:wrap;
+  }
+  .btn-contact-primary{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 24px; border-radius:var(--radius-sm);
+    background:var(--color-primary, #123C36); color:#FAF8F5;
+    font-weight:700; font-size:14px; text-decoration:none;
+    transition:opacity .3s;
+  }
+  .btn-contact-primary:hover{ opacity:.9; }
+
+  @media(max-width:768px){
+    .info-card{ padding:24px 20px; }
+    .contact-callout{ padding:24px 20px; flex-direction:column; align-items:flex-start; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container info-page-wrap">
+
+  <nav class="crumbs" aria-label="مسیر صفحه">
+    <a href="{% url 'home:home' %}">خانه</a>
+    <span class="sep">/</span>
+    <span>خدمات مشتریان</span>
+    <span class="sep">/</span>
+    <span class="current">سوالات متداول</span>
+  </nav>
+
+  <header class="info-hero">
+    <span class="info-eyebrow"><i class="fa-solid fa-circle-question"></i> خدمات مشتریان سیدوس</span>
+    <h1 class="info-title">پرتکرارترین پرسش‌های مشتریان</h1>
+    <p class="info-lead">
+      با ارتباط با ما به پرتکرارترین پرسش‌های مشتریان در مورد محصولات، نحوه تسویه حساب و خدمات پس از فروش پاسخ خواهیم داد. اگر سوالی در مورد نحوه همکاری یا جزئیات فنی کالاها دارید، حتما پاسخ خود را خواهید گرفت.
+    </p>
+  </header>
+
+  <section class="info-card">
+    <h2><i class="fa-solid fa-comments"></i> پاسخ به ابهامات و مشاوره شفاف</h2>
+    <p>
+      بخش سوالات متداول سیدوس با هدف صرفه‌جویی در وقت شما طراحی شده است؛ بسیاری از پرسش‌هایی که ممکن است برای مشتریان پیش بیاید، پیش از این پاسخ داده شده و در دسترس شما قرار دارد. با این حال، اگر پاسخ سوال خود را پیدا نکردید، می‌توانید مستقیماً با کارشناسان ما در تماس باشید و پاسخ دقیق و کامل را دریافت کنید.
+    </p>
+    <p>
+      تیم سیدوس آماده پاسخگویی به سوالات شما در زمینه‌های گوناگون است؛ از نحوه همکاری و شرایط خرید عمده گرفته تا جزئیات فنی محصولات، گارانتی و خدمات پس از فروش. هدف ما این است که با ارائه اطلاعات شفاف و دقیق، تجربه‌ای مطمئن و رضایت‌بخش برای شما رقم بزنیم و هیچ پرسشی بی‌پاسخ نماند.
+    </p>
+
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary class="faq-summary">
+          <span>نحوه استعلام قیمت‌های عمده و همکاری چگونه است؟</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </summary>
+        <div class="faq-content">
+          با تماس با شماره تلفن همراه ۰۹۳۰۸۷۴۳۸۶۸ یا شماره‌های ثابت دفتر مرکزی (۰۵۱۳۸۹۴۴۶۸۷ و ۰۵۱۳۸۹۴۴۷۱۵) می‌توانید لیست قیمت همکاری و کاتالوگ جامع محصولات را از کارشناسان فروش دریافت فرمایید. همچنین کاربران دارای حساب کاربری تاییدشده می‌توانند قیمت‌ها را به صورت آنلاین مشاهده نمایند.
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-summary">
+          <span>حداقل تیراژ یا مبلغ سفارش عمده چقدر است؟</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </summary>
+        <div class="faq-content">
+          محصولات پلاستیکی، گلدان‌ها و قطعات ساختمانی سیدوس به صورت کارتن‌های بسته‌بندی استاندارد کارخانه‌ای عرضه می‌شوند و حداقل سفارش بر مبنای کارتن مادر هر کالا تعریف شده است. برای جزئیات هر ردیف کالا، همکاران ما راهنمایی لازم را ارائه می‌دهند.
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-summary">
+          <span>سفارش‌ها چگونه و در چه بازه زمانی ارسال می‌شوند؟</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </summary>
+        <div class="faq-content">
+          ارسال سفارش‌ها معمولاً ظرف ۲۴ الی ۴۸ ساعت کاری پس از تایید فاکتور از طریق باربری‌های معتبر سراسر کشور، تیپاکس یا پست به انتخاب مشتری هماهنگ می‌گردد و بارنامه رهگیری بلافاصله ارسال می‌شود.
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-summary">
+          <span>در صورت وجود کسری یا شکستگی در بار چه اقدامی باید انجام شود؟</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </summary>
+        <div class="faq-content">
+          تمامی بارهای ارسالی بیمه بوده و در بسته‌بندی مقاوم ارسال می‌شوند. در صورت بروز هرگونه مغایرت یا آسیب ناشی از حمل، کافیست ظرف ۴۸ ساعت با مدیر بازرگانی مجموعه تماس حاصل نموده یا در سامانه پشتیبانی تیکت ثبت نمایید تا سریعاً رسیدگی شود.
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- Contact Callout -->
+  <div class="contact-callout">
+    <div class="contact-callout__text">
+      <h3>پاسخ سوال خود را نیافتید؟</h3>
+      <p>کارشناسان ما همواره آماده شنیدن صدای گرم شما و ارائه مشاوره اختصاصی هستند.</p>
+    </div>
+    <div class="contact-callout__info">
+      <a href="tel:09308743868" class="contact-badge" dir="ltr">
+        <i class="fa-solid fa-mobile-screen"></i> ۰۹۳۰۸۷۴۳۸۶۸
+      </a>
+      <a href="tel:05138944687" class="contact-badge" dir="ltr">
+        <i class="fa-solid fa-phone"></i> ۰۵۱۳-۸۹۴۴۶۸۷
+      </a>
+    </div>
+    <div class="contact-callout__actions">
+      <a href="{% url 'home:contact' %}" class="btn-contact-primary">
+        <i class="fa-solid fa-envelope"></i> تماس با کارشناسان
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

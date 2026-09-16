@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تماس با ما | سیدوس{% endblock %}
+{% block meta_description %}اطلاعات تماس، شماره‌های ثابت و همراه، ساعات کاری، شبکه‌های اجتماعی و فرم ارتباط مستقیم با مجموعه تولیدی و بازرگانی سیدوس.{% endblock %}
+
+{% block extra_css %}
+<style>
+  .contact-page-wrap{
+    padding-top:calc(var(--header-height) + 34px);
+    padding-bottom:120px;
+  }
+  .contact-header{
+    margin-bottom:44px;
+    border-bottom:1px solid var(--color-border);
+    padding-bottom:34px;
+  }
+  .contact-eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; font-weight:600; color:var(--gold);
+    margin-bottom:12px;
+  }
+  .contact-title{
+    font-size:clamp(28px, 3.4vw, 42px);
+    font-weight:800;
+    color:var(--cream);
+    margin-bottom:14px;
+  }
+  .contact-lead{
+    font-size:16px;
+    line-height:2.1;
+    color:var(--cream-soft);
+    max-width:760px;
+  }
+
+  /* Two Column Layout */
+  .contact-grid{
+    display:grid;
+    grid-template-columns:1fr 1.15fr;
+    gap:40px;
+    align-items:start;
+  }
+
+  /* Contact Information Cards */
+  .contact-cards{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+  .contact-card{
+    background:var(--graphite);
+    border:1px solid var(--color-border);
+    border-radius:var(--radius-md);
+    padding:26px 28px;
+    box-shadow:var(--card-shadow);
+    transition:border-color .35s, transform .35s var(--ease);
+  }
+  .contact-card:hover{
+    border-color:var(--gold-soft);
+    transform:translateY(-2px);
+  }
+  .contact-card__head{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:14px;
+  }
+  .contact-card__icon{
+    width:44px;
+    height:44px;
+    border-radius:var(--radius-sm);
+    background:rgba(184,155,94,.1);
+    color:var(--gold);
+    border:1px solid var(--gold-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+  }
+  .contact-card__title{
+    font-size:16px;
+    font-weight:700;
+    color:var(--cream);
+  }
+  .contact-card__content{
+    font-size:14.5px;
+    line-height:2.1;
+    color:var(--cream-soft);
+  }
+  .contact-card__link{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    color:var(--cream);
+    font-weight:700;
+    text-decoration:none;
+    font-size:15px;
+    transition:color .3s;
+    margin-inline-end:16px;
+  }
+  .contact-card__link:hover{
+    color:var(--gold);
+  }
+
+  /* Social Channels Grid */
+  .social-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+    gap:12px;
+    margin-top:14px;
+  }
+  .social-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-radius:var(--radius-sm);
+    background:rgba(245,240,232,.04);
+    border:1px solid var(--color-border);
+    color:var(--cream);
+    text-decoration:none;
+    font-size:13.5px;
+    font-weight:600;
+    transition:all .3s var(--ease);
+  }
+  .social-item:hover{
+    border-color:var(--gold);
+    background:rgba(184,155,94,.1);
+    color:var(--gold);
+    transform:translateY(-2px);
+  }
+  .social-item i{
+    font-size:16px;
+  }
+
+  /* Form Container */
+  .contact-form-card{
+    background:var(--graphite);
+    border:1px solid var(--color-border);
+    border-radius:var(--radius-md);
+    padding:38px;
+    box-shadow:var(--card-shadow);
+  }
+  .contact-form-card h2{
+    font-size:20px;
+    font-weight:800;
+    color:var(--cream);
+    margin-bottom:8px;
+  }
+  .contact-form-card p{
+    font-size:14px;
+    line-height:1.9;
+    color:var(--cream-soft);
+    margin-bottom:26px;
+  }
+
+  .form-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+  }
+  .form-group{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .form-group label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--cream);
+  }
+  .form-control{
+    width:100%;
+    background:var(--color-surface, var(--graphite));
+    border:1px solid var(--color-border);
+    border-radius:var(--radius-sm);
+    padding:13px 16px;
+    color:var(--cream);
+    font-family:inherit;
+    font-size:14px;
+    outline:none;
+    transition:border-color .3s, box-shadow .3s;
+  }
+  .form-control:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(184,155,94,.15);
+  }
+  textarea.form-control{
+    min-height:120px;
+    resize:vertical;
+  }
+
+  .btn-submit{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    width:100%;
+    min-height:50px;
+    background:var(--color-primary, #123C36);
+    color:#FAF8F5;
+    border:none;
+    border-radius:var(--radius-sm);
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:background .35s var(--ease), transform .2s;
+  }
+  .btn-submit:hover{
+    opacity:.92;
+    transform:translateY(-1px);
+  }
+
+  .contact-alert-success{
+    background:rgba(27,73,53,.12);
+    border:1px solid rgba(27,73,53,.3);
+    color:var(--color-primary-dark, #123C36);
+    padding:14px 18px;
+    border-radius:var(--radius-sm);
+    margin-bottom:22px;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  [data-theme="dark"] .contact-alert-success{
+    background:rgba(36,92,67,.2);
+    border-color:rgba(168,198,108,.3);
+    color:#A8C66C;
+  }
+
+  /* Support ticket banner */
+  .ticket-banner{
+    background:rgba(184,155,94,.06);
+    border:1px dashed var(--gold-soft);
+    border-radius:var(--radius-sm);
+    padding:18px 22px;
+    margin-top:24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .ticket-banner p{
+    font-size:13.5px;
+    color:var(--cream-soft);
+    margin:0;
+  }
+  .ticket-banner a{
+    color:var(--gold);
+    font-weight:700;
+    text-decoration:none;
+    font-size:13.5px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .ticket-banner a:hover{ text-decoration:underline; }
+
+  @media(max-width:980px){
+    .contact-grid{ grid-template-columns:1fr; }
+    .form-row{ grid-template-columns:1fr; gap:0; }
+    .contact-form-card{ padding:26px 20px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container contact-page-wrap">
+
+  <nav class="crumbs" aria-label="مسیر صفحه">
+    <a href="{% url 'home:home' %}">خانه</a>
+    <span class="sep">/</span>
+    <span class="current">تماس با ما</span>
+  </nav>
+
+  <header class="contact-header">
+    <span class="contact-eyebrow"><i class="fa-solid fa-headset"></i> صدای گرم شما را مشتاقانه می‌شنویم</span>
+    <h1 class="contact-title">ارتباط با مجموعه سیدوس</h1>
+    <p class="contact-lead">
+      جهت استعلام قیمت‌های عمده، هماهنگی خرید، مشاوره فنی کالاها یا پیگیری سفارش‌ها، می‌توانید از طریق شماره‌های تماس، پیام‌رسان‌ها یا فرم زیر مستقیماً با کارشناسان ما در ارتباط باشید.
+    </p>
+  </header>
+
+  <div class="contact-grid">
+
+    <!-- Contact Info Cards -->
+    <div class="contact-cards">
+
+      <!-- Card: Phone Numbers -->
+      <div class="contact-card">
+        <div class="contact-card__head">
+          <div class="contact-card__icon"><i class="fa-solid fa-phone"></i></div>
+          <div>
+            <div class="contact-card__title">شماره‌های تماس و مشاوره</div>
+            <small style="color:var(--gold); font-size:12px;">پاسخگویی سریع کارشناسان فروش</small>
+          </div>
+        </div>
+        <div class="contact-card__content">
+          <p style="margin-bottom:10px;">
+            تلفن همراه (تماس، واتساپ، بله):<br>
+            <a href="tel:09308743868" class="contact-card__link" dir="ltr">۰۹۳۰-۸۷۴۳۸۶۸</a>
+          </p>
+          <p style="margin:0;">
+            تلفن‌های ثابت دفتر مرکزی:<br>
+            <a href="tel:05138944687" class="contact-card__link" dir="ltr">۰۵۱۳-۸۹۴۴۶۸۷</a>
+            <a href="tel:05138944715" class="contact-card__link" dir="ltr">۰۵۱۳-۸۹۴۴۷۱۵</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Card: Working Hours -->
+      <div class="contact-card">
+        <div class="contact-card__head">
+          <div class="contact-card__icon"><i class="fa-solid fa-clock"></i></div>
+          <div class="contact-card__title">ساعات کاری و پاسخگویی</div>
+        </div>
+        <div class="contact-card__content">
+          <p style="margin-bottom:6px;"><strong>شنبه تا چهارشنبه:</strong> ۱۰ الی ۱۷</p>
+          <p style="margin-bottom:6px;"><strong>پنج‌شنبه‌ها:</strong> ۱۰ الی ۱۴</p>
+          <p style="margin:0; font-size:13px; color:var(--cream-soft);">در روزهای تعطیل و ساعات غیر اداری، از طریق پیام‌رسان‌های واتساپ و بله پیام بگذارید تا در اولین فرصت پاسخ داده شود.</p>
+        </div>
+      </div>
+
+      <!-- Card: Social Media & Messengers -->
+      <div class="contact-card">
+        <div class="contact-card__head">
+          <div class="contact-card__icon"><i class="fa-solid fa-share-nodes"></i></div>
+          <div class="contact-card__title">شبکه‌های اجتماعی و پیام‌رسان‌ها</div>
+        </div>
+        <div class="contact-card__content">
+          <p style="margin-bottom:8px; font-size:13.5px;">ما در تمامی پیام‌رسان‌های پرمخاطب همراه شما هستیم:</p>
+          <div class="social-grid">
+            <a href="https://wa.me/989308743868" target="_blank" rel="noopener" class="social-item" title="واتساپ">
+              <i class="fa-brands fa-whatsapp" style="color:#25D366;"></i>
+              <span>واتساپ</span>
+            </a>
+            <a href="https://ble.ir/sidoos" target="_blank" rel="noopener" class="social-item" title="پیام‌رسان بله">
+              <i class="fa-solid fa-comment-dots" style="color:var(--gold);"></i>
+              <span>بله (sidoos@)</span>
+            </a>
+            <a href="https://instagram.com/sidoos.ir" target="_blank" rel="noopener" class="social-item" title="اینستاگرام">
+              <i class="fa-brands fa-instagram" style="color:#E1306C;"></i>
+              <span>اینستاگرام</span>
+            </a>
+            <a href="https://rubika.ir/sidoos1402" target="_blank" rel="noopener" class="social-item" title="روبیکا">
+              <i class="fa-solid fa-cube" style="color:var(--gold);"></i>
+              <span>روبیکا</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Email -->
+      <div class="contact-card">
+        <div class="contact-card__head">
+          <div class="contact-card__icon"><i class="fa-solid fa-envelope"></i></div>
+          <div class="contact-card__title">مکاتبات و ایمیل</div>
+        </div>
+        <div class="contact-card__content">
+          <p style="margin:0;">
+            ارسال نامه‌ها و درخواست‌های همکاری رسمی:<br>
+            <a href="mailto:sales@sidoos.ir" class="contact-card__link" dir="ltr">sales@sidoos.ir</a>
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Contact Form -->
+    <div class="contact-form-card">
+      <h2>ارسال پیام مستقیم</h2>
+      <p>فرم زیر را تکمیل نمایید تا کارشناسان مربوطه در سریع‌ترین زمان با شما تماس بگیرند.</p>
+
+      {% if sent %}
+        <div class="contact-alert-success" role="alert">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>پیام شما با موفقیت دریافت گردید. به زودی با شما تماس خواهیم گرفت.</span>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'home:contact' %}">
+        {% csrf_token %}
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contact_name">نام و نام خانوادگی *</label>
+            <input type="text" id="contact_name" name="name" class="form-control" required placeholder="مثال: علی رضایی">
+          </div>
+
+          <div class="form-group">
+            <label for="contact_phone">شماره تماس *</label>
+            <input type="tel" id="contact_phone" name="phone" class="form-control" dir="ltr" required placeholder="۰۹۱۲۳۴۵۶۷۸۹">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="contact_subject">موضوع پیام</label>
+          <select id="contact_subject" name="subject" class="form-control">
+            <option value="buy">استعلام قیمت و خرید عمده</option>
+            <option value="cooperation">همکاری در پخش و نمایندگی</option>
+            <option value="tracking">پیگیری و وضعیت مرسوله</option>
+            <option value="other">سایر پرسش‌ها و پیشنهادات</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="contact_message">متن پیام یا توضیحات سفارش *</label>
+          <textarea id="contact_message" name="message" class="form-control" required placeholder="پیام خود را بنویسید..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <span>ارسال پیام به کارشناسان</span>
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+
+      <!-- Customer Ticket Support Callout -->
+      <div class="ticket-banner">
+        <p>همکاران و مشتریان دارای حساب کاربری می‌توانند از پنل تیکتینگ نیز استفاده کنند.</p>
+        <a href="{% url 'support:ticket_list' %}">
+          <span>ورود به سامانه پشتیبانی و تیکت</span>
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -131,6 +131,12 @@
     --header-height:84px;
   }
 
+  @media (max-width: 980px) {
+    :root {
+      --header-height: 130px;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration:.01ms !important;
@@ -264,10 +270,17 @@
     opacity:.9;
   }
   body > main,
-  body > header,
   body > footer,
-  body > .site-header,
   body > .site-footer { position:relative; z-index:1; }
+
+  body > header,
+  body > .site-header {
+    position:fixed !important;
+    top:0 !important;
+    right:0 !important;
+    left:0 !important;
+    z-index:1000 !important;
+  }
 
   /* ===== scroll reveal ===== */
   .reveal {
@@ -573,6 +586,65 @@
     background: rgba(250,248,245,.96);
     border-bottom: 1px solid rgba(18,60,54,.18);
     box-shadow: 0 4px 20px rgba(0,0,0,.04);
+  }
+
+  /* ===== Special Offers (.offers) & Special Sales Hero (.ss-hero) dark emerald contrast ===== */
+  .ss-hero,
+  .offers {
+    color: #F5F0E8 !important;
+  }
+  .ss-hero .ss-hero__title,
+  .offers .section-title {
+    color: #FFFFFF !important;
+  }
+  .ss-hero .ss-hero__subtitle,
+  .offers .section-desc {
+    color: rgba(245, 240, 232, 0.85) !important;
+  }
+  .ss-hero .eyebrow,
+  .offers .eyebrow {
+    color: #E2C37E !important;
+  }
+  .ss-hero .eyebrow::before,
+  .offers .eyebrow::before {
+    background: #E2C37E !important;
+  }
+  .ss-hero__stats b {
+    color: #E2C37E !important;
+  }
+  .ss-hero__stats span {
+    color: rgba(245, 240, 232, 0.8) !important;
+  }
+  .offers .empty-note {
+    color: rgba(245, 240, 232, 0.8) !important;
+  }
+
+  [data-theme="light"] .ss-ticker {
+    background: #FFFFFF;
+    border-top-color: rgba(18, 60, 54, 0.18);
+    border-bottom-color: rgba(18, 60, 54, 0.18);
+  }
+  [data-theme="light"] .ss-ticker__item {
+    color: #181917 !important;
+    font-weight: 600;
+  }
+  [data-theme="light"] .ss-ticker__item svg {
+    color: #123C36 !important;
+  }
+  [data-theme="light"] .ss-card {
+    box-shadow: 0 4px 18px rgba(28,29,26,.05);
+    border-color: rgba(28,29,26,.08);
+  }
+  [data-theme="light"] .ss-card:hover {
+    box-shadow: 0 12px 30px rgba(28,29,26,.1);
+    border-color: #123C36;
+  }
+  [data-theme="light"] .ss-card__badge {
+    background: #123C36 !important;
+    color: #FAF8F5 !important;
+  }
+  [data-theme="light"] .ss-card__badge i {
+    background: #FAF8F5 !important;
   }
 
   {% block base_extra_style %}{% endblock %}

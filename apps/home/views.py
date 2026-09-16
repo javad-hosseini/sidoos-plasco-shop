@@ -181,3 +181,31 @@ def price_list_api(request):
         for item in items
     ]
     return JsonResponse({"success": True, "price_lists": data})
+
+
+def contact_us(request):
+    """Contact page with contact details, social media, working hours, and inquiry form."""
+    sent = False
+    if request.method == 'POST':
+        sent = True
+    return render(request, 'home/contact.html', {'sent': sent})
+
+
+def purchase_guide(request):
+    """Customer purchase guide page."""
+    return render(request, 'home/purchase_guide.html')
+
+
+def shipping_terms(request):
+    """Shipping methods and delivery terms page."""
+    return render(request, 'home/shipping_terms.html')
+
+
+def return_policy(request):
+    """Return and replacement policy page."""
+    return render(request, 'home/return_policy.html')
+
+
+def faq(request):
+    """Frequently asked questions page."""
+    return render(request, 'home/faq.html')

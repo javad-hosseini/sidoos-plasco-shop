@@ -4,19 +4,20 @@
   /* ===== Header / Navbar (cinematic) ===== */
   .site-header{
     position:fixed; top:0; right:0; left:0;
-    z-index:100;
+    z-index:1000;
     display:flex; align-items:center; justify-content:space-between;
     gap:24px;
     padding:24px 6vw;
     font-family:var(--font-body);
-    transition:padding .5s var(--ease), background .5s var(--ease), backdrop-filter .5s var(--ease), border-color .5s var(--ease);
+    transition:padding .35s var(--ease), background .35s var(--ease), backdrop-filter .35s var(--ease), border-color .35s var(--ease);
     border-bottom:1px solid transparent;
   }
   .site-header.scrolled{
     padding:14px 6vw;
-    background:rgba(17,17,17,.82);
+    background:var(--header-scrolled-bg, rgba(17,17,17,.82));
     backdrop-filter:blur(14px) saturate(140%);
-    border-bottom:1px solid rgba(184,155,94,.16);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid var(--header-border, rgba(184,155,94,.16));
   }
 
   .site-header__group{ display:flex; align-items:center; gap:26px; }
@@ -117,7 +118,7 @@
 
   /* ===== category drawer ===== */
   .cat-backdrop{
-    position:fixed; inset:0; z-index:150;
+    position:fixed; inset:0; z-index:1100;
     background:rgba(17,17,17,.55); backdrop-filter:blur(6px);
     opacity:0; pointer-events:none; transition:opacity .4s var(--ease);
   }
@@ -128,7 +129,7 @@
     width:min(400px, 88vw);
     background:var(--charcoal);
     border-left:1px solid rgba(184,155,94,.16);
-    z-index:160;
+    z-index:1110;
     transform:translateX(100%);
     transition:transform .5s var(--ease);
     display:flex; flex-direction:column;
@@ -313,9 +314,12 @@
 <script>
 (function(){
   var header = document.getElementById('siteHeader');
-  window.addEventListener('scroll', function(){
-    if(window.scrollY > 40){ header.classList.add('scrolled'); } else { header.classList.remove('scrolled'); }
-  }, {passive:true});
+  function checkScroll(){
+    if(!header) return;
+    if(window.scrollY > 20){ header.classList.add('scrolled'); } else { header.classList.remove('scrolled'); }
+  }
+  window.addEventListener('scroll', checkScroll, {passive:true});
+  checkScroll();
 
   var toggle = document.getElementById('catToggle');
   var panel = document.getElementById('catPanel');

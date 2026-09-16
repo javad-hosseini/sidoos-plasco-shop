@@ -83,6 +83,8 @@ class HomePageTests(TestCase):
         self.assertIn("گلدان نمونه", featured_names)
         self.assertContains(response, "فروش ویژه سیدوس")
         self.assertContains(response, "مقاله نمونه")
+        article_url = reverse("blogs:article_detail", kwargs={"slug": "مقاله-نمونه"})
+        self.assertContains(response, f'href="{article_url}"')
 
     def test_hero_slide_cta_url_resolves(self):
         slide = HeroSlide(cta_url_name="products:special_sales")
