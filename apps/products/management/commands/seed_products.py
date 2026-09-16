@@ -4,9 +4,10 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files import File
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from faker import Faker
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import os
 
@@ -250,43 +251,41 @@ class Command(BaseCommand):
         if not self.sample_covers:
             self.stdout.write('')
             self.stdout.write(
-                self.style.ERROR(
-                    '❌ Cannot generate products because no sample '
-                    'images were found.'
-                )
-            )
-
-            return
-
-        # Start with a randomized order.
-        self.shuffle_sample_covers()
-
-        # ====================================================================
-        # Image count warning
-        # ====================================================================
-
-        if len(self.sample_covers) < count:
-
-            self.stdout.write(
                 self.style.WARNING(
-                    f'⚠️  Only {len(self.sample_covers)} unique images '
-                    f'available for {count} products.'
+                    'ℹ️  No sample cover files found in SampleCovers. '
+                    'Generating placeholder images with Pillow...'
                 )
             )
-
-            self.stdout.write(
-                '   Images will be reused only after the entire '
-                'image pool has been exhausted.'
-            )
-
         else:
+            # Start with a randomized order.
+            self.shuffle_sample_covers()
 
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f'✅ Enough images available for all {count} '
-                    f'products without reuse.'
+            # ====================================================================
+            # Image count warning
+            # ====================================================================
+
+            if len(self.sample_covers) < count:
+
+                self.stdout.write(
+                    self.style.WARNING(
+                        f'⚠️  Only {len(self.sample_covers)} unique images '
+                        f'available for {count} products.'
+                    )
                 )
-            )
+
+                self.stdout.write(
+                    '   Images will be reused only after the entire '
+                    'image pool has been exhausted.'
+                )
+
+            else:
+
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f'✅ Enough images available for all {count} '
+                        f'products without reuse.'
+                    )
+                )
 
         # ====================================================================
         # Prepare names
@@ -328,6 +327,58 @@ class Command(BaseCommand):
     # =========================================================================
     # IMAGE HANDLING
     # =========================================================================
+
+    def load_font(self, size=32):
+        font_candidates = [
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            'C:/Windows/Fonts/IRANSans.ttf',
+            'C:/Windows/Fonts/B-NAZANIN.TTF',
+            'C:/Windows/Fonts/ARIAL.TTF',
+        ]
+        for font_path in font_candidates:
+            if Path(font_path).exists():
+                try:
+                    return ImageFont.truetype(font_path, size)
+                except Exception:
+                    pass
+        return ImageFont.load_default()
+
+    def create_placeholder_image(self, title, width=800, height=800):
+        """Build a clean 1:1 placeholder cover image with Pillow."""
+        bg_colors = [
+            (240, 243, 246),
+            (245, 245, 247),
+            (238, 242, 238),
+            (245, 240, 235),
+            (243, 238, 245),
+            (235, 240, 245),
+        ]
+        bg_color = random.choice(bg_colors)
+        img = Image.new('RGB', (width, height), bg_color)
+        draw = ImageDraw.Draw(img)
+
+        margin = 40
+        draw.rectangle(
+            [margin, margin, width - margin, height - margin],
+            outline=(180, 185, 190),
+            width=2,
+        )
+
+        font = self.load_font(size=32)
+        try:
+            bbox = draw.textbbox((0, 0), title, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            x = (width - text_width) / 2
+            y = (height - text_height) / 2
+            draw.text((x, y), title, fill=(40, 45, 50), font=font)
+        except Exception:
+            pass
+
+        buffer = BytesIO()
+        img.save(buffer, format='JPEG', quality=85, optimize=True)
+        buffer.seek(0)
+        return ContentFile(buffer.read())
 
     def process_image_to_square(self, image_path, output_path=None):
         """
@@ -1031,12 +1082,29 @@ class Command(BaseCommand):
 
             else:
 
-                self.stdout.write(
-                    self.style.WARNING(
-                        f'   ⚠️  Product {i + 1}/{count}'
-                        ' has no image.'
-                    )
+                image_filename = (
+                    f'product_{i + 1}_'
+                    f'{random.randint(100000, 999999)}'
+                    f'.jpg'
                 )
+
+                try:
+                    placeholder = self.create_placeholder_image(name)
+                    product.cover_image.save(
+                        image_filename,
+                        placeholder,
+                        save=False,
+                    )
+                    self.stdout.write(
+                        f'   🎨 Pillow placeholder image generated: '
+                        f'{COVER_IMAGE_SIZE[0]}x{COVER_IMAGE_SIZE[1]}px'
+                    )
+                except Exception as exc:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f'   ⚠️  Placeholder generation failed for product {i + 1}: {exc}'
+                        )
+                    )
 
             # -----------------------------------------------------------------
             # Save product
