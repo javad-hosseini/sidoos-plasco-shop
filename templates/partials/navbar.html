@@ -64,7 +64,8 @@
   .nav-search button:hover{ color:var(--gold); }
   .nav-search svg{ width:17px; height:17px; }
 
-  /* auth */
+  /* auth & actions */
+  .site-header__actions{ display:flex; align-items:center; gap:12px; }
   .nav-auth-icon{ width:20px; height:20px; color:var(--cream); opacity:.85; transition:opacity .3s, transform .3s; }
   .nav-auth-icon:hover{ opacity:1; transform:translateY(-1px); }
   .nav-auth-icon svg{ width:100%; height:100%; }
@@ -75,7 +76,44 @@
     padding:9px 20px; font-size:13px; letter-spacing:.02em;
     transition:background .35s var(--ease), color .35s var(--ease), border-color .35s;
   }
-  .nav-login:hover{ background:var(--gold); color:var(--charcoal); border-color:var(--gold); }
+  .nav-login:hover{ background:var(--gold); color:var(--btn-gold-text, var(--charcoal)); border-color:var(--gold); }
+
+  /* theme toggle button */
+  .theme-toggle{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:36px; height:36px;
+    border-radius:var(--radius-sm);
+    border:1px solid var(--gold-soft);
+    background:rgba(148,111,40,.06);
+    color:var(--cream);
+    cursor:pointer;
+    padding:0;
+    transition:background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease), transform .25s var(--ease);
+  }
+  .theme-toggle:hover{
+    background:rgba(148,111,40,.14);
+    border-color:var(--gold);
+    color:var(--gold);
+    transform:translateY(-1px);
+  }
+  .theme-toggle:focus-visible{
+    outline:2px solid var(--color-focus-ring);
+    outline-offset:2px;
+  }
+  .theme-toggle .theme-icon{
+    width:18px; height:18px;
+    transition:transform .4s var(--ease);
+  }
+  .theme-toggle:hover .theme-icon{
+    transform:rotate(20deg);
+  }
+  /* Theme-aware icon display */
+  :root .theme-icon--sun,
+  [data-theme="light"] .theme-icon--sun{ display:none; }
+  :root .theme-icon--moon,
+  [data-theme="light"] .theme-icon--moon{ display:block; }
+  [data-theme="dark"] .theme-icon--sun{ display:block; }
+  [data-theme="dark"] .theme-icon--moon{ display:none; }
 
   /* ===== category drawer ===== */
   .cat-backdrop{
@@ -150,11 +188,11 @@
     }
     .site-header__group--right{ grid-area:right; justify-self:start; }
     .site-header__group--center{ grid-area:center; justify-self:center; }
-    /* Dissolve the --left wrapper so its two children (auth link and
-       search form) can be placed independently: auth stays on the top
+    /* Dissolve the --left wrapper so its two children (actions cluster and
+       search form) can be placed independently: actions stay on the top
        row, search drops to its own row below. */
     .site-header__group--left{ display:contents; }
-    .nav-auth-icon, .nav-login{ grid-area:left; justify-self:end; }
+    .site-header__actions{ grid-area:left; justify-self:end; }
 
     .nav-search{
       grid-area:search;
@@ -209,16 +247,35 @@
       <input type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="جستجوی محصول…" aria-label="جستجوی محصول">
     </form>
 
-    {% if user.is_authenticated %}
-      <a href="{% url 'accounts:profile' %}" class="nav-auth-icon" aria-label="حساب کاربری">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.8-4 5-6 8-6s6.2 2 8 6"/></svg>
-      </a>
-    {% else %}
-      <a href="{% url 'accounts:login' %}" class="nav-login">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-        <span>ورود</span>
-      </a>
-    {% endif %}
+    <div class="site-header__actions">
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="تغییر تم (روشن / تاریک)" title="تغییر حالت شب و روز">
+        <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
+      {% if user.is_authenticated %}
+        <a href="{% url 'accounts:profile' %}" class="nav-auth-icon" aria-label="حساب کاربری" title="حساب کاربری">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.8-4 5-6 8-6s6.2 2 8 6"/></svg>
+        </a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="nav-login">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+          <span>ورود</span>
+        </a>
+      {% endif %}
+    </div>
   </div>
 </header>
 
@@ -295,6 +352,17 @@
       var open = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', String(!open));
       children.hidden = open;
+    });
+  }
+
+  /* theme switcher */
+  var themeBtn = document.getElementById('themeToggle');
+  if(themeBtn){
+    themeBtn.addEventListener('click', function(){
+      var current = document.documentElement.getAttribute('data-theme') || 'light';
+      var target = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', target);
+      try { localStorage.setItem('sidoos_theme', target); } catch(e){}
     });
   }
 })();
