@@ -9,6 +9,7 @@ managed entirely from the Django admin:
 
 import os
 import uuid
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import NoReverseMatch, reverse
@@ -447,3 +448,74 @@ class PriceList(models.Model):
     def get_download_url(self):
         """Return the protected download URL for this price list."""
         return reverse("home:price_list_download", kwargs={"pk": self.pk})
+
+
+class ContactMessage(models.Model):
+    """
+    Public contact and inquiry submissions sent from /contact/.
+    """
+
+    class Subject(models.TextChoices):
+        BUY = "buy", "استعلام قیمت و خرید عمده"
+        COOPERATION = "cooperation", "همکاری در پخش و نمایندگی"
+        TRACKING = "tracking", "پیگیری و وضعیت مرسوله"
+        OTHER = "other", "سایر پرسش‌ها و پیشنهادات"
+
+    name = models.CharField(
+        max_length=150,
+        verbose_name="نام و نام خانوادگی",
+    )
+    phone = models.CharField(
+        max_length=30,
+        verbose_name="شماره تماس",
+    )
+    subject = models.CharField(
+        max_length=30,
+        choices=Subject.choices,
+        default=Subject.BUY,
+        verbose_name="موضوع پیام",
+    )
+    message = models.TextField(
+        verbose_name="متن پیام یا توضیحات",
+    )
+    is_read = models.BooleanField(
+        default=False,
+        verbose_name="خوانده شده",
+        help_text="تیک بزنید تا وضعیت پیام به عنوان بررسی شده علامت‌گذاری شود.",
+    )
+    admin_note = models.TextField(
+        blank=True,
+        verbose_name="یادداشت مدیر",
+        help_text="یادداشت‌های داخلی تیم فروش و پشتیبانی در مورد این پیام.",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="contact_messages",
+        verbose_name="کاربر سایت",
+        help_text="در صورتی که کاربر وارد شده باشد، به حساب کاربری متصل می‌شود.",
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        verbose_name="آدرس IP",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ ارسال",
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="تاریخ بروزرسانی",
+    )
+
+    class Meta:
+        verbose_name = "پیام تماس با ما"
+        verbose_name_plural = "پیام‌های تماس با ما"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} - {self.get_subject_display()}"
+

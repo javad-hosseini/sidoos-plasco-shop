@@ -98,10 +98,13 @@ JAZZMIN_SETTINGS = {
 
         "auth": "fas fa-users",
         "accounts": "fas fa-users",
+        "home": "fas fa-home",
+        "support": "fas fa-headset",
 
         # Django Models
 
         "accounts.user": "fas fa-user",
+        "home.contactmessage": "fas fa-envelope-open-text",
 
         "auth.group": "fas fa-users-cog",
 

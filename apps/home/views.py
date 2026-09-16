@@ -1,14 +1,18 @@
+import logging
 import os
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.blogs.models import Article
 from apps.products.models import Product
-from .forms import NewsletterSubscriptionForm
+from .forms import ContactForm, NewsletterSubscriptionForm
 from .models import (
     BestSeller,
     FeaturedCategory,
@@ -17,6 +21,8 @@ from .models import (
     PriceList,
     SpecialSaleFeature,
 )
+
+logger = logging.getLogger(__name__)
 
 # How many items each homepage section shows at most.
 FEATURED_LIMIT = 12
@@ -187,8 +193,61 @@ def contact_us(request):
     """Contact page with contact details, social media, working hours, and inquiry form."""
     sent = False
     if request.method == 'POST':
-        sent = True
-    return render(request, 'home/contact.html', {'sent': sent})
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            contact_msg = form.save(commit=False)
+            if request.user.is_authenticated:
+                contact_msg.user = request.user
+
+            # Capture client IP
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip = x_forwarded_for.split(',')[0].strip()
+            else:
+                ip = request.META.get('REMOTE_ADDR')
+            contact_msg.ip_address = ip
+            contact_msg.save()
+            sent = True
+
+            # Send email notification to support@sidoos.ir
+            try:
+                subject_display = contact_msg.get_subject_display()
+                email_subject = f"[فرم تماس] پیام جدید از {contact_msg.name} - {subject_display}"
+                email_body = f"""یک پیام جدید از طریق فرم تماس با ما سایت سیدوس دریافت شد:
+
+• نام و نام خانوادگی: {contact_msg.name}
+• شماره تماس: {contact_msg.phone}
+• موضوع: {subject_display}
+• تاریخ ارسال: {timezone.now().strftime('%Y-%m-%d %H:%M')}
+
+متن پیام:
+----------------------------------------
+{contact_msg.message}
+----------------------------------------
+
+⚠️ هشدار مهم به اپراتور / همکار گرامی:
+لطفاً به این ایمیل پاسخ (Reply) ندهید. این پیام از طریق فرم تماس وب‌سایت ارسال شده است و پاسخ ایمیلی به دست مشتری نمی‌رسد. برای پاسخ‌گویی، حتماً از طریق تماس تلفنی با شماره فوق ({contact_msg.phone}) ارتباط بگیرید یا در صورت نیاز وضعیت پیام را در پنل مدیریت به‌روزرسانی نمایید.
+"""
+                send_mail(
+                    subject=email_subject,
+                    message=email_body,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=["support@sidoos.ir"],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.warning("Failed to send contact notification email: %s", e)
+
+            form = ContactForm()
+    else:
+        initial_data = {}
+        if request.user.is_authenticated:
+            initial_data["name"] = request.user.get_full_name() or request.user.username
+            if hasattr(request.user, "phone_number") and request.user.phone_number:
+                initial_data["phone"] = request.user.phone_number
+        form = ContactForm(initial=initial_data)
+
+    return render(request, 'home/contact.html', {'sent': sent, 'form': form})
 
 
 def purchase_guide(request):

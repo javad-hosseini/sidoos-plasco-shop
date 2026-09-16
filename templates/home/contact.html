@@ -388,28 +388,40 @@
         <div class="form-row">
           <div class="form-group">
             <label for="contact_name">نام و نام خانوادگی *</label>
-            <input type="text" id="contact_name" name="name" class="form-control" required placeholder="مثال: علی رضایی">
+            <input type="text" id="contact_name" name="name" class="form-control" required placeholder="مثال: علی رضایی" value="{{ form.name.value|default:'' }}">
+            {% if form.name.errors %}
+              <small style="color:#e05260; font-size:12.5px; margin-top:4px;">{{ form.name.errors.0 }}</small>
+            {% endif %}
           </div>
 
           <div class="form-group">
             <label for="contact_phone">شماره تماس *</label>
-            <input type="tel" id="contact_phone" name="phone" class="form-control" dir="ltr" required placeholder="۰۹۱۲۳۴۵۶۷۸۹">
+            <input type="tel" id="contact_phone" name="phone" class="form-control" dir="ltr" required placeholder="۰۹۱۲۳۴۵۶۷۸۹" value="{{ form.phone.value|default:'' }}">
+            {% if form.phone.errors %}
+              <small style="color:#e05260; font-size:12.5px; margin-top:4px;">{{ form.phone.errors.0 }}</small>
+            {% endif %}
           </div>
         </div>
 
         <div class="form-group">
           <label for="contact_subject">موضوع پیام</label>
           <select id="contact_subject" name="subject" class="form-control">
-            <option value="buy">استعلام قیمت و خرید عمده</option>
-            <option value="cooperation">همکاری در پخش و نمایندگی</option>
-            <option value="tracking">پیگیری و وضعیت مرسوله</option>
-            <option value="other">سایر پرسش‌ها و پیشنهادات</option>
+            <option value="buy" {% if form.subject.value == 'buy' or not form.subject.value %}selected{% endif %}>استعلام قیمت و خرید عمده</option>
+            <option value="cooperation" {% if form.subject.value == 'cooperation' %}selected{% endif %}>همکاری در پخش و نمایندگی</option>
+            <option value="tracking" {% if form.subject.value == 'tracking' %}selected{% endif %}>پیگیری و وضعیت مرسوله</option>
+            <option value="other" {% if form.subject.value == 'other' %}selected{% endif %}>سایر پرسش‌ها و پیشنهادات</option>
           </select>
+          {% if form.subject.errors %}
+            <small style="color:#e05260; font-size:12.5px; margin-top:4px;">{{ form.subject.errors.0 }}</small>
+          {% endif %}
         </div>
 
         <div class="form-group">
           <label for="contact_message">متن پیام یا توضیحات سفارش *</label>
-          <textarea id="contact_message" name="message" class="form-control" required placeholder="پیام خود را بنویسید..."></textarea>
+          <textarea id="contact_message" name="message" class="form-control" required placeholder="پیام خود را بنویسید...">{{ form.message.value|default:'' }}</textarea>
+          {% if form.message.errors %}
+            <small style="color:#e05260; font-size:12.5px; margin-top:4px;">{{ form.message.errors.0 }}</small>
+          {% endif %}
         </div>
 
         <button type="submit" class="btn-submit">

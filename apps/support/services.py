@@ -13,12 +13,61 @@ business rule enforcement across views, forms, and admin actions.
 
 import random
 import logging
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from .models import Ticket, TicketMessage, TicketAttachment
 
 logger = logging.getLogger(__name__)
+
+
+def _send_ticket_notification(ticket, user, message_text, is_new=True):
+    """
+    Send an email notification to support@sidoos.ir when a new ticket
+    or customer reply is created.
+    """
+    try:
+        user_name = user.get_full_name() or user.username
+        user_phone = getattr(user, "phone_number", None) or "بدون شماره"
+
+        if is_new:
+            subject = f"[تیکت جدید #{ticket.tracking_code}] {ticket.title}"
+            intro = "یک تیکت پشتیبانی جدید در وب‌سایت سیدوس ثبت شد."
+        else:
+            subject = f"[پیام جدید تیکت #{ticket.tracking_code}] {ticket.title}"
+            intro = "پیام جدیدی از سوی کاربر برای تیکت پشتیبانی ثبت شد."
+
+        body = f"""{intro}
+
+• شماره پیگیری: {ticket.tracking_code}
+• کاربر: {user_name}
+• شماره تماس: {user_phone}
+• موضوع: {ticket.get_subject_display()}
+• عنوان تیکت: {ticket.title}
+• تاریخ ارسال: {timezone.now().strftime('%Y-%m-%d %H:%M')}
+
+متن پیام:
+----------------------------------------
+{message_text}
+----------------------------------------
+
+⚠️ هشدار مهم به اپراتور / همکار گرامی:
+لطفاً به این ایمیل پاسخ (Reply) ندهید. این یک اعلان سیستمی است.
+برای پاسخ به مشتری و حفظ سوابق تیکت، حتماً وارد پنل مدیریت سایت شوید و از بخش «تیکت‌های پشتیبانی» پاسخ خود را ثبت نمایید، یا در صورت نیاز با کاربر تماس تلفنی حاصل فرمایید.
+لینک مشاهده در پنل مدیریت: https://sidoos.ir/admin/support/ticket/{ticket.id}/change/
+"""
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=["support@sidoos.ir"],
+            fail_silently=True,
+        )
+    except Exception as e:
+        logger.warning("Failed to send ticket notification email: %s", e)
 
 
 def generate_tracking_code():
@@ -100,6 +149,11 @@ def create_ticket(user, title, subject, message_text, attachments=None):
                 original_name=file.name,
             )
 
+    # Send email notification to support staff
+    transaction.on_commit(
+        lambda: _send_ticket_notification(ticket, user, message_text, is_new=True)
+    )
+
     return ticket
 
 
@@ -154,6 +208,11 @@ def send_customer_message(ticket, user, message_text, attachments=None):
     # Update ticket status
     ticket.status = Ticket.Status.WAITING_FOR_SUPPORT
     ticket.save(update_fields=["status", "updated_at"])
+
+    # Send email notification to support staff
+    transaction.on_commit(
+        lambda: _send_ticket_notification(ticket, user, message_text, is_new=False)
+    )
 
     return message
 

@@ -1,7 +1,15 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import BestSeller, FeaturedCategory, HeroSlide, NewsletterSubscriber, PriceList, SpecialSaleFeature
+from .models import (
+    BestSeller,
+    ContactMessage,
+    FeaturedCategory,
+    HeroSlide,
+    NewsletterSubscriber,
+    PriceList,
+    SpecialSaleFeature,
+)
 
 
 @admin.register(HeroSlide)
@@ -310,3 +318,63 @@ class PriceListAdmin(admin.ModelAdmin):
     @admin.display(description="حجم فایل")
     def file_size_display(self, obj):
         return obj.get_file_size_formatted() or "-"
+
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "phone",
+        "subject_badge",
+        "is_read",
+        "created_at",
+    )
+    list_filter = ("is_read", "subject", "created_at")
+    search_fields = ("name", "phone", "message", "admin_note")
+    list_editable = ("is_read",)
+    readonly_fields = ("name", "phone", "subject", "message", "user", "ip_address", "created_at", "updated_at")
+    date_hierarchy = "created_at"
+    actions = ["mark_as_read", "mark_as_unread"]
+
+    fieldsets = (
+        ("اطلاعات فرستنده", {
+            "fields": ("name", "phone", "user", "ip_address"),
+        }),
+        ("پیام دریافتی", {
+            "fields": ("subject", "message"),
+        }),
+        ("وضعیت و پیگیری", {
+            "fields": ("is_read", "admin_note"),
+            "description": "وضعیت رسیدگی به پیام و یادداشت‌های داخلی تیم را در این بخش مدیریت کنید.",
+        }),
+        ("زمان‌بندی", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+
+    @admin.display(description="موضوع")
+    def subject_badge(self, obj):
+        colors = {
+            "buy": "#198754",         # Green
+            "cooperation": "#0d6efd",   # Blue
+            "tracking": "#fd7e14",      # Orange
+            "other": "#6c757d",         # Gray
+        }
+        color = colors.get(obj.subject, "#6c757d")
+        return format_html(
+            '<span style="background-color:{}; color:#fff; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">{}</span>',
+            color,
+            obj.get_subject_display(),
+        )
+
+    @admin.action(description="علامت‌گذاری موارد انتخابی به عنوان خوانده شده")
+    def mark_as_read(self, request, queryset):
+        count = queryset.update(is_read=True)
+        self.message_user(request, f"{count} پیام به عنوان خوانده شده علامت‌گذاری شد.")
+
+    @admin.action(description="علامت‌گذاری موارد انتخابی به عنوان خوانده نشده")
+    def mark_as_unread(self, request, queryset):
+        count = queryset.update(is_read=False)
+        self.message_user(request, f"{count} پیام به عنوان خوانده نشده علامت‌گذاری شد.")
+
