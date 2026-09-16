@@ -4,6 +4,22 @@
 {% block title %}سیدوس | صنایع دکوراتیو و ظروف خانه{% endblock %}
 {% block meta_description %}سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر.{% endblock %}
 
+{% block extra_meta %}
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="سیدوس | صنایع دکوراتیو و ظروف خانه">
+  <meta property="og:description" content="سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر برای فروشگاه‌ها و عمده‌فروشان سراسر کشور.">
+  <meta property="og:url" content="{{ canonical_url|default:request.build_absolute_uri }}">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-logo.jpg' %}">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="1500">
+  <meta property="og:image:type" content="image/jpeg">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="سیدوس | صنایع دکوراتیو و ظروف خانه">
+  <meta name="twitter:description" content="سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر برای فروشگاه‌ها و عمده‌فروشان سراسر کشور.">
+  <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-logo.jpg' %}">
+{% endblock %}
+
 {% block extra_css %}
 <style>
   /* ============================================================
