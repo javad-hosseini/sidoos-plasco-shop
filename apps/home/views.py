@@ -1,3 +1,4 @@
+import ipaddress
 import logging
 import os
 
@@ -192,28 +193,41 @@ def price_list_api(request):
 def contact_us(request):
     """Contact page with contact details, social media, working hours, and inquiry form."""
     sent = False
+    error_message = None
+
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
-            contact_msg = form.save(commit=False)
-            if request.user.is_authenticated:
-                contact_msg.user = request.user
-
-            # Capture client IP
-            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-            if x_forwarded_for:
-                ip = x_forwarded_for.split(',')[0].strip()
-            else:
-                ip = request.META.get('REMOTE_ADDR')
-            contact_msg.ip_address = ip
-            contact_msg.save()
-            sent = True
-
-            # Send email notification to support@sidoos.ir
             try:
-                subject_display = contact_msg.get_subject_display()
-                email_subject = f"[فرم تماس] پیام جدید از {contact_msg.name} - {subject_display}"
-                email_body = f"""یک پیام جدید از طریق فرم تماس با ما سایت سیدوس دریافت شد:
+                contact_msg = form.save(commit=False)
+                if request.user.is_authenticated:
+                    contact_msg.user = request.user
+
+                # Capture and sanitize client IP
+                raw_ip = None
+                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                if x_forwarded_for:
+                    raw_ip = x_forwarded_for.split(',')[0].strip()
+                elif request.META.get('REMOTE_ADDR'):
+                    raw_ip = request.META.get('REMOTE_ADDR').strip()
+
+                valid_ip = None
+                if raw_ip:
+                    try:
+                        ipaddress.ip_address(raw_ip)
+                        valid_ip = raw_ip
+                    except ValueError:
+                        valid_ip = None
+                contact_msg.ip_address = valid_ip
+                contact_msg.save()
+                sent = True
+
+                # Send email notification to support@sidoos.ir
+                try:
+                    subject_display = contact_msg.get_subject_display()
+                    clean_name = " ".join(contact_msg.name.split())
+                    email_subject = f"[فرم تماس] پیام جدید از {clean_name} - {subject_display}"
+                    email_body = f"""یک پیام جدید از طریق فرم تماس با ما سایت سیدوس دریافت شد:
 
 • نام و نام خانوادگی: {contact_msg.name}
 • شماره تماس: {contact_msg.phone}
@@ -228,17 +242,27 @@ def contact_us(request):
 ⚠️ هشدار مهم به اپراتور / همکار گرامی:
 لطفاً به این ایمیل پاسخ (Reply) ندهید. این پیام از طریق فرم تماس وب‌سایت ارسال شده است و پاسخ ایمیلی به دست مشتری نمی‌رسد. برای پاسخ‌گویی، حتماً از طریق تماس تلفنی با شماره فوق ({contact_msg.phone}) ارتباط بگیرید یا در صورت نیاز وضعیت پیام را در پنل مدیریت به‌روزرسانی نمایید.
 """
-                send_mail(
-                    subject=email_subject,
-                    message=email_body,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=["support@sidoos.ir"],
-                    fail_silently=True,
-                )
-            except Exception as e:
-                logger.warning("Failed to send contact notification email: %s", e)
+                    send_mail(
+                        subject=email_subject,
+                        message=email_body,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=["support@sidoos.ir"],
+                        fail_silently=True,
+                    )
+                except Exception as mail_err:
+                    logger.warning("Failed to send contact notification email: %s", mail_err)
 
-            form = ContactForm()
+                # Reset form with initial user data if authenticated
+                initial_data = {}
+                if request.user.is_authenticated:
+                    initial_data["name"] = request.user.get_full_name() or request.user.username
+                    if hasattr(request.user, "phone_number") and request.user.phone_number:
+                        initial_data["phone"] = request.user.phone_number
+                form = ContactForm(initial=initial_data)
+
+            except Exception as e:
+                logger.exception("Error saving contact message: %s", e)
+                error_message = "متأسفانه در ثبت پیام خطایی رخ داد. لطفاً مجدداً تلاش فرمایید یا با شماره‌های شرکت تماس بگیرید."
     else:
         initial_data = {}
         if request.user.is_authenticated:
@@ -247,7 +271,7 @@ def contact_us(request):
                 initial_data["phone"] = request.user.phone_number
         form = ContactForm(initial=initial_data)
 
-    return render(request, 'home/contact.html', {'sent': sent, 'form': form})
+    return render(request, 'home/contact.html', {'sent': sent, 'form': form, 'error_message': error_message})
 
 
 def purchase_guide(request):

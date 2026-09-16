@@ -342,11 +342,11 @@
               <i class="fa-solid fa-comment-dots" style="color:var(--gold);"></i>
               <span>بله (sidoos@)</span>
             </a>
-            <a href="https://instagram.com/sidoos.ir" target="_blank" rel="noopener" class="social-item" title="اینستاگرام">
+            <a href="https://www.instagram.com/__sidos.ir__/" target="_blank" rel="noopener" class="social-item" title="اینستاگرام">
               <i class="fa-brands fa-instagram" style="color:#E1306C;"></i>
               <span>اینستاگرام</span>
             </a>
-            <a href="https://rubika.ir/sidoos1402" target="_blank" rel="noopener" class="social-item" title="روبیکا">
+            <a href="https://rubika.ir/sidos1402" target="_blank" rel="noopener" class="social-item" title="روبیکا">
               <i class="fa-solid fa-cube" style="color:var(--gold);"></i>
               <span>روبیکا</span>
             </a>
@@ -363,7 +363,7 @@
         <div class="contact-card__content">
           <p style="margin:0;">
             ارسال نامه‌ها و درخواست‌های همکاری رسمی:<br>
-            <a href="mailto:sales@sidoos.ir" class="contact-card__link" dir="ltr">sales@sidoos.ir</a>
+            <a href="mailto:sidoos@sidoos.ir" class="contact-card__link" dir="ltr">sidoos@sidoos.ir</a>
           </p>
         </div>
       </div>
@@ -379,6 +379,13 @@
         <div class="contact-alert-success" role="alert">
           <i class="fa-solid fa-circle-check"></i>
           <span>پیام شما با موفقیت دریافت گردید. به زودی با شما تماس خواهیم گرفت.</span>
+        </div>
+      {% endif %}
+
+      {% if error_message %}
+        <div style="background:rgba(220,53,69,.15); border:1px solid rgba(220,53,69,.4); color:#e05260; padding:14px 18px; border-radius:var(--radius-sm); margin-bottom:22px; font-size:14px; display:flex; align-items:center; gap:10px;" role="alert">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ error_message }}</span>
         </div>
       {% endif %}
 
