@@ -9,8 +9,6 @@
 {# ========== Social & Rich Snippet Meta Tags ========== #}
 {% block extra_meta %}
   {# Open Graph #}
-  <meta property="og:site_name" content="سیدوس">
-  <meta property="og:locale" content="fa_IR">
   <meta property="og:title" content="{{ product.meta_title|default:product.name }}">
   <meta property="og:description" content="{{ product.meta_description|default:product.description|striptags|truncatewords:30 }}">
   <meta property="og:type" content="product">
