@@ -372,8 +372,12 @@ class Command(BaseCommand):
             x = (width - text_width) / 2
             y = (height - text_height) / 2
             draw.text((x, y), title, fill=(40, 45, 50), font=font)
-        except Exception:
-            pass
+        except Exception as exc:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Failed to render placeholder text for '{title}': {exc}"
+                )
+            )
 
         buffer = BytesIO()
         img.save(buffer, format='JPEG', quality=85, optimize=True)
