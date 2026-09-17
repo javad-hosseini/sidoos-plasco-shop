@@ -58,7 +58,9 @@ INSTALLED_APPS = [
     'apps.products.apps.ProductsConfig',
     'apps.support.apps.SupportConfig',
     'apps.translation.apps.TranslationConfig',
+    'apps.sms_service.apps.SmsServiceConfig',
 ]
+
 
 # Jazzmin admin theme config (branding, layout, language chooser, RTL CSS)
 # lives in its own module for readability; it must be imported here since
@@ -298,3 +300,14 @@ LOGGING = {
     },
 }
 # ===========================================
+
+# ========== SMS SERVICE (MELIPAYAMAK) CONFIGURATION ==========
+MELIPAYAMAK_USERNAME = config('MELIPAYAMAK_USERNAME', default='')
+MELIPAYAMAK_PASSWORD = config('MELIPAYAMAK_PASSWORD', default='')
+MELIPAYAMAK_FROM_NUMBER = config('MELIPAYAMAK_FROM_NUMBER', default='')
+MELIPAYAMAK_API_BASE_URL = config(
+    'MELIPAYAMAK_API_BASE_URL',
+    default='https://rest.payamak-panel.com/api/SendSMS/SendSMS',
+)
+SMS_CONSOLE_MODE = config('SMS_CONSOLE_MODE', default=DEBUG, cast=bool)
+# =============================================================

@@ -100,13 +100,18 @@ JAZZMIN_SETTINGS = {
         "accounts": "fas fa-users",
         "home": "fas fa-home",
         "support": "fas fa-headset",
+        "sms_service": "fas fa-sms",
 
         # Django Models
 
         "accounts.user": "fas fa-user",
         "home.contactmessage": "fas fa-envelope-open-text",
+        "sms_service.contact": "fas fa-address-book",
+        "sms_service.smscampaign": "fas fa-paper-plane",
+        "sms_service.smsrecipientlog": "fas fa-history",
 
         "auth.group": "fas fa-users-cog",
+
 
     },
 
