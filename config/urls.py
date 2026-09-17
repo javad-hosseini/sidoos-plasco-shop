@@ -18,6 +18,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.sitemaps.views import sitemap
+from django.views.generic.base import RedirectView
 from config.sitemaps import StaticViewSitemap, ProductSitemap, CategorySitemap
 
 from config import settings
@@ -33,6 +34,7 @@ sitemaps = {
 # paths - a separate project-level route here previously shadowed it with
 # a stale list referencing routes that don't exist in this project).
 urlpatterns = [
+    path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'images/favicon.ico', permanent=True)),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
     path('i18n/', include('django.conf.urls.i18n')),
     path('sidoos-administration/', admin.site.urls),

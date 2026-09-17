@@ -8,6 +8,11 @@
 <meta name="description" content="{% block meta_description %}سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر برای فروشگاه‌ها و عمده‌فروشان سراسر کشور.{% endblock %}">
 {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
 
+{# ========== Favicon & App Icons ========== #}
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon.png' %}">
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+<link rel="apple-touch-icon" href="{% static 'images/favicon.png' %}">
+
 {# ========== Open Graph & Social Cards ========== #}
 <meta property="og:site_name" content="سیدوس">
 <meta property="og:locale" content="fa_IR">
