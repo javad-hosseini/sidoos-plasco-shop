@@ -83,8 +83,57 @@
     transition:border-color .3s, background .3s;
   }
   .tk-field textarea::placeholder{ color:rgba(245,240,232,.32); }
-  .tk-field textarea:focus{ outline:none; border-color:var(--gold); background:#141414; }
+  .tk-field textarea:focus{ outline:none; border-color:var(--gold); background:var(--color-surface, var(--graphite)); }
   .tk-field.has-error textarea{ border-color:#c8503c; }
+
+  /* Light theme */
+  [data-theme="light"] .tk-panel,
+  [data-theme="light"] .tk-msg__bubble {
+    background:#FFFFFF;
+    border-color:rgba(28,29,26,.08);
+  }
+  [data-theme="light"] .tk-msg--customer .tk-msg__bubble {
+    background:rgba(18,60,54,.06);
+    border-color:rgba(18,60,54,.15);
+  }
+  [data-theme="light"] .tk-head {
+    background:#FFFFFF;
+    border-color:rgba(28,29,26,.08);
+    box-shadow:0 4px 18px rgba(28,29,26,.05);
+  }
+  [data-theme="light"] .tk-field textarea {
+    background:#FAF8F5;
+    color:#1C1D1A;
+    border-color:rgba(28,29,26,.18);
+  }
+  [data-theme="light"] .tk-field textarea::placeholder {
+    color:#77726A;
+  }
+  [data-theme="light"] .tk-field textarea:focus {
+    background:#FFFFFF !important;
+    color:#1C1D1A !important;
+    border-color:#946F28;
+    box-shadow:0 0 0 3px rgba(148,111,40,.18);
+  }
+  [data-theme="light"] .tk-file__label {
+    border-color:rgba(28,29,26,.2);
+    color:#5A564F;
+    background:rgba(28,29,26,.02);
+  }
+  [data-theme="light"] .tk-file__label:hover {
+    border-color:#946F28;
+    color:#946F28;
+    background:rgba(148,111,40,.06);
+  }
+  [data-theme="light"] .tk-submit {
+    background:#123C36;
+    border-color:#123C36;
+    color:#FAF8F5;
+  }
+  [data-theme="light"] .tk-submit:hover {
+    background:#184F47;
+    border-color:#184F47;
+  }
 
   .tk-file{ position:relative; display:flex; flex-direction:column; gap:10px; }
   .tk-file__input{ position:absolute; opacity:0; width:0; height:0; }

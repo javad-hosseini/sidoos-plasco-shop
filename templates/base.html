@@ -487,10 +487,10 @@
     border-color: #184F47 !important;
   }
   [data-theme="light"] .eyebrow {
-    color: #123C36;
+    color: #b89b5e;
   }
   [data-theme="light"] .eyebrow::before {
-    background: #123C36;
+    background: #b89b5e;
   }
   [data-theme="light"] .pl-card__cat,
   [data-theme="light"] .p-card__cat,
@@ -577,15 +577,194 @@
     box-shadow: 0 12px 30px rgba(28,29,26,.1);
     border-color: #123C36;
   }
+  [data-theme="light"] select option {
+    background: #FFFFFF !important;
+    color: #1C1D1A !important;
+  }
+  [data-theme="light"] select:focus,
+  [data-theme="light"] input:focus,
+  [data-theme="light"] textarea:focus {
+    color: #1C1D1A;
+  }
   [data-theme="light"] .site-header {
     background: rgba(250,248,245,.92);
     backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
     border-bottom: 1px solid rgba(18,60,54,.12);
   }
   [data-theme="light"] .site-header.scrolled {
     background: rgba(250,248,245,.96);
     border-bottom: 1px solid rgba(18,60,54,.18);
     box-shadow: 0 4px 20px rgba(0,0,0,.04);
+  }
+
+  /* ===== Index / Hero section: Transparent header at scroll 0 (matching dark mode hero) ===== */
+  body.is-home .site-header:not(.scrolled),
+  body.has-hero .site-header:not(.scrolled),
+  body:has(#hero) .site-header:not(.scrolled),
+  .is-home .site-header:not(.scrolled),
+  .has-hero .site-header:not(.scrolled) {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-bottom: 1px solid transparent !important;
+    box-shadow: none !important;
+  }
+  body.is-home .site-header:not(.scrolled) .logo-link .fa,
+  body.has-hero .site-header:not(.scrolled) .logo-link .fa,
+  body:has(#hero) .site-header:not(.scrolled) .logo-link .fa,
+  .is-home .site-header:not(.scrolled) .logo-link .fa,
+  .has-hero .site-header:not(.scrolled) .logo-link .fa {
+    color: #F5F0E8 !important;
+  }
+  body.is-home .site-header:not(.scrolled) .logo-link .en,
+  body.has-hero .site-header:not(.scrolled) .logo-link .en,
+  body:has(#hero) .site-header:not(.scrolled) .logo-link .en,
+  .is-home .site-header:not(.scrolled) .logo-link .en,
+  .has-hero .site-header:not(.scrolled) .logo-link .en {
+    color: #B89B5E !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-primary a,
+  body.has-hero .site-header:not(.scrolled) .nav-primary a,
+  body:has(#hero) .site-header:not(.scrolled) .nav-primary a,
+  .is-home .site-header:not(.scrolled) .nav-primary a,
+  .has-hero .site-header:not(.scrolled) .nav-primary a {
+    color: rgba(245,240,232,.75) !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-primary a:hover,
+  body.is-home .site-header:not(.scrolled) .nav-primary a.is-active,
+  body.has-hero .site-header:not(.scrolled) .nav-primary a:hover,
+  body.has-hero .site-header:not(.scrolled) .nav-primary a.is-active,
+  body:has(#hero) .site-header:not(.scrolled) .nav-primary a:hover,
+  body:has(#hero) .site-header:not(.scrolled) .nav-primary a.is-active,
+  .is-home .site-header:not(.scrolled) .nav-primary a:hover,
+  .is-home .site-header:not(.scrolled) .nav-primary a.is-active,
+  .has-hero .site-header:not(.scrolled) .nav-primary a:hover,
+  .has-hero .site-header:not(.scrolled) .nav-primary a.is-active {
+    color: #FFFFFF !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-primary a::after,
+  body.has-hero .site-header:not(.scrolled) .nav-primary a::after,
+  body:has(#hero) .site-header:not(.scrolled) .nav-primary a::after,
+  .is-home .site-header:not(.scrolled) .nav-primary a::after,
+  .has-hero .site-header:not(.scrolled) .nav-primary a::after {
+    background: #B89B5E !important;
+  }
+  body.is-home .site-header:not(.scrolled) .cat-toggle,
+  body.has-hero .site-header:not(.scrolled) .cat-toggle,
+  body:has(#hero) .site-header:not(.scrolled) .cat-toggle,
+  .is-home .site-header:not(.scrolled) .cat-toggle,
+  .has-hero .site-header:not(.scrolled) .cat-toggle {
+    color: #F5F0E8 !important;
+  }
+  body.is-home .site-header:not(.scrolled) .burger-icon span,
+  body.has-hero .site-header:not(.scrolled) .burger-icon span,
+  body:has(#hero) .site-header:not(.scrolled) .burger-icon span,
+  .is-home .site-header:not(.scrolled) .burger-icon span,
+  .has-hero .site-header:not(.scrolled) .burger-icon span {
+    background: #F5F0E8 !important;
+  }
+  body.is-home .site-header:not(.scrolled) .cat-toggle:hover,
+  body.has-hero .site-header:not(.scrolled) .cat-toggle:hover,
+  body:has(#hero) .site-header:not(.scrolled) .cat-toggle:hover,
+  .is-home .site-header:not(.scrolled) .cat-toggle:hover,
+  .has-hero .site-header:not(.scrolled) .cat-toggle:hover {
+    color: #FFFFFF !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-search,
+  body.has-hero .site-header:not(.scrolled) .nav-search,
+  body:has(#hero) .site-header:not(.scrolled) .nav-search,
+  .is-home .site-header:not(.scrolled) .nav-search,
+  .has-hero .site-header:not(.scrolled) .nav-search {
+    border-bottom: 1px solid rgba(245,240,232,.35) !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-search:focus-within,
+  body.has-hero .site-header:not(.scrolled) .nav-search:focus-within,
+  body:has(#hero) .site-header:not(.scrolled) .nav-search:focus-within,
+  .is-home .site-header:not(.scrolled) .nav-search:focus-within,
+  .has-hero .site-header:not(.scrolled) .nav-search:focus-within {
+    border-bottom-color: #B89B5E !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-search input,
+  body.has-hero .site-header:not(.scrolled) .nav-search input,
+  body:has(#hero) .site-header:not(.scrolled) .nav-search input,
+  .is-home .site-header:not(.scrolled) .nav-search input,
+  .has-hero .site-header:not(.scrolled) .nav-search input {
+    color: #F5F0E8 !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-search input::placeholder,
+  body.has-hero .site-header:not(.scrolled) .nav-search input::placeholder,
+  body:has(#hero) .site-header:not(.scrolled) .nav-search input::placeholder,
+  .is-home .site-header:not(.scrolled) .nav-search input::placeholder,
+  .has-hero .site-header:not(.scrolled) .nav-search input::placeholder {
+    color: rgba(245,240,232,.6) !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-search button,
+  body.has-hero .site-header:not(.scrolled) .nav-search button,
+  body:has(#hero) .site-header:not(.scrolled) .nav-search button,
+  .is-home .site-header:not(.scrolled) .nav-search button,
+  .has-hero .site-header:not(.scrolled) .nav-search button {
+    color: rgba(245,240,232,.75) !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-search button:hover,
+  body.has-hero .site-header:not(.scrolled) .nav-search button:hover,
+  body:has(#hero) .site-header:not(.scrolled) .nav-search button:hover,
+  .is-home .site-header:not(.scrolled) .nav-search button:hover,
+  .has-hero .site-header:not(.scrolled) .nav-search button:hover {
+    color: #B89B5E !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-auth-icon,
+  body.has-hero .site-header:not(.scrolled) .nav-auth-icon,
+  body:has(#hero) .site-header:not(.scrolled) .nav-auth-icon,
+  .is-home .site-header:not(.scrolled) .nav-auth-icon,
+  .has-hero .site-header:not(.scrolled) .nav-auth-icon {
+    color: #F5F0E8 !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-login,
+  body.has-hero .site-header:not(.scrolled) .nav-login,
+  body:has(#hero) .site-header:not(.scrolled) .nav-login,
+  .is-home .site-header:not(.scrolled) .nav-login,
+  .has-hero .site-header:not(.scrolled) .nav-login {
+    border-color: rgba(184,155,94,.4) !important;
+    color: #F5F0E8 !important;
+    background: transparent !important;
+  }
+  body.is-home .site-header:not(.scrolled) .nav-login:hover,
+  body.has-hero .site-header:not(.scrolled) .nav-login:hover,
+  body:has(#hero) .site-header:not(.scrolled) .nav-login:hover,
+  .is-home .site-header:not(.scrolled) .nav-login:hover,
+  .has-hero .site-header:not(.scrolled) .nav-login:hover {
+    background: #B89B5E !important;
+    color: #111111 !important;
+    border-color: #B89B5E !important;
+  }
+  body.is-home .site-header:not(.scrolled) .theme-toggle,
+  body.has-hero .site-header:not(.scrolled) .theme-toggle,
+  body:has(#hero) .site-header:not(.scrolled) .theme-toggle,
+  .is-home .site-header:not(.scrolled) .theme-toggle,
+  .has-hero .site-header:not(.scrolled) .theme-toggle {
+    border-color: rgba(184,155,94,.4) !important;
+    color: #F5F0E8 !important;
+    background: rgba(255,255,255,.08) !important;
+  }
+  body.is-home .site-header:not(.scrolled) .theme-toggle:hover,
+  body.has-hero .site-header:not(.scrolled) .theme-toggle:hover,
+  body:has(#hero) .site-header:not(.scrolled) .theme-toggle:hover,
+  .is-home .site-header:not(.scrolled) .theme-toggle:hover,
+  .has-hero .site-header:not(.scrolled) .theme-toggle:hover {
+    background: rgba(184,155,94,.25) !important;
+    border-color: #B89B5E !important;
+    color: #B89B5E !important;
+  }
+  @media(max-width:980px) {
+    body.is-home .site-header:not(.scrolled) .nav-search,
+    body.has-hero .site-header:not(.scrolled) .nav-search,
+    body:has(#hero) .site-header:not(.scrolled) .nav-search,
+    .is-home .site-header:not(.scrolled) .nav-search,
+    .has-hero .site-header:not(.scrolled) .nav-search {
+      border: 1px solid rgba(245,240,232,.22) !important;
+      background: rgba(255,255,255,.07) !important;
+    }
   }
 
   /* ===== Special Offers (.offers) & Special Sales Hero (.ss-hero) dark emerald contrast ===== */
@@ -653,7 +832,7 @@
 {% block extra_css %}{% endblock %}
 {% block schema %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
 <a href="#main-content" class="skip-link">رفتن به محتوای اصلی</a>
 

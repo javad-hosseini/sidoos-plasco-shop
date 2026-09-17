@@ -3,6 +3,7 @@
 
 {% block title %}سیدوس | صنایع دکوراتیو و ظروف خانه{% endblock %}
 {% block meta_description %}سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر.{% endblock %}
+{% block body_class %}is-home has-hero{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -43,10 +44,13 @@
   .hero-slide.active .hero-bg{ transform:scale(1); }
   .hero-bg::after{
     content:''; position:absolute; inset:0;
-    background:linear-gradient(90deg, rgba(17,17,17,.92) 0%, rgba(17,17,17,.62) 42%, rgba(17,17,17,.28) 75%, rgba(17,17,17,.55) 100%);
+    background:
+      linear-gradient(180deg, rgba(17,17,17,.65) 0%, rgba(17,17,17,.2) 25%, transparent 50%),
+      linear-gradient(90deg, rgba(17,17,17,.64) 0%, rgba(17,17,17,.43) 42%, rgba(17,17,17,.2) 75%, rgba(17,17,17,.38) 100%);
   }
   .hero-content{ position:relative; z-index:2; max-width:640px; margin-right:6vw; margin-left:auto; will-change:transform; }
-  .hero-slide .eyebrow{ margin-bottom:22px; }
+  .hero-slide .eyebrow{ margin-bottom:22px; color:#b89b5e !important; }
+  .hero-slide .eyebrow::before{ background:#b89b5e !important; }
   .hero-title{
     font-size:clamp(40px,5.6vw,76px); line-height:1.16; font-weight:800; margin-bottom:22px;
     opacity:0; transform:translateY(26px); transition:opacity 1s var(--ease) .3s, transform 1s var(--ease) .3s;
