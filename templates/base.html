@@ -796,9 +796,12 @@
   if(!items.length) return;
   const io = new IntersectionObserver((entries)=>{
     entries.forEach(e=>{
-      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      if(e.isIntersecting || e.intersectionRatio > 0){
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
     });
-  }, {threshold:.15});
+  }, {threshold: 0.02, rootMargin: '0px 0px -20px 0px'});
   items.forEach(i=> io.observe(i));
 })();
 

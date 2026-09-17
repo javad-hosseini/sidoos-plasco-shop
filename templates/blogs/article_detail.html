@@ -141,7 +141,7 @@
 
     {% include 'partials/breadcrumbs.html' %}
 
-    <div class="ad-header reveal">
+    <div class="ad-header">
       <div class="eyebrow">مجله سیدوس</div>
       <h1>{{ article.title }}</h1>
       <div class="ad-meta">
@@ -152,12 +152,12 @@
     </div>
 
     {% if article.featured_image %}
-    <div class="ad-cover reveal">
+    <div class="ad-cover">
       <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
     </div>
     {% endif %}
 
-    <div class="ad-body reveal">
+    <div class="ad-body">
       <div class="rte">{{ article.content|safe }}</div>
 
       {% if article.tags.all %}
@@ -175,7 +175,7 @@
     </div>
 
     {% if related_articles %}
-    <section class="ad-related reveal">
+    <section class="ad-related">
       <div class="section-head">
         <div>
           <div class="eyebrow">ادامه مطالعه</div>
