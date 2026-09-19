@@ -78,10 +78,9 @@ class Command(BaseCommand):
                 )
             )
         else:
-            username = getattr(settings, "MELIPAYAMAK_USERNAME", "")
-            from_number = getattr(settings, "MELIPAYAMAK_FROM_NUMBER", "")
-            self.stdout.write(f"نام کاربری ملی‌پیامک: {username}")
-            self.stdout.write(f"شماره فرستنده: {from_number}")
+            sender = getattr(settings, "MELIPAYAMAK_SENDER", "")
+            self.stdout.write(f"شماره فرستنده: {sender}")
+            self.stdout.write("توکن درگاه: [تنظیم شده و ایمن]")
             self.stdout.write("در حال ارسال درخواست به سرور ملی‌پیامک...")
 
         result = provider.send_simple_sms(recipients=[phone], text=text)

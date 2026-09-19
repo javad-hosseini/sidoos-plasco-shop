@@ -85,8 +85,28 @@ JAZZMIN_SETTINGS = {
             "name": "داشبورد",
             "url": "admin:index",
         },
+        {
+            "name": "ارسال پیامک",
+            "url": "admin:sms_service_send",
+            "permissions": ["sms_service.add_smscampaign"],
+        },
 
     ],
+
+    # ------------------------------------------------------
+    # Custom Links in Sidebar
+    # ------------------------------------------------------
+
+    "custom_links": {
+        "sms_service": [
+            {
+                "name": "ارسال پیامک جدید",
+                "url": "admin:sms_service_send",
+                "icon": "fas fa-paper-plane",
+                "permissions": ["sms_service.add_smscampaign"],
+            }
+        ]
+    },
 
     # ------------------------------------------------------
     # Icons

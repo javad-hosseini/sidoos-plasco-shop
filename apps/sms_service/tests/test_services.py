@@ -134,7 +134,7 @@ class CampaignServiceTest(TestCase):
         self.assertEqual(sent_numbers.count("09121111111"), 1)
         self.assertEqual(campaign.recipients.filter(status=SmsRecipientLog.Status.SKIPPED_DUPLICATE).count(), 1)
 
-    def test_send_campaign_contact_batching_100_limit(self):
+    def test_send_campaign_multiple_contacts(self):
         # Create 105 contacts
         contacts_to_create = [
             Contact(full_name=f"مخاطب {i}", phone_number=f"0930{i:07d}")
@@ -153,11 +153,18 @@ class CampaignServiceTest(TestCase):
             provider=mock_provider,
         )
 
-        # Verify batching: 105 contacts -> Batch 1 with 100, Batch 2 with 5
-        self.assertEqual(len(mock_provider.calls), 2)
-        self.assertEqual(len(mock_provider.calls[0]["recipients"]), 100)
-        self.assertEqual(len(mock_provider.calls[1]["recipients"]), 5)
+        # Verify all contacts were dispatched and individually logged
+        self.assertEqual(len(mock_provider.calls), 105)
         self.assertEqual(result["successful_count"], 105)
+        self.assertEqual(result["campaign"].status, SmsCampaign.Status.COMPLETED)
+        self.assertEqual(
+            result["campaign"].recipients.filter(status=SmsRecipientLog.Status.SUCCESS).count(),
+            105,
+        )
+        self.assertEqual(
+            result["campaign"].recipients.filter(provider_rec_id="123456789").count(),
+            105,
+        )
 
     def test_send_campaign_partial_failure(self):
         # Fail user2 specifically

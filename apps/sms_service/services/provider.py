@@ -1,12 +1,13 @@
 """
-Provider abstraction and MeliPayamak REST implementation.
+Provider abstraction and MeliPayamak Simple SMS REST implementation.
 
-Handles secure communication with the MeliPayamak SMS Gateway without leaking
-credentials into logs, exceptions, or templates.
+Handles secure communication with the MeliPayamak Console SMS API without leaking
+the API token into logs, exceptions, or templates.
 """
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import json
 import logging
 import uuid
 import requests
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Standard MeliPayamak error code descriptions
 MELIPAYAMAK_ERROR_MESSAGES = {
-    "0": "نام کاربری یا رمز عبور سامانه پیامک اشتباه است.",
+    "0": "نام کاربری، رمز عبور یا توکن سامانه پیامک اشتباه است.",
     "2": "اعتبار پنل پیامکی کافی نمی‌باشد.",
     "3": "محدودیت در تعداد ارسال روزانه.",
     "4": "محدودیت در حجم ارسال.",
@@ -85,32 +86,63 @@ class BaseSmsProvider(ABC):
 
 class MeliPayamakRestProvider(BaseSmsProvider):
     """
-    Direct HTTP/REST client for MeliPayamak using requests.
-    Endpoint: rest.payamak-panel.com/api/SendSMS/SendSMS
+    Direct HTTP/REST client for MeliPayamak Simple SMS Console API using requests.
+    Endpoint: https://console.melipayamak.com/api/send/simple/{api_token}
+    Payload (JSON):
+        {
+            "from": MELIPAYAMAK_SENDER,
+            "to": recipient_phone,
+            "text": message
+        }
+    Response (JSON):
+        {
+            "recId": 3741437414,
+            "status": "..."
+        }
     """
 
     def __init__(
         self,
-        username: str | None = None,
-        password: str | None = None,
+        api_token: str | None = None,
         from_number: str | None = None,
         base_url: str | None = None,
         timeout: int = 15,
     ):
-        self.username = username or getattr(settings, "MELIPAYAMAK_USERNAME", "")
-        self.password = password or getattr(settings, "MELIPAYAMAK_PASSWORD", "")
-        self.from_number = from_number or getattr(settings, "MELIPAYAMAK_FROM_NUMBER", "")
-        self.base_url = base_url or getattr(
-            settings,
-            "MELIPAYAMAK_API_BASE_URL",
-            "https://rest.payamak-panel.com/api/SendSMS/SendSMS",
-        )
+        if api_token is None:
+            api_token = getattr(settings, "MELIPAYAMAK_API_TOKEN", "")
+        self.api_token = str(api_token).strip()
+
+        if from_number is None:
+            from_number = getattr(settings, "MELIPAYAMAK_SENDER", "")
+        self.from_number = str(from_number).strip()
+
+        if base_url is None:
+            base_url = getattr(
+                settings,
+                "MELIPAYAMAK_API_BASE_URL",
+                "https://console.melipayamak.com/api/send/simple",
+            )
+        self.base_url = str(base_url).strip()
         self.timeout = timeout
 
-        if not self.username or not self.password or not self.from_number:
+        if not self.api_token or not self.from_number:
             raise ImproperlyConfigured(
-                "تنظیمات وب‌سرویس ملی‌پیامک (نام کاربری، رمز عبور، شماره خط فرستنده) در فایل تنطیمات تعریف نشده است."
+                "تنظیمات وب‌سرویس ملی‌پیامک (توکن API و شماره خط فرستنده) در فایل تنظیمات تعریف نشده است."
             )
+
+    def _get_endpoint_url(self) -> str:
+        base = self.base_url.rstrip("/")
+        if self.api_token and not base.endswith(self.api_token):
+            return f"{base}/{self.api_token}"
+        return base
+
+    def _sanitize(self, text: str) -> str:
+        """Remove the API token from any string before logging or storing in responses."""
+        if not text:
+            return ""
+        if self.api_token:
+            return text.replace(self.api_token, "***")
+        return text
 
     def send_simple_sms(
         self,
@@ -132,28 +164,142 @@ class MeliPayamakRestProvider(BaseSmsProvider):
                 error_message="متن پیامک نمی‌تواند خالی باشد.",
             )
 
-        # MeliPayamak supports comma-separated recipient numbers or individual number
-        to_param = ",".join(recipients) if len(recipients) > 1 else recipients[0]
+        # Single recipient: direct send
+        if len(recipients) == 1:
+            return self._send_single_request(recipients[0], text)
 
+        # Multiple recipients: iterate through list
+        rec_ids: list[str] = []
+        last_result: ProviderResult | None = None
+        for phone in recipients:
+            res = self._send_single_request(phone, text)
+            if res.success:
+                rec_ids.append(res.rec_id)
+            last_result = res
+
+        if len(rec_ids) == len(recipients):
+            return ProviderResult(
+                success=True,
+                rec_id=",".join(rec_ids),
+                error_code=last_result.error_code if last_result else "",
+                raw_response=last_result.raw_response if last_result else "",
+            )
+        elif rec_ids:
+            return ProviderResult(
+                success=False,
+                rec_id=",".join(rec_ids),
+                error_code="PARTIAL_SUCCESS",
+                error_message=f"ارسال به {len(rec_ids)} از {len(recipients)} گیرنده انجام شد.",
+                raw_response=last_result.raw_response if last_result else "",
+            )
+        else:
+            return last_result or ProviderResult(
+                success=False,
+                error_code="ALL_FAILED",
+                error_message="ارسال به تمامی گیرندگان با خطا مواجه شد.",
+            )
+
+    def _send_single_request(self, recipient_phone: str, message: str) -> ProviderResult:
+        url = self._get_endpoint_url()
         payload = {
-            "username": self.username,
-            "password": self.password,
-            "to": to_param,
             "from": self.from_number,
-            "text": text,
-            "isflash": "true" if is_flash else "false",
+            "to": recipient_phone,
+            "text": message,
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
         }
 
         try:
             response = requests.post(
-                self.base_url,
-                data=payload,
+                url,
+                json=payload,
+                headers=headers,
                 timeout=self.timeout,
-                headers={"Cache-Control": "no-cache"},
             )
-            response.raise_for_status()
-            raw_text = response.text.strip()
-            return self._parse_provider_response(raw_text)
+            raw_text = self._sanitize(response.text.strip())
+
+            # Parse JSON response
+            try:
+                data = response.json()
+            except (ValueError, json.JSONDecodeError):
+                data = None
+
+            # Handle HTTP errors (4xx / 5xx)
+            if response.status_code >= 400:
+                err_msg = ""
+                err_code = f"HTTP_{response.status_code}"
+                if isinstance(data, dict):
+                    err_msg = str(
+                        data.get("message")
+                        or data.get("error")
+                        or data.get("status")
+                        or ""
+                    ).strip()
+                if not err_msg:
+                    if response.status_code == 401:
+                        err_msg = "توکن وب‌سرویس ملی‌پیامک نامعتبر یا منقضی شده است."
+                    elif response.status_code == 400:
+                        err_msg = "درخواست ارسال پیامک نامعتبر است."
+                    elif response.status_code == 403:
+                        err_msg = "دسترسی به درگاه ارسال پیامک مجاز نمی‌باشد."
+                    else:
+                        err_msg = f"خطای سرور پیامک (کد HTTP: {response.status_code})"
+
+                logger.error("MeliPayamak HTTP %d error: %s", response.status_code, self._sanitize(err_msg))
+                return ProviderResult(
+                    success=False,
+                    error_code=err_code,
+                    error_message=err_msg,
+                    raw_response=raw_text,
+                )
+
+            # HTTP 200: Parse provider response
+            if isinstance(data, dict):
+                rec_id = data.get("recId")
+                status = str(data.get("status", "") or "").strip()
+
+                is_success = False
+                rec_id_str = ""
+                if rec_id is not None:
+                    try:
+                        rec_id_num = int(rec_id)
+                        # recId > 15 is standard valid message ID in MeliPayamak
+                        if rec_id_num > 15:
+                            is_success = True
+                            rec_id_str = str(rec_id_num)
+                        elif rec_id_num == 1:
+                            is_success = True
+                            rec_id_str = "OK"
+                    except (ValueError, TypeError):
+                        if str(rec_id).strip():
+                            is_success = True
+                            rec_id_str = str(rec_id).strip()
+
+                if is_success:
+                    return ProviderResult(
+                        success=True,
+                        rec_id=rec_id_str,
+                        error_code=status[:50],
+                        raw_response=raw_text,
+                    )
+                else:
+                    err_code = status or str(rec_id or "ERROR")
+                    err_desc = MELIPAYAMAK_ERROR_MESSAGES.get(
+                        err_code,
+                        str(data.get("message") or status or f"خطا در ارسال پیامک (کد: {err_code})"),
+                    )
+                    return ProviderResult(
+                        success=False,
+                        rec_id=str(rec_id or ""),
+                        error_code=err_code[:50],
+                        error_message=err_desc,
+                        raw_response=raw_text,
+                    )
+
+            # Fallback for non-JSON text response
+            return self._parse_fallback_response(raw_text)
 
         except requests.exceptions.Timeout:
             logger.error("Timeout connecting to MeliPayamak gateway.")
@@ -161,6 +307,13 @@ class MeliPayamakRestProvider(BaseSmsProvider):
                 success=False,
                 error_code="TIMEOUT",
                 error_message="مهلت زمانی ارتباط با درگاه ملی‌پیامک به پایان رسید.",
+            )
+        except requests.exceptions.ConnectionError:
+            logger.error("Connection error connecting to MeliPayamak gateway.")
+            return ProviderResult(
+                success=False,
+                error_code="CONNECTION_ERROR",
+                error_message="خطای اتصال به سرور ملی‌پیامک رخ داد. لطفاً ارتباط اینترنت سرور را بررسی کنید.",
             )
         except requests.exceptions.RequestException as e:
             logger.error("HTTP error connecting to MeliPayamak: %s", type(e).__name__)
@@ -177,33 +330,11 @@ class MeliPayamakRestProvider(BaseSmsProvider):
                 error_message="خطای سیستمی در ارسال پیامک رخ داد.",
             )
 
-    def _parse_provider_response(self, raw_text: str) -> ProviderResult:
-        """
-        Parses provider response text or JSON.
-        Successful sends return a numeric receipt ID (recId, typically > 15).
-        Error codes are small integers (0, 2, 3..18) or negative (-108, -109, -110).
-        """
-        # Try JSON first if provider returns {"Value": "..."} or {"RetStatus": 1}
+    def _parse_fallback_response(self, raw_text: str) -> ProviderResult:
+        """Parses fallback plain text responses if provider ever returns non-JSON."""
         value_str = raw_text.strip().strip('"').strip("'")
-        if "{" in raw_text and "}" in raw_text:
-            try:
-                import json
-                data = json.loads(raw_text)
-                if isinstance(data, dict):
-                    if "Value" in data:
-                        value_str = str(data["Value"]).strip()
-                    elif "StrRetStatus" in data:
-                        value_str = str(data["StrRetStatus"]).strip()
-                    elif "RetStatus" in data:
-                        value_str = str(data["RetStatus"]).strip()
-            except Exception:
-                pass
-
-        # Handle numeric return values
         try:
             code_num = int(float(value_str))
-            # Standard MeliPayamak rule: a receipt ID is a large integer (> 15)
-            # Codes <= 15 (except 1) or negative are specific error conditions
             if code_num > 15:
                 return ProviderResult(
                     success=True,
@@ -228,7 +359,6 @@ class MeliPayamakRestProvider(BaseSmsProvider):
                     raw_response=raw_text,
                 )
         except (ValueError, TypeError):
-            # Non-numeric response
             if "ok" in value_str.lower() or "success" in value_str.lower():
                 return ProviderResult(
                     success=True,
@@ -237,7 +367,7 @@ class MeliPayamakRestProvider(BaseSmsProvider):
                 )
             return ProviderResult(
                 success=False,
-                error_code="UNKNOWN_RESPONSE",
+                error_code="INVALID_RESPONSE",
                 error_message=f"پاسخ ناشناخته از درگاه ملی‌پیامک: {value_str[:100]}",
                 raw_response=raw_text,
             )
@@ -276,16 +406,14 @@ def get_sms_provider() -> BaseSmsProvider:
     Falls back to ConsoleSmsProvider if SMS_CONSOLE_MODE is True or credentials are empty.
     """
     is_console = getattr(settings, "SMS_CONSOLE_MODE", False)
-    username = getattr(settings, "MELIPAYAMAK_USERNAME", "")
-    password = getattr(settings, "MELIPAYAMAK_PASSWORD", "")
-    from_number = getattr(settings, "MELIPAYAMAK_FROM_NUMBER", "")
+    api_token = getattr(settings, "MELIPAYAMAK_API_TOKEN", "")
+    sender = getattr(settings, "MELIPAYAMAK_SENDER", "")
 
-    if is_console or not (username and password and from_number):
+    if is_console or not (api_token and sender):
         if not is_console:
             logger.warning(
-                "MeliPayamak credentials are not fully configured. Falling back to ConsoleSmsProvider."
+                "MeliPayamak credentials (API token and sender) are not fully configured. Falling back to ConsoleSmsProvider."
             )
         return ConsoleSmsProvider()
 
     return MeliPayamakRestProvider()
-

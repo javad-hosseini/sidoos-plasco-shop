@@ -269,33 +269,35 @@ def send_campaign(
                     error_message=result.error_message,
                 )
 
-    # 2. Send identical messages to contact book in batches of up to PROVIDER_BATCH_LIMIT (100)
+    # 2. Send identical messages to contact book recipients concurrently
     if contact_recipients:
         clean_text = message_body.strip()
-        chunks = [
-            contact_recipients[i:i + PROVIDER_BATCH_LIMIT]
-            for i in range(0, len(contact_recipients), PROVIDER_BATCH_LIMIT)
-        ]
 
-        for chunk in chunks:
-            chunk_phones = [c.phone_number for c in chunk]
-            batch_result = provider.send_simple_sms(
-                recipients=chunk_phones,
+        def _send_single_contact(recipient: ResolvedRecipient) -> tuple[ResolvedRecipient, ProviderResult]:
+            res = provider.send_simple_sms(
+                recipients=[recipient.phone_number],
                 text=clean_text,
             )
+            return recipient, res
 
-            status = (
-                SmsRecipientLog.Status.SUCCESS
-                if batch_result.success
-                else SmsRecipientLog.Status.FAILED
-            )
-            if batch_result.success:
-                successful_count += len(chunk)
-            else:
-                failed_count += len(chunk)
+        workers = min(max_workers, len(contact_recipients))
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            future_to_rec = {
+                executor.submit(_send_single_contact, rec): rec
+                for rec in contact_recipients
+            }
+            for future in as_completed(future_to_rec):
+                rec, result = future.result()
+                status = (
+                    SmsRecipientLog.Status.SUCCESS
+                    if result.success
+                    else SmsRecipientLog.Status.FAILED
+                )
+                if result.success:
+                    successful_count += 1
+                else:
+                    failed_count += 1
 
-            # Record each contact recipient log
-            for rec in chunk:
                 SmsRecipientLog.objects.create(
                     campaign=campaign,
                     recipient_type=rec.recipient_type,
@@ -303,9 +305,9 @@ def send_campaign(
                     phone_number=rec.phone_number,
                     final_message=clean_text,
                     status=status,
-                    provider_rec_id=batch_result.rec_id,
-                    error_code=batch_result.error_code,
-                    error_message=batch_result.error_message,
+                    provider_rec_id=result.rec_id,
+                    error_code=result.error_code,
+                    error_message=result.error_message,
                 )
 
     # 3. Update campaign totals and final status

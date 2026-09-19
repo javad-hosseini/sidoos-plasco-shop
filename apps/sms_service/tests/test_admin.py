@@ -156,3 +156,58 @@ class SmsAdminSecurityAndWorkflowTest(TestCase):
         self.assertIn(self.send_url, resp.url)
         self.assertIn(f"user_ids={self.normal_user.id}", resp.url)
 
+    def test_composer_renders_tabs_and_contacts(self):
+        self.client.login(username="super_admin", password="admin_password")
+        resp = self.client.get(self.send_url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "دفترچه تلفن (غیرعضو)")
+        self.assertContains(resp, "کاربران سایت (عضو)")
+        self.assertContains(resp, "مخاطب تستی")
+        self.assertContains(resp, "userPaginationNav")
+        self.assertContains(resp, "contactPaginationNav")
+        self.assertContains(resp, "selectedUsersCsv")
+        self.assertContains(resp, "selectedContactsCsv")
+
+    def test_post_step_preview_with_csv_recipients(self):
+        self.client.login(username="super_admin", password="admin_password")
+        resp = self.client.post(
+            self.send_url,
+            {
+                "step": "preview",
+                "message_body": "پیامک ارسال از طریق فیلد کمکی CSV",
+                "selected_users_csv": str(self.normal_user.id),
+                "selected_contacts_csv": str(self.contact.id),
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "تأیید و بازبینی نهایی ارسال پیامک")
+        self.assertContains(resp, "پیامک ارسال از طریق فیلد کمکی CSV")
+
+    def test_post_step_preview_with_select_all_users(self):
+        self.client.login(username="super_admin", password="admin_password")
+        resp = self.client.post(
+            self.send_url,
+            {
+                "step": "preview",
+                "message_body": "پیامک به تمام کاربران ثبت‌نامی",
+                "select_all_users": "1",
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "تأیید و بازبینی نهایی ارسال پیامک")
+        self.assertContains(resp, "پیامک به تمام کاربران ثبت‌نامی")
+
+    def test_post_step_preview_with_select_all_contacts(self):
+        self.client.login(username="super_admin", password="admin_password")
+        resp = self.client.post(
+            self.send_url,
+            {
+                "step": "preview",
+                "message_body": "پیامک به تمام دفترچه تلفن",
+                "select_all_contacts": "1",
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "تأیید و بازبینی نهایی ارسال پیامک")
+        self.assertContains(resp, "پیامک به تمام دفترچه تلفن")
+

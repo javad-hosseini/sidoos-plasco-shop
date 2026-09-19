@@ -212,9 +212,8 @@ class SmsCampaignAdmin(admin.ModelAdmin):
             raise PermissionDenied("شما مجوز دسترسی به مرکز ارسال پیامک را ندارید.")
 
         is_console_mode = getattr(settings, "SMS_CONSOLE_MODE", False) or not (
-            getattr(settings, "MELIPAYAMAK_USERNAME", "")
-            and getattr(settings, "MELIPAYAMAK_PASSWORD", "")
-            and getattr(settings, "MELIPAYAMAK_FROM_NUMBER", "")
+            getattr(settings, "MELIPAYAMAK_API_TOKEN", "")
+            and getattr(settings, "MELIPAYAMAK_SENDER", "")
         )
 
         if request.method == "POST":
@@ -222,10 +221,31 @@ class SmsCampaignAdmin(admin.ModelAdmin):
             message_body = request.POST.get("message_body", "").strip()
 
             raw_user_ids = request.POST.getlist("selected_users")
-            raw_contact_ids = request.POST.getlist("selected_contacts")
+            csv_user_ids = request.POST.get("selected_users_csv", "")
+            if csv_user_ids:
+                raw_user_ids.extend([x.strip() for x in csv_user_ids.split(",") if x.strip()])
 
-            user_ids = [int(uid) for uid in raw_user_ids if str(uid).isdigit()]
-            contact_ids = [int(cid) for cid in raw_contact_ids if str(cid).isdigit()]
+            raw_contact_ids = request.POST.getlist("selected_contacts")
+            csv_contact_ids = request.POST.get("selected_contacts_csv", "")
+            if csv_contact_ids:
+                raw_contact_ids.extend([x.strip() for x in csv_contact_ids.split(",") if x.strip()])
+
+            select_all_users = request.POST.get("select_all_users") == "1"
+            select_all_contacts = request.POST.get("select_all_contacts") == "1"
+
+            if select_all_users:
+                user_ids = list(
+                    User.objects.filter(phone_number__isnull=False)
+                    .exclude(phone_number="")
+                    .values_list("id", flat=True)
+                )
+            else:
+                user_ids = list(dict.fromkeys([int(uid) for uid in raw_user_ids if str(uid).isdigit()]))
+
+            if select_all_contacts:
+                contact_ids = list(Contact.objects.values_list("id", flat=True))
+            else:
+                contact_ids = list(dict.fromkeys([int(cid) for cid in raw_contact_ids if str(cid).isdigit()]))
 
             # Validation
             form = SmsComposerForm(request.POST)
@@ -330,13 +350,26 @@ class SmsCampaignAdmin(admin.ModelAdmin):
         )
 
     def _render_composer(self, request, form, preselected_user_ids, preselected_contact_ids, is_console_mode):
-        # Fetch registered users with a phone number
-        users = list(
-            User.objects.filter(phone_number__isnull=False)
-            .exclude(phone_number="")
-            .order_by("-date_joined")[:500]
-        )
-        contacts = list(Contact.objects.all().order_by("-created_at")[:500])
+        # Base querysets
+        users_base = User.objects.filter(phone_number__isnull=False).exclude(phone_number="")
+        total_users_count = users_base.count()
+        total_contacts_count = Contact.objects.count()
+
+        # Fetch users: make sure any preselected IDs are included at the top
+        if preselected_user_ids:
+            preselected_users_qs = list(users_base.filter(id__in=preselected_user_ids))
+            other_users_qs = list(users_base.exclude(id__in=preselected_user_ids).order_by("-date_joined")[:2000])
+            users = preselected_users_qs + other_users_qs
+        else:
+            users = list(users_base.order_by("-date_joined")[:2000])
+
+        # Fetch contacts: make sure any preselected IDs are included at the top
+        if preselected_contact_ids:
+            preselected_contacts_qs = list(Contact.objects.filter(id__in=preselected_contact_ids))
+            other_contacts_qs = list(Contact.objects.exclude(id__in=preselected_contact_ids).order_by("-created_at")[:2000])
+            contacts = preselected_contacts_qs + other_contacts_qs
+        else:
+            contacts = list(Contact.objects.all().order_by("-created_at")[:2000])
 
         context = {
             **self.admin_site.each_context(request),
@@ -344,6 +377,8 @@ class SmsCampaignAdmin(admin.ModelAdmin):
             "form": form,
             "users": users,
             "contacts": contacts,
+            "total_users_count": total_users_count,
+            "total_contacts_count": total_contacts_count,
             "preselected_user_ids": preselected_user_ids,
             "preselected_contact_ids": preselected_contact_ids,
             "is_console_mode": is_console_mode,

@@ -302,12 +302,11 @@ LOGGING = {
 # ===========================================
 
 # ========== SMS SERVICE (MELIPAYAMAK) CONFIGURATION ==========
-MELIPAYAMAK_USERNAME = config('MELIPAYAMAK_USERNAME', default='')
-MELIPAYAMAK_PASSWORD = config('MELIPAYAMAK_PASSWORD', default='')
-MELIPAYAMAK_FROM_NUMBER = config('MELIPAYAMAK_FROM_NUMBER', default='')
+MELIPAYAMAK_API_TOKEN = config('MELIPAYAMAK_API_TOKEN', default='')
+MELIPAYAMAK_SENDER = config('MELIPAYAMAK_SENDER', default='')
 MELIPAYAMAK_API_BASE_URL = config(
     'MELIPAYAMAK_API_BASE_URL',
-    default='https://rest.payamak-panel.com/api/SendSMS/SendSMS',
+    default='https://console.melipayamak.com/api/send/simple',
 )
 SMS_CONSOLE_MODE = config('SMS_CONSOLE_MODE', default=DEBUG, cast=bool)
 # =============================================================

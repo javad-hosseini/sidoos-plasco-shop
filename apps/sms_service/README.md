@@ -29,12 +29,12 @@ The `sms_service` app provides a centralized, reliable, and audited mechanism to
 2. **Contact Book Entries** (`Contact`): Individuals who are not website users. Messages are sent **raw/plain** (`{message}`) without prepending a name greeting.
 
 ### Key Architectural Principles:
-- **Direct HTTP/REST over SOAP**: Uses standard Python `requests` (already pinned in the project) to communicate with MeliPayamak's REST endpoint (`https://rest.payamak-panel.com/api/SendSMS/SendSMS`). Eliminates complex SOAP/XML dependencies (`zeep`, `lxml`) that often fail on Windows build environments.
+- **Direct HTTP/REST over SOAP**: Uses standard Python `requests` (already pinned in the project) to communicate with MeliPayamak's token-based Console REST endpoint (`https://console.melipayamak.com/api/send/simple/{token}`). Eliminates complex SOAP/XML dependencies (`zeep`, `lxml`) that often fail on Windows build environments.
 - **Single Source of Truth for Phone Numbers**: All Iranian mobile numbers (+98, 0098, 98, Persian digits `۰-۹`, Arabic digits `٠-٩`) are canonicalized to standard `09xxxxxxxxx` (11 digits).
 - **Cross-Source Deduplication**: If a mobile number exists as both a registered user and a contact book entry, the system automatically deduplicates the campaign so the recipient is messaged **only once**, granting precedence to the Registered User so they receive the personalized greeting.
-- **Safe Batching & Concurrency**:
-  - Contacts receiving identical text are chunked into batches of up to 100 numbers (MeliPayamak Simple SMS limit).
-  - Users receiving personalized texts are executed concurrently via `concurrent.futures.ThreadPoolExecutor` (5 workers) so that 100 personalized requests complete within 2–4 seconds instead of 30+ seconds, preventing HTTP gateway timeouts.
+- **Safe Concurrency & Dispatch**:
+  - Contacts and users are dispatched concurrently via `concurrent.futures.ThreadPoolExecutor` (up to 5 workers).
+  - Every recipient receives an individual audit log tracking their specific gateway receipt ID (`recId`), provider `status`, and error details.
 - **Two-Tier Audit Trail**: Every sending action creates a parent `SmsCampaign` and individual child `SmsRecipientLog` rows, storing exact messages, timestamps, status badges, and MeliPayamak receipt IDs (`recId`).
 - **Development Mock Mode**: When credentials are unset or `SMS_CONSOLE_MODE=True`, messages are cleanly logged to the server console/logger with mock receipt IDs, preventing accidental billing or broken tests.
 
@@ -86,29 +86,24 @@ Configuration parameters are read via `python-decouple` in [config/settings.py](
 ### Variables Description:
 ```dotenv
 # ==========================================
-# MeliPayamak SMS Gateway Credentials
+# MeliPayamak SMS Gateway Credentials (Console Simple API)
 # ==========================================
 
-# 1. MELIPAYAMAK_USERNAME:
-# The account username used to log into the MeliPayamak portal.
-# In most panels, this is the owner's mobile number (e.g. 09121234567) or chosen alphanumeric username.
-# IMPORTANT: This cannot be empty even when using an ApiKey for the password.
-MELIPAYAMAK_USERNAME=0912xxxxxxx
+# 1. MELIPAYAMAK_API_TOKEN:
+# The Web Service API token generated in MeliPayamak Console (e.g. e4a91aa15f634647892de8ea00eb5620).
+# Appended to the endpoint URL: https://console.melipayamak.com/api/send/simple/{token}
+# Never exposed in logs, exceptions, or admin UI.
+MELIPAYAMAK_API_TOKEN=your_console_api_token_here
 
-# 2. MELIPAYAMAK_PASSWORD:
-# Either your MeliPayamak portal login password OR the Web Service ApiKey generated in panel settings
-# (e.g. 5f62a879-bff3-42b9-9349-599db9ab3537).
-MELIPAYAMAK_PASSWORD=your_password_or_apikey
-
-# 3. MELIPAYAMAK_FROM_NUMBER:
+# 2. MELIPAYAMAK_SENDER:
 # The approved sender line assigned to your panel (e.g. 50004001985465, 3000..., or 1000...).
-MELIPAYAMAK_FROM_NUMBER=50004001985465
+MELIPAYAMAK_SENDER=50004001985465
 
-# 4. MELIPAYAMAK_API_BASE_URL:
-# Default REST endpoint for Simple SMS. Defaults to https://rest.payamak-panel.com/api/SendSMS/SendSMS
-MELIPAYAMAK_API_BASE_URL=https://rest.payamak-panel.com/api/SendSMS/SendSMS
+# 3. MELIPAYAMAK_API_BASE_URL:
+# Base REST endpoint for Simple SMS. Defaults to https://console.melipayamak.com/api/send/simple
+MELIPAYAMAK_API_BASE_URL=https://console.melipayamak.com/api/send/simple
 
-# 5. SMS_CONSOLE_MODE:
+# 4. SMS_CONSOLE_MODE:
 # Boolean flag.
 # Set to True: SMS messages are mocked and printed to the server log (no actual SMS sent, no charge).
 # Set to False: Real HTTP requests are dispatched to MeliPayamak.
@@ -488,9 +483,9 @@ The provider abstraction was engineered to support MeliPayamak Pattern SMS (خد
 
 ## 13. Troubleshooting & Common Edge Cases
 
-### 1. `CommandError: خطا در تنظیمات ملی‌پیامک: نام کاربری ... تعریف نشده است`
-- **Cause**: `MELIPAYAMAK_USERNAME` is empty in the active environment file.
-- **Solution**: Open `.env.dev` (for local development) or `.env.prod` (for production) and set `MELIPAYAMAK_USERNAME` to your MeliPayamak account username or mobile number.
+### 1. `CommandError: خطا در تنظیمات ملی‌پیامک: تنظیمات وب‌سرویس ملی‌پیامک (توکن API و شماره خط فرستنده) ... تعریف نشده است`
+- **Cause**: `MELIPAYAMAK_API_TOKEN` or `MELIPAYAMAK_SENDER` is empty in the active environment file.
+- **Solution**: Open `.env.dev` (for local development) or `.env.prod` (for production) and set `MELIPAYAMAK_API_TOKEN` and `MELIPAYAMAK_SENDER`.
 
 ### 2. Changes in `.env.prod` not taking effect in local `runserver`
 - **Cause**: By design in [config/settings.py](file:///d:/projects/websites/sidoos-plasco-shop/config/settings.py), Django only reads `.env.prod` when environment variable `DJANGO_ENV=production` is set. When running locally without this variable, Django loads `.env.dev`.
@@ -501,8 +496,8 @@ The provider abstraction was engineered to support MeliPayamak Pattern SMS (خد
 - **Solution**: Recharge SMS credit on [melipayamak.com](https://www.melipayamak.com).
 
 ### 4. Error Code `5` from MeliPayamak
-- **Cause**: The line specified in `MELIPAYAMAK_FROM_NUMBER` does not belong to the account or is unapproved.
-- **Solution**: Check the active numbers in your MeliPayamak dashboard and copy the exact line number into `MELIPAYAMAK_FROM_NUMBER`.
+- **Cause**: The line specified in `MELIPAYAMAK_SENDER` does not belong to the account or is unapproved.
+- **Solution**: Check the active numbers in your MeliPayamak dashboard and copy the exact line number into `MELIPAYAMAK_SENDER`.
 
 ### 5. `UnicodeEncodeError: 'charmap' codec can't encode ...` in Windows PowerShell
 - **Cause**: Default Windows PowerShell console code page is CP1252 or Windows-1256.

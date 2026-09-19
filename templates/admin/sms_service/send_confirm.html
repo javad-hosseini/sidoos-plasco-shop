@@ -77,8 +77,8 @@
             <i class="fas fa-exclamation-triangle fa-2x ml-3"></i>
             <div>
                 <h5 class="alert-heading mb-1 font-weight-bold">تأیید و بازبینی نهایی ارسال پیامک</h5>
+                <p class="mb-1 font-weight-bold text-dark">شما در حال ارسال پیامک به {{ preview.valid_count }} گیرنده هستید.</p>
                 <p class="mb-0">
-
                     ارسال پیامک یک عملیات واقعی و دارای هزینه است. لطفاً آمار گیرندگان، متن و پیش‌نمایش زیر را به دقت بررسی کرده و در صورت اطمینان، دکمه «تأیید نهایی و ارسال پیامک» را بفشارید.
                 </p>
             </div>
@@ -191,7 +191,7 @@
                 <a href="{% url 'admin:sms_service_send' %}" class="btn btn-secondary px-4 py-2 font-weight-bold">
                     <i class="fas fa-arrow-right ml-1"></i> انصراف و بازگشت به ویرایش
                 </a>
-                <button type="submit" class="btn btn-confirm-send shadow" onclick="return confirm('آیا از ارسال پیامک به {{ preview.valid_count }} شماره اطمینان قطعی دارید؟');">
+                <button type="submit" id="btnConfirmSend" class="btn btn-confirm-send shadow" onclick="if (!confirm('آیا از ارسال پیامک به {{ preview.valid_count }} شماره اطمینان قطعی دارید؟')) { return false; } this.disabled = true; this.innerHTML = '<i class=\'fas fa-spinner fa-spin ml-2\'></i> در حال ارسال...'; this.form.submit(); return true;">
                     <i class="fas fa-paper-plane ml-2"></i> تأیید نهایی و ارسال پیامک
                 </button>
             </div>
