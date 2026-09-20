@@ -1,0 +1,1030 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}مرکز ارسال پیامک | {{ site_title|default:"سیدوس" }}{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb float-sm-right">
+    <li class="breadcrumb-item"><a href="{% url 'admin:index' %}"><i class="fas fa-home"></i> داشبورد</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'admin:sms_service_smscampaign_changelist' %}">مدیریت پیامک</a></li>
+    <li class="breadcrumb-item active">مرکز ارسال پیامک</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<style>
+    .sms-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    .sms-card-header {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .sms-card-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    .sms-card-body {
+        padding: 20px;
+    }
+    .nav-tabs .nav-link {
+        color: #475569;
+        font-weight: 600;
+        border-radius: 6px 6px 0 0;
+        padding: 10px 18px;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #245C43;
+        background-color: #f1f5f9;
+    }
+    .nav-tabs .nav-link.active {
+        color: #245C43 !important;
+        border-color: #e2e8f0 #e2e8f0 #fff !important;
+        border-top: 3px solid #245C43 !important;
+        background-color: #fff !important;
+        font-weight: 700;
+    }
+    /* Explicit Tab Content Display */
+    .tab-content > .tab-pane {
+        display: none !important;
+    }
+    .tab-content > .tab-pane.active {
+        display: block !important;
+    }
+
+    .recipient-counter-bar {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        color: #065f46;
+        font-size: 0.95rem;
+    }
+    .recipient-counter-bar strong {
+        color: #047857;
+    }
+    .preview-box {
+        background: #f1f5f9;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        padding: 14px;
+        margin-top: 12px;
+        font-size: 0.92rem;
+        line-height: 1.6;
+        color: #334155;
+    }
+    .preview-box .badge-title {
+        display: inline-block;
+        margin-bottom: 6px;
+        font-weight: 700;
+        color: #245C43;
+    }
+    .btn-sms-submit {
+        background: #245C43;
+        color: white;
+        font-weight: 700;
+        padding: 12px 28px;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-sms-submit:hover {
+        background: #173D2D;
+        color: white;
+    }
+    .toolbar-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px 6px 0 0;
+        padding: 10px 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .table-container {
+        max-height: 440px;
+        overflow-y: auto;
+        border-left: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+        background: #fff;
+    }
+    .table-recipients thead th {
+        position: sticky;
+        top: 0;
+        background: #f1f5f9;
+        z-index: 2;
+        border-bottom: 2px solid #cbd5e1;
+    }
+    .pagination-bar {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0 0 6px 6px;
+        padding: 8px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .pagination-bar .pagination {
+        margin: 0;
+    }
+    .pagination-bar .page-link {
+        color: #245C43;
+        padding: 4px 10px;
+        font-size: 0.88rem;
+        cursor: pointer;
+    }
+    .pagination-bar .page-item.active .page-link {
+        background-color: #245C43;
+        border-color: #245C43;
+        color: white;
+    }
+    .pagination-bar .page-item.disabled .page-link {
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+    .btn-quick-action {
+        font-size: 0.82rem;
+        padding: 4px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.15s ease-in-out;
+    }
+    .btn-quick-action.is-active {
+        background-color: #245C43 !important;
+        color: #fff !important;
+        border-color: #245C43 !important;
+    }
+</style>
+
+<div class="container-fluid" dir="rtl">
+    {% if is_console_mode %}
+    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <i class="fas fa-info-circle ml-2 font-size-18"></i>
+        <div>
+            <strong>حالت شبیه‌ساز (Console Mode) فعال است:</strong>
+            به دلیل عدم تنظیم اطلاعات درگاه یا فعال بودن حالت توسعه، پیامک‌ها در کنسول سرور لاگ شده و به درگاه واقعی ارسال نمی‌شوند.
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="post" action="" id="smsComposerForm">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="preview">
+        <!-- Hidden inputs for scalable recipient IDs & select-all state -->
+        <input type="hidden" name="selected_users_csv" id="selectedUsersCsv" value="">
+        <input type="hidden" name="selected_contacts_csv" id="selectedContactsCsv" value="">
+        <input type="hidden" name="select_all_users" id="selectAllUsersInput" value="0">
+        <input type="hidden" name="select_all_contacts" id="selectAllContactsInput" value="0">
+
+        <div class="row">
+            <!-- Left Column: Recipient Selection Tabs with Interactive Pagination -->
+            <div class="col-lg-7">
+                <div class="sms-card">
+                    <div class="sms-card-header">
+                        <h3><i class="fas fa-users ml-2 text-primary"></i> مرحله ۱: انتخاب مخاطبین</h3>
+                        <span class="badge badge-info">چندانتخابی مجاز</span>
+                    </div>
+                    <div class="sms-card-body">
+                        <!-- Navigation Tabs (Native Click Handler) -->
+                        <ul class="nav nav-tabs mb-3" id="recipientTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="users-tab" href="#users-pane" data-tab="users-pane" role="tab">
+                                    <i class="fas fa-user-check ml-1"></i> کاربران سایت (عضو)
+                                    <span class="badge badge-pill badge-secondary mr-1" id="usersTabBadge">{{ total_users_count }}</span>
+                                    <span class="badge badge-pill badge-success mr-1 d-none" id="usersSelectedBadge">0</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="contacts-tab" href="#contacts-pane" data-tab="contacts-pane" role="tab">
+                                    <i class="fas fa-address-book ml-1"></i> دفترچه تلفن (غیرعضو)
+                                    <span class="badge badge-pill badge-secondary mr-1" id="contactsTabBadge">{{ total_contacts_count }}</span>
+                                    <span class="badge badge-pill badge-info mr-1 d-none" id="contactsSelectedBadge">0</span>
+                                </a>
+                            </li>
+                        </ul>
+
+                        <!-- Counter Status Bar -->
+                        <div class="recipient-counter-bar">
+                            <div><i class="fas fa-user-friends ml-1"></i> کاربران انتخاب‌شده: <strong id="selectedUsersCount">0</strong> نفر</div>
+                            <div>|</div>
+                            <div><i class="fas fa-address-card ml-1"></i> مخاطبین دفترچه انتخاب‌شده: <strong id="selectedContactsCount">0</strong> نفر</div>
+                            <div>|</div>
+                            <div><i class="fas fa-check-circle ml-1"></i> کل انتخابی: <strong id="totalSelectedCount">0</strong> نفر</div>
+                        </div>
+
+                        <div class="tab-content" id="recipientTabContent">
+                            <!-- ================= Users Tab Pane ================= -->
+                            <div class="tab-pane active" id="users-pane" role="tabpanel">
+                                <!-- Users Toolbar -->
+                                <div class="toolbar-box">
+                                    <div class="d-flex align-items-center flex-wrap gap-2" style="gap: 8px;">
+                                        <div class="input-group input-group-sm" style="width: 220px;">
+                                            <input type="text" id="userSearchInput" class="form-control" placeholder="جستجو نام، کاربری، موبایل...">
+                                            <div class="input-group-append">
+                                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center text-muted small">
+                                            <span class="ml-1">صفحه:</span>
+                                            <select id="userPageSize" class="form-control form-control-sm" style="width: 65px;">
+                                                <option value="15" selected>15</option>
+                                                <option value="30">30</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center flex-wrap gap-2" style="gap: 6px;">
+                                        <button type="button" id="btnSelectAllUsersPage" class="btn btn-outline-primary btn-quick-action" title="انتخاب یا لغو انتخاب تمام سطرهای این صفحه">
+                                            <i class="fas fa-check-double ml-1"></i> انتخاب این صفحه
+                                        </button>
+                                        <button type="button" id="btnSelectAllUsersTotal" class="btn btn-outline-success btn-quick-action" title="انتخاب همه اعضای دارای شماره موبایل در سیستم">
+                                            <i class="fas fa-users ml-1"></i> انتخاب تمام اعضا ({{ total_users_count }})
+                                        </button>
+                                        <button type="button" id="btnClearUsers" class="btn btn-outline-secondary btn-quick-action" title="لغو کامل انتخاب کاربران">
+                                            <i class="fas fa-times ml-1"></i> لغو انتخاب
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Users Table Container -->
+                                <div class="table-container">
+                                    <table class="table table-hover table-striped table-sm mb-0 table-recipients" id="usersTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 45px;" class="text-center">
+                                                    <input type="checkbox" id="userHeaderCheckbox" title="انتخاب/لغو همه در صفحه جاری">
+                                                </th>
+                                                <th>نام کاربر</th>
+                                                <th>نام کاربری</th>
+                                                <th>شماره موبایل</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="usersTableBody">
+                                            {% for u in users %}
+                                            <tr class="user-row" data-id="{{ u.id }}" data-search="{{ u.get_full_name }} {{ u.username }} {{ u.phone_number }}">
+                                                <td class="text-center">
+                                                    <input type="checkbox" name="selected_users" value="{{ u.id }}" class="user-checkbox"
+                                                        {% if u.id in preselected_user_ids %}checked{% endif %}>
+                                                </td>
+                                                <td class="user-name">{{ u.get_full_name|default:"کاربر گرامی" }}</td>
+                                                <td class="user-username text-muted">{{ u.username }}</td>
+                                                <td class="user-phone dir-ltr text-right font-weight-bold">{{ u.phone_number|default:"—" }}</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr id="emptyUsersRow">
+                                                <td colspan="4" class="text-center text-muted p-4">کاربری با شماره موبایل ثبت‌شده یافت نشد.</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Users Pagination Footer -->
+                                <div class="pagination-bar">
+                                    <div class="small text-muted" id="userPaginationInfo">
+                                        نمایش ۱ تا {{ users|length }} از {{ total_users_count }} کاربر
+                                    </div>
+                                    <ul class="pagination pagination-sm" id="userPaginationNav">
+                                        <!-- Dynamically populated by JS -->
+                                    </ul>
+                                </div>
+                                <small class="text-muted mt-2 d-block">* برای کاربران سایت، عبارت «[نام] عزیز» به ابتدای پیامک اضافه خواهد شد.</small>
+                            </div>
+
+                            <!-- ================= Contacts Tab Pane ================= -->
+                            <div class="tab-pane" id="contacts-pane" role="tabpanel">
+                                <!-- Contacts Toolbar -->
+                                <div class="toolbar-box">
+                                    <div class="d-flex align-items-center flex-wrap gap-2" style="gap: 8px;">
+                                        <div class="input-group input-group-sm" style="width: 220px;">
+                                            <input type="text" id="contactSearchInput" class="form-control" placeholder="جستجو نام، شماره، یادداشت...">
+                                            <div class="input-group-append">
+                                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center text-muted small">
+                                            <span class="ml-1">صفحه:</span>
+                                            <select id="contactPageSize" class="form-control form-control-sm" style="width: 65px;">
+                                                <option value="15" selected>15</option>
+                                                <option value="30">30</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center flex-wrap gap-2" style="gap: 6px;">
+                                        <button type="button" id="btnSelectAllContactsPage" class="btn btn-outline-primary btn-quick-action" title="انتخاب یا لغو انتخاب تمام سطرهای این صفحه">
+                                            <i class="fas fa-check-double ml-1"></i> انتخاب این صفحه
+                                        </button>
+                                        <button type="button" id="btnSelectAllContactsTotal" class="btn btn-outline-info btn-quick-action" title="انتخاب تمام مخاطبین دفترچه">
+                                            <i class="fas fa-address-book ml-1"></i> انتخاب تمام دفترچه ({{ total_contacts_count }})
+                                        </button>
+                                        <button type="button" id="btnClearContacts" class="btn btn-outline-secondary btn-quick-action" title="لغو کامل انتخاب مخاطبین دفترچه">
+                                            <i class="fas fa-times ml-1"></i> لغو انتخاب
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Contacts Table Container -->
+                                <div class="table-container">
+                                    <table class="table table-hover table-striped table-sm mb-0 table-recipients" id="contactsTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 45px;" class="text-center">
+                                                    <input type="checkbox" id="contactHeaderCheckbox" title="انتخاب/لغو همه در صفحه جاری">
+                                                </th>
+                                                <th>نام و نام خانوادگی</th>
+                                                <th>شماره موبایل</th>
+                                                <th>یادداشت</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="contactsTableBody">
+                                            {% for c in contacts %}
+                                            <tr class="contact-row" data-id="{{ c.id }}" data-search="{{ c.full_name }} {{ c.phone_number }} {{ c.notes|default:'' }}">
+                                                <td class="text-center">
+                                                    <input type="checkbox" name="selected_contacts" value="{{ c.id }}" class="contact-checkbox"
+                                                        {% if c.id in preselected_contact_ids %}checked{% endif %}>
+                                                </td>
+                                                <td class="contact-name font-weight-bold">{{ c.full_name }}</td>
+                                                <td class="contact-phone dir-ltr text-right font-weight-bold">{{ c.phone_number }}</td>
+                                                <td class="contact-notes text-muted small">{{ c.notes|default:"—"|truncatechars:40 }}</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr id="emptyContactsRow">
+                                                <td colspan="4" class="text-center text-muted p-4">
+                                                    هنوز مخاطبی در دفترچه تلفن ثبت نشده است.
+                                                    <a href="{% url 'admin:sms_service_contact_add' %}" target="_blank" class="mr-1">افزودن مخاطب جدید</a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Contacts Pagination Footer -->
+                                <div class="pagination-bar">
+                                    <div class="small text-muted" id="contactPaginationInfo">
+                                        نمایش ۱ تا {{ contacts|length }} از {{ total_contacts_count }} مخاطب
+                                    </div>
+                                    <ul class="pagination pagination-sm" id="contactPaginationNav">
+                                        <!-- Dynamically populated by JS -->
+                                    </ul>
+                                </div>
+                                <small class="text-muted mt-2 d-block">* پیامک ارسالی به مخاطبین دفترچه تلفن فقط شامل متن خام بدون پیشوند نام خواهد بود.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Message Composer & Live Preview -->
+            <div class="col-lg-5">
+                <div class="sms-card">
+                    <div class="sms-card-header">
+                        <h3><i class="fas fa-edit ml-2 text-success"></i> مرحله ۲: نگارش متن پیامک</h3>
+                    </div>
+                    <div class="sms-card-body">
+                        <div class="form-group">
+                            <label for="sms_message_body" class="font-weight-bold">متن پیامک:</label>
+                            {{ form.message_body }}
+                            {% if form.message_body.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.message_body.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Live Character and Part Counter -->
+                        <div class="d-flex justify-content-between text-muted small mb-3">
+                            <span>تعداد کاراکتر: <strong id="charCount" class="text-dark">0</strong></span>
+                            <span>تعداد پارت پیامک: <strong id="partCount" class="text-dark">0</strong></span>
+                        </div>
+
+                        <!-- Live Dynamic Previews -->
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold text-secondary mb-1">پیش‌نمایش خروجی پیامک:</label>
+                            
+                            <!-- Registered user preview -->
+                            <div class="preview-box">
+                                <div class="badge-title"><i class="fas fa-user ml-1"></i> نمونه خروجی کاربر عضو:</div>
+                                <div id="userPreviewText" class="text-pre-wrap font-italic text-dark">علی رضایی عزیز<br>متن پیامک شما اینجا نمایش داده می‌شود...</div>
+                            </div>
+
+                            <!-- Contact book preview -->
+                            <div class="preview-box mt-2">
+                                <div class="badge-title text-info"><i class="fas fa-address-book ml-1"></i> نمونه خروجی دفترچه تلفن:</div>
+                                <div id="contactPreviewText" class="text-pre-wrap font-italic text-dark">متن پیامک شما اینجا نمایش داده می‌شود...</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-center">
+                            <button type="submit" class="btn btn-sms-submit btn-block shadow-sm">
+                                ادامه و پیش‌نمایش ارسال <i class="fas fa-arrow-left mr-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // -------------------------------------------------------------
+    // Global references declared upfront to avoid Temporal Dead Zone (TDZ)
+    // -------------------------------------------------------------
+    let usersManager = null;
+    let contactsManager = null;
+
+    const selectedUsersCountEl = document.getElementById("selectedUsersCount");
+    const selectedContactsCountEl = document.getElementById("selectedContactsCount");
+    const totalSelectedCountEl = document.getElementById("totalSelectedCount");
+
+    function updateGlobalRecipientCounts() {
+        const uCount = usersManager ? usersManager.getSelectedCount() : 0;
+        const cCount = contactsManager ? contactsManager.getSelectedCount() : 0;
+        const total = uCount + cCount;
+
+        if (selectedUsersCountEl) {
+            selectedUsersCountEl.textContent = (usersManager && usersManager.isSelectAllTotal()) ?
+                `تمام اعضا (${uCount.toLocaleString('fa-IR')})` : uCount.toLocaleString('fa-IR');
+        }
+        if (selectedContactsCountEl) {
+            selectedContactsCountEl.textContent = (contactsManager && contactsManager.isSelectAllTotal()) ?
+                `تمام دفترچه (${cCount.toLocaleString('fa-IR')})` : cCount.toLocaleString('fa-IR');
+        }
+        if (totalSelectedCountEl) {
+            totalSelectedCountEl.textContent = total.toLocaleString('fa-IR');
+        }
+    }
+
+    // -------------------------------------------------------------
+    // 1. Guaranteed Robust Tab Switching (Vanilla JavaScript)
+    // -------------------------------------------------------------
+    const tabLinks = document.querySelectorAll("#recipientTabs .nav-link");
+    const tabPanes = document.querySelectorAll("#recipientTabContent .tab-pane");
+
+    function activateTab(targetId) {
+        tabLinks.forEach(link => {
+            const linkTarget = link.getAttribute("href") || link.getAttribute("data-tab");
+            if (linkTarget === targetId || linkTarget === "#" + targetId || link.getAttribute("data-tab") === targetId) {
+                link.classList.add("active");
+            } else {
+                link.classList.remove("active");
+            }
+        });
+
+        tabPanes.forEach(pane => {
+            if (pane.id === targetId || "#" + pane.id === targetId) {
+                pane.classList.add("active", "show");
+                pane.style.display = "block";
+            } else {
+                pane.classList.remove("active", "show");
+                pane.style.display = "none";
+            }
+        });
+    }
+
+    tabLinks.forEach(link => {
+        link.addEventListener("click", function(e) {
+            e.preventDefault();
+            const target = this.getAttribute("href") || this.getAttribute("data-tab");
+            activateTab(target.replace("#", ""));
+        });
+    });
+
+    // Auto-switch to contacts tab if preselected contacts exist and no preselected users
+    const hasPreselectedContacts = {% if preselected_contact_ids %}true{% else %}false{% endif %};
+    const hasPreselectedUsers = {% if preselected_user_ids %}true{% else %}false{% endif %};
+    if (hasPreselectedContacts && !hasPreselectedUsers) {
+        activateTab("contacts-pane");
+    } else {
+        activateTab("users-pane");
+    }
+
+    // -------------------------------------------------------------
+    // 2. Interactive Paginated Table Manager Class
+    // -------------------------------------------------------------
+    class PaginatedTableManager {
+        constructor(config) {
+            this.rowSelector = config.rowSelector;
+            this.checkboxSelector = config.checkboxSelector;
+            this.tableBody = document.getElementById(config.tableBodyId);
+            this.searchInput = document.getElementById(config.searchInputId);
+            this.pageSizeSelect = document.getElementById(config.pageSizeSelectId);
+            this.headerCheckbox = document.getElementById(config.headerCheckboxId);
+            this.infoElement = document.getElementById(config.infoElementId);
+            this.paginationNav = document.getElementById(config.paginationNavId);
+            this.badgeElement = document.getElementById(config.badgeElementId);
+            this.csvHiddenInput = document.getElementById(config.csvHiddenInputId);
+            this.selectAllHiddenInput = document.getElementById(config.selectAllHiddenInputId);
+            this.totalTotalButton = document.getElementById(config.totalTotalButtonId);
+            this.totalCount = parseInt(config.totalCount, 10) || 0;
+            this.entityName = config.entityName || "مورد";
+
+            this.allRows = Array.from(document.querySelectorAll(this.rowSelector));
+            this.checkedIds = new Set();
+            this.currentPage = 1;
+            this.pageSize = parseInt(this.pageSizeSelect ? this.pageSizeSelect.value : 15, 10) || 15;
+            this.searchQuery = "";
+            this.selectAllTotalMode = false;
+
+            // Initialize checked set from DOM (preselected)
+            this.allRows.forEach(row => {
+                const cb = row.querySelector(this.checkboxSelector);
+                if (cb && cb.checked) {
+                    this.checkedIds.add(String(cb.value));
+                }
+            });
+
+            this.initEvents();
+            this.render();
+        }
+
+        initEvents() {
+            // Row checkbox change listener
+            this.allRows.forEach(row => {
+                const cb = row.querySelector(this.checkboxSelector);
+                if (cb) {
+                    cb.addEventListener("change", (e) => {
+                        const val = String(e.target.value);
+                        if (e.target.checked) {
+                            this.checkedIds.add(val);
+                        } else {
+                            this.checkedIds.delete(val);
+                            this.selectAllTotalMode = false;
+                            if (this.selectAllHiddenInput) this.selectAllHiddenInput.value = "0";
+                            if (this.totalTotalButton) this.totalTotalButton.classList.remove("is-active");
+                        }
+                        this.updateHeaderCheckboxState();
+                        this.syncState();
+                    });
+                }
+            });
+
+            // Search input filter
+            if (this.searchInput) {
+                this.searchInput.addEventListener("input", () => {
+                    this.searchQuery = this.searchInput.value.trim().toLowerCase();
+                    this.currentPage = 1;
+                    this.render();
+                });
+            }
+
+            // Page size change
+            if (this.pageSizeSelect) {
+                this.pageSizeSelect.addEventListener("change", () => {
+                    this.pageSize = parseInt(this.pageSizeSelect.value, 10) || 15;
+                    this.currentPage = 1;
+                    this.render();
+                });
+            }
+
+            // Header checkbox: select / deselect all on current visible page
+            if (this.headerCheckbox) {
+                this.headerCheckbox.addEventListener("change", () => {
+                    const shouldCheck = this.headerCheckbox.checked;
+                    const visibleRows = this.getCurrentPageRows();
+                    visibleRows.forEach(row => {
+                        const cb = row.querySelector(this.checkboxSelector);
+                        if (cb) {
+                            cb.checked = shouldCheck;
+                            const val = String(cb.value);
+                            if (shouldCheck) {
+                                this.checkedIds.add(val);
+                            } else {
+                                this.checkedIds.delete(val);
+                            }
+                        }
+                    });
+                    if (!shouldCheck) {
+                        this.selectAllTotalMode = false;
+                        if (this.selectAllHiddenInput) this.selectAllHiddenInput.value = "0";
+                        if (this.totalTotalButton) this.totalTotalButton.classList.remove("is-active");
+                    }
+                    this.syncState();
+                });
+            }
+        }
+
+        getFilteredRows() {
+            if (!this.searchQuery) return this.allRows;
+            return this.allRows.filter(row => {
+                const text = row.getAttribute("data-search") || row.textContent;
+                return text.toLowerCase().includes(this.searchQuery);
+            });
+        }
+
+        getCurrentPageRows() {
+            const filtered = this.getFilteredRows();
+            const startIndex = (this.currentPage - 1) * this.pageSize;
+            return filtered.slice(startIndex, startIndex + this.pageSize);
+        }
+
+        render() {
+            const filtered = this.getFilteredRows();
+            const totalFiltered = filtered.length;
+            const totalPages = Math.ceil(totalFiltered / this.pageSize) || 1;
+
+            if (this.currentPage > totalPages) this.currentPage = totalPages;
+            if (this.currentPage < 1) this.currentPage = 1;
+
+            const startIndex = (this.currentPage - 1) * this.pageSize;
+            const endIndex = Math.min(startIndex + this.pageSize, totalFiltered);
+            const currentPageRowsSet = new Set(filtered.slice(startIndex, endIndex));
+
+            // Show / hide rows
+            this.allRows.forEach(row => {
+                if (currentPageRowsSet.has(row)) {
+                    row.style.display = "";
+                    const cb = row.querySelector(this.checkboxSelector);
+                    if (cb) {
+                        cb.checked = this.selectAllTotalMode || this.checkedIds.has(String(cb.value));
+                    }
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            // Update info text
+            if (this.infoElement) {
+                if (totalFiltered === 0) {
+                    this.infoElement.innerHTML = `<span class="text-danger">موردی با این مشخصات یافت نشد.</span>`;
+                } else {
+                    const fromNum = (startIndex + 1).toLocaleString('fa-IR');
+                    const toNum = endIndex.toLocaleString('fa-IR');
+                    const totalNum = (this.totalCount > 0 ? this.totalCount : totalFiltered).toLocaleString('fa-IR');
+                    const pageNum = this.currentPage.toLocaleString('fa-IR');
+                    const pagesTotal = totalPages.toLocaleString('fa-IR');
+                    this.infoElement.textContent = `نمایش ${fromNum} تا ${toNum} از ${totalNum} ${this.entityName} (صفحه ${pageNum} از ${pagesTotal})`;
+                }
+            }
+
+            this.updateHeaderCheckboxState();
+            this.renderPagination(totalPages);
+            this.syncState();
+        }
+
+        updateHeaderCheckboxState() {
+            if (!this.headerCheckbox) return;
+            const currentRows = this.getCurrentPageRows();
+            if (currentRows.length === 0) {
+                this.headerCheckbox.checked = false;
+                this.headerCheckbox.indeterminate = false;
+            } else {
+                let checkedCount = 0;
+                currentRows.forEach(row => {
+                    const cb = row.querySelector(this.checkboxSelector);
+                    if (cb && cb.checked) checkedCount++;
+                });
+                this.headerCheckbox.checked = (checkedCount === currentRows.length);
+                this.headerCheckbox.indeterminate = (checkedCount > 0 && checkedCount < currentRows.length);
+            }
+        }
+
+        renderPagination(totalPages) {
+            if (!this.paginationNav) return;
+            this.paginationNav.innerHTML = "";
+
+            if (totalPages <= 1) return;
+
+            const createItem = (label, pageNumber, isDisabled, isActive) => {
+                const li = document.createElement("li");
+                li.className = `page-item ${isDisabled ? "disabled" : ""} ${isActive ? "active" : ""}`;
+                const a = document.createElement("a");
+                a.className = "page-link";
+                a.innerHTML = label;
+                if (!isDisabled && !isActive) {
+                    a.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        this.currentPage = pageNumber;
+                        this.render();
+                    });
+                }
+                li.appendChild(a);
+                return li;
+            };
+
+            // Previous
+            this.paginationNav.appendChild(
+                createItem("« قبلی", this.currentPage - 1, this.currentPage === 1, false)
+            );
+
+            // Dynamic page numbers
+            const maxVisibleButtons = 5;
+            let startPage = Math.max(1, this.currentPage - Math.floor(maxVisibleButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
+            if (endPage - startPage + 1 < maxVisibleButtons) {
+                startPage = Math.max(1, endPage - maxVisibleButtons + 1);
+            }
+
+            if (startPage > 1) {
+                this.paginationNav.appendChild(createItem("۱", 1, false, false));
+                if (startPage > 2) {
+                    const li = document.createElement("li");
+                    li.className = "page-item disabled";
+                    li.innerHTML = '<span class="page-link">...</span>';
+                    this.paginationNav.appendChild(li);
+                }
+            }
+
+            for (let p = startPage; p <= endPage; p++) {
+                this.paginationNav.appendChild(
+                    createItem(p.toLocaleString('fa-IR'), p, false, p === this.currentPage)
+                );
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const li = document.createElement("li");
+                    li.className = "page-item disabled";
+                    li.innerHTML = '<span class="page-link">...</span>';
+                    this.paginationNav.appendChild(li);
+                }
+                this.paginationNav.appendChild(
+                    createItem(totalPages.toLocaleString('fa-IR'), totalPages, false, false)
+                );
+            }
+
+            // Next
+            this.paginationNav.appendChild(
+                createItem("بعدی »", this.currentPage + 1, this.currentPage === totalPages, false)
+            );
+        }
+
+        // Action: Toggle select all on current page
+        toggleSelectAllOnCurrentPage() {
+            const currentRows = this.getCurrentPageRows();
+            if (currentRows.length === 0) return;
+
+            let allChecked = true;
+            currentRows.forEach(row => {
+                const cb = row.querySelector(this.checkboxSelector);
+                if (cb && !cb.checked) allChecked = false;
+            });
+
+            const newCheckState = !allChecked;
+            currentRows.forEach(row => {
+                const cb = row.querySelector(this.checkboxSelector);
+                if (cb) {
+                    cb.checked = newCheckState;
+                    const val = String(cb.value);
+                    if (newCheckState) {
+                        this.checkedIds.add(val);
+                    } else {
+                        this.checkedIds.delete(val);
+                    }
+                }
+            });
+
+            if (!newCheckState) {
+                this.selectAllTotalMode = false;
+                if (this.selectAllHiddenInput) this.selectAllHiddenInput.value = "0";
+                if (this.totalTotalButton) this.totalTotalButton.classList.remove("is-active");
+            }
+
+            this.updateHeaderCheckboxState();
+            this.syncState();
+        }
+
+        // Action: Toggle select all in entire DB
+        toggleSelectAllTotal() {
+            if (this.selectAllTotalMode) {
+                this.clearAll();
+            } else {
+                this.selectAllTotalMode = true;
+                if (this.selectAllHiddenInput) this.selectAllHiddenInput.value = "1";
+                if (this.totalTotalButton) this.totalTotalButton.classList.add("is-active");
+
+                this.allRows.forEach(r => {
+                    const cb = r.querySelector(this.checkboxSelector);
+                    if (cb) {
+                        cb.checked = true;
+                        this.checkedIds.add(String(cb.value));
+                    }
+                });
+                this.updateHeaderCheckboxState();
+                this.syncState();
+            }
+        }
+
+        // Action: Clear all selections
+        clearAll() {
+            this.selectAllTotalMode = false;
+            if (this.selectAllHiddenInput) this.selectAllHiddenInput.value = "0";
+            if (this.totalTotalButton) this.totalTotalButton.classList.remove("is-active");
+
+            this.checkedIds.clear();
+            this.allRows.forEach(r => {
+                const cb = r.querySelector(this.checkboxSelector);
+                if (cb) cb.checked = false;
+            });
+
+            this.updateHeaderCheckboxState();
+            this.syncState();
+        }
+
+        syncState() {
+            // Update CSV input
+            if (this.csvHiddenInput) {
+                this.csvHiddenInput.value = Array.from(this.checkedIds).join(",");
+            }
+
+            // Update badge
+            const count = this.getSelectedCount();
+            if (this.badgeElement) {
+                if (count > 0) {
+                    this.badgeElement.textContent = `${count.toLocaleString('fa-IR')} انتخاب شده`;
+                    this.badgeElement.classList.remove("d-none");
+                } else {
+                    this.badgeElement.classList.add("d-none");
+                }
+            }
+
+            // Notify global count update safely
+            updateGlobalRecipientCounts();
+        }
+
+        getSelectedCount() {
+            return this.selectAllTotalMode ? (this.totalCount || this.allRows.length) : this.checkedIds.size;
+        }
+
+        isSelectAllTotal() {
+            return this.selectAllTotalMode;
+        }
+    }
+
+    // -------------------------------------------------------------
+    // 3. Instantiate Managers for Users and Contacts
+    // -------------------------------------------------------------
+    usersManager = new PaginatedTableManager({
+        rowSelector: "#usersTable tbody tr.user-row",
+        checkboxSelector: ".user-checkbox",
+        tableBodyId: "usersTableBody",
+        searchInputId: "userSearchInput",
+        pageSizeSelectId: "userPageSize",
+        headerCheckboxId: "userHeaderCheckbox",
+        infoElementId: "userPaginationInfo",
+        paginationNavId: "userPaginationNav",
+        badgeElementId: "usersSelectedBadge",
+        csvHiddenInputId: "selectedUsersCsv",
+        selectAllHiddenInputId: "selectAllUsersInput",
+        totalTotalButtonId: "btnSelectAllUsersTotal",
+        totalCount: {{ total_users_count|default:0 }},
+        entityName: "کاربر",
+    });
+
+    contactsManager = new PaginatedTableManager({
+        rowSelector: "#contactsTable tbody tr.contact-row",
+        checkboxSelector: ".contact-checkbox",
+        tableBodyId: "contactsTableBody",
+        searchInputId: "contactSearchInput",
+        pageSizeSelectId: "contactPageSize",
+        headerCheckboxId: "contactHeaderCheckbox",
+        infoElementId: "contactPaginationInfo",
+        paginationNavId: "contactPaginationNav",
+        badgeElementId: "contactsSelectedBadge",
+        csvHiddenInputId: "selectedContactsCsv",
+        selectAllHiddenInputId: "selectAllContactsInput",
+        totalTotalButtonId: "btnSelectAllContactsTotal",
+        totalCount: {{ total_contacts_count|default:0 }},
+        entityName: "مخاطب",
+    });
+
+    // Wire action buttons for Users
+    const btnSelectAllUsersPage = document.getElementById("btnSelectAllUsersPage");
+    if (btnSelectAllUsersPage) {
+        btnSelectAllUsersPage.addEventListener("click", function(e) {
+            e.preventDefault();
+            usersManager.toggleSelectAllOnCurrentPage();
+        });
+    }
+
+    const btnSelectAllUsersTotal = document.getElementById("btnSelectAllUsersTotal");
+    if (btnSelectAllUsersTotal) {
+        btnSelectAllUsersTotal.addEventListener("click", function(e) {
+            e.preventDefault();
+            usersManager.toggleSelectAllTotal();
+        });
+    }
+
+    const btnClearUsers = document.getElementById("btnClearUsers");
+    if (btnClearUsers) {
+        btnClearUsers.addEventListener("click", function(e) {
+            e.preventDefault();
+            usersManager.clearAll();
+        });
+    }
+
+    // Wire action buttons for Contacts
+    const btnSelectAllContactsPage = document.getElementById("btnSelectAllContactsPage");
+    if (btnSelectAllContactsPage) {
+        btnSelectAllContactsPage.addEventListener("click", function(e) {
+            e.preventDefault();
+            contactsManager.toggleSelectAllOnCurrentPage();
+        });
+    }
+
+    const btnSelectAllContactsTotal = document.getElementById("btnSelectAllContactsTotal");
+    if (btnSelectAllContactsTotal) {
+        btnSelectAllContactsTotal.addEventListener("click", function(e) {
+            e.preventDefault();
+            contactsManager.toggleSelectAllTotal();
+        });
+    }
+
+    const btnClearContacts = document.getElementById("btnClearContacts");
+    if (btnClearContacts) {
+        btnClearContacts.addEventListener("click", function(e) {
+            e.preventDefault();
+            contactsManager.clearAll();
+        });
+    }
+
+    // Initial sync of global recipient counters
+    updateGlobalRecipientCounts();
+
+    // -------------------------------------------------------------
+    // 4. Live Message Preview & Persian SMS Part Counter
+    // -------------------------------------------------------------
+    const messageTextarea = document.getElementById("sms_message_body");
+    const charCountEl = document.getElementById("charCount");
+    const partCountEl = document.getElementById("partCount");
+    const userPreviewText = document.getElementById("userPreviewText");
+    const contactPreviewText = document.getElementById("contactPreviewText");
+
+    function updatePreview() {
+        if (!messageTextarea) return;
+        const raw = messageTextarea.value;
+        const len = raw.length;
+        if (charCountEl) charCountEl.textContent = len.toLocaleString('fa-IR');
+
+        // Persian SMS parts calculation: <=70 is 1 part, then each 67 chars is 1 extra part
+        let parts = 0;
+        if (len > 0) {
+            parts = len <= 70 ? 1 : 1 + Math.ceil((len - 70) / 67);
+        }
+        if (partCountEl) partCountEl.textContent = parts.toLocaleString('fa-IR');
+
+        const trimmed = raw.trim();
+        if (trimmed) {
+            if (userPreviewText) userPreviewText.innerHTML = "علی رضایی عزیز<br>" + escapeHtml(trimmed).replace(/\n/g, "<br>");
+            if (contactPreviewText) contactPreviewText.innerHTML = escapeHtml(trimmed).replace(/\n/g, "<br>");
+        } else {
+            if (userPreviewText) userPreviewText.innerHTML = "علی رضایی عزیز<br><span class='text-muted'>متن پیامک شما اینجا نمایش داده می‌شود...</span>";
+            if (contactPreviewText) contactPreviewText.innerHTML = "<span class='text-muted'>متن پیامک شما اینجا نمایش داده می‌شود...</span>";
+        }
+    }
+
+    function escapeHtml(string) {
+        return String(string).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    if (messageTextarea) {
+        messageTextarea.addEventListener("input", updatePreview);
+        updatePreview();
+    }
+
+    // -------------------------------------------------------------
+    // 5. Form Submit Validation
+    // -------------------------------------------------------------
+    const composerForm = document.getElementById("smsComposerForm");
+    if (composerForm) {
+        composerForm.addEventListener("submit", function(e) {
+            const total = usersManager.getSelectedCount() + contactsManager.getSelectedCount();
+            if (total === 0) {
+                e.preventDefault();
+                alert("لطفاً حداقل یک کاربر یا مخاطب را برای ارسال پیامک انتخاب کنید.");
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -58,7 +58,9 @@ INSTALLED_APPS = [
     'apps.products.apps.ProductsConfig',
     'apps.support.apps.SupportConfig',
     'apps.translation.apps.TranslationConfig',
+    'apps.sms_service.apps.SmsServiceConfig',
 ]
+
 
 # Jazzmin admin theme config (branding, layout, language chooser, RTL CSS)
 # lives in its own module for readability; it must be imported here since
@@ -137,16 +139,34 @@ APP_ENV = config("APP_ENV", default="development")
 
 # Production: Use PostgreSQL
 if APP_ENV == "production":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": config("DB_NAME"),
-            "USER": config("DB_USER"),
-            "PASSWORD": config("DB_PASSWORD"),
-            "HOST": config("DB_HOST"),
-            "PORT": config("DB_PORT", cast=int),
+    try:
+        import psycopg2  # noqa: F401
+        has_postgres_driver = True
+    except ImportError:
+        try:
+            import psycopg  # noqa: F401
+            has_postgres_driver = True
+        except ImportError:
+            has_postgres_driver = False
+
+    if has_postgres_driver:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": config("DB_NAME", default="mydb"),
+                "USER": config("DB_USER", default="postgres"),
+                "PASSWORD": config("DB_PASSWORD", default="123456"),
+                "HOST": config("DB_HOST", default="127.0.0.1"),
+                "PORT": config("DB_PORT", default=5432, cast=int),
+            }
         }
-    }
+    else:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
 # Test environment: Use DATABASE_URL (for CI testing)
 elif APP_ENV == "test" and os.getenv("DATABASE_URL"):
     import dj_database_url
@@ -298,3 +318,13 @@ LOGGING = {
     },
 }
 # ===========================================
+
+# ========== SMS SERVICE (MELIPAYAMAK) CONFIGURATION ==========
+MELIPAYAMAK_API_TOKEN = config('MELIPAYAMAK_API_TOKEN', default='')
+MELIPAYAMAK_SENDER = config('MELIPAYAMAK_SENDER', default='')
+MELIPAYAMAK_API_BASE_URL = config(
+    'MELIPAYAMAK_API_BASE_URL',
+    default='https://console.melipayamak.com/api/send/simple',
+)
+SMS_CONSOLE_MODE = config('SMS_CONSOLE_MODE', default=DEBUG, cast=bool)
+# =============================================================

@@ -35,6 +35,7 @@
 <link rel="preload" href="{% static 'fonts/vazirmatn-arabic-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{% static 'fonts/vazirmatn-arabic-700-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{% static 'fonts/fonts.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
 {% block fonts %}{% endblock %}
 
 <script>
@@ -218,6 +219,14 @@
   button { font-family:inherit; cursor:pointer; border:none; background:none; color:inherit; }
   ul { list-style:none; }
   h1,h2,h3 { font-weight:700; letter-spacing:-.01em; }
+  /* Protect Persian brand text in logos from FontAwesome .fa font-family override */
+  .logo-link .fa,
+  .footer-brand .fa,
+  .site-header .logo-link .fa,
+  .site-footer .footer-brand .fa {
+    font-family: var(--font-body) !important;
+    font-style: normal !important;
+  }
 
   .container {
     max-width:var(--container-max);
