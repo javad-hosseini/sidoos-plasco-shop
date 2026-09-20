@@ -114,7 +114,9 @@ class ArticleAdmin(admin.ModelAdmin):
     list_per_page = 20
 
     prepopulated_fields = {"slug": ("title",)}
-    autocomplete_fields = ["creator"]
+
+    class Media:
+        js = ("admin/js/auto_prepopulate_seo.js",)
 
     # Form layout
     fieldsets = [

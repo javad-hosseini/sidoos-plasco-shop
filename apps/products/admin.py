@@ -52,8 +52,10 @@ class ProductAdmin(admin.ModelAdmin):
         'meta_description',
     )
     readonly_fields = ('created_at', 'updated_at', 'discount_percentage', 'canonical_preview')
-    autocomplete_fields = ('category', 'creator')
     prepopulated_fields = {'slug': ('name',)}
+
+    class Media:
+        js = ('admin/js/auto_prepopulate_seo.js',)
 
     fieldsets = (
         ('اطلاعات پایه و دسته‌بندی', {
@@ -179,9 +181,20 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'parent', 'creator', 'created_at')
     list_filter = ('parent', 'created_at')
     search_fields = ('name', 'parent__name', 'creator__username')
-    readonly_fields = ('slug', 'created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')
+    prepopulated_fields = {'slug': ('name',)}
     fields = ('name', 'slug', 'parent', 'creator', 'created_at', 'updated_at')
-    autocomplete_fields = ('parent',)
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if "creator" not in initial:
+            initial["creator"] = request.user.pk
+        return initial
+
+    def save_model(self, request, obj, form, change):
+        if not obj.creator_id:
+            obj.creator = request.user
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(ProductImage)
