@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, URLValidator
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 from taggit.managers import TaggableManager
 from django.conf import settings
@@ -317,6 +318,17 @@ class Product(models.Model):
             except ValidationError as err:
                 raise ValidationError({'canonical_url': err.messages if hasattr(err, 'messages') else str(err)})
 
+        # Auto-generate SEO fields if empty
+        if not self.meta_title and self.name:
+            self.meta_title = f"{self.name} | سیدوس"[:200]
+
+        if not self.meta_description and self.description:
+            raw_desc = strip_tags(self.description)
+            clean_desc = " ".join(raw_desc.split())
+            self.meta_description = clean_desc[:157] + "..." if len(clean_desc) > 160 else clean_desc
+
+        if not self.og_image and self.cover_image:
+            self.og_image = self.cover_image
 
         if self.call_for_price:
             self.price = 0
