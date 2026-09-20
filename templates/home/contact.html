@@ -76,6 +76,17 @@
     align-items:center;
     justify-content:center;
     font-size:18px;
+    flex-shrink:0;
+  }
+  .contact-card__icon svg{
+    width:20px;
+    height:20px;
+    stroke:currentColor;
+    fill:none;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    display:block;
   }
   .contact-card__title{
     font-size:16px;
@@ -105,15 +116,20 @@
   /* Social Channels Grid */
   .social-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns:repeat(2, 1fr);
     gap:12px;
     margin-top:14px;
+  }
+  @media(max-width:560px){
+    .social-grid{
+      grid-template-columns:1fr;
+    }
   }
   .social-item{
     display:flex;
     align-items:center;
-    gap:10px;
-    padding:10px 14px;
+    gap:12px;
+    padding:11px 14px;
     border-radius:var(--radius-sm);
     background:rgba(245,240,232,.04);
     border:1px solid var(--color-border);
@@ -123,14 +139,51 @@
     font-weight:600;
     transition:all .3s var(--ease);
   }
+  [data-theme="light"] .social-item{
+    background:rgba(28,29,26,.03);
+  }
   .social-item:hover{
     border-color:var(--gold);
     background:rgba(184,155,94,.1);
     color:var(--gold);
     transform:translateY(-2px);
+    box-shadow:0 4px 14px rgba(0,0,0,.12);
   }
-  .social-item i{
-    font-size:16px;
+  .social-item svg{
+    width:22px;
+    height:22px;
+    display:block;
+    flex-shrink:0;
+    transition:transform .3s var(--ease);
+  }
+  .social-item:hover svg{
+    transform:scale(1.12);
+  }
+  .social-item__text{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    min-width:0;
+    line-height:1.3;
+  }
+  .social-item__name{
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--cream);
+    transition:color .3s;
+  }
+  .social-item:hover .social-item__name{
+    color:var(--gold);
+  }
+  .social-item__id{
+    font-size:11.5px;
+    color:var(--cream-soft);
+    font-weight:500;
+    letter-spacing:0.01em;
+  }
+  .social-item:hover .social-item__id{
+    color:var(--gold);
+    opacity:0.92;
   }
 
   /* Form Container */
@@ -278,7 +331,10 @@
   </nav>
 
   <header class="contact-header">
-    <span class="contact-eyebrow"><i class="fa-solid fa-headset"></i> صدای گرم شما را مشتاقانه می‌شنویم</span>
+    <span class="contact-eyebrow">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+      <span>صدای گرم شما را مشتاقانه می‌شنویم</span>
+    </span>
     <h1 class="contact-title">ارتباط با مجموعه سیدوس</h1>
     <p class="contact-lead">
       جهت استعلام قیمت‌های عمده، هماهنگی خرید، مشاوره فنی کالاها یا پیگیری سفارش‌ها، می‌توانید از طریق شماره‌های تماس، پیام‌رسان‌ها یا فرم زیر مستقیماً با کارشناسان ما در ارتباط باشید.
@@ -293,7 +349,9 @@
       <!-- Card: Phone Numbers -->
       <div class="contact-card">
         <div class="contact-card__head">
-          <div class="contact-card__icon"><i class="fa-solid fa-phone"></i></div>
+          <div class="contact-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
           <div>
             <div class="contact-card__title">شماره‌های تماس و مشاوره</div>
             <small style="color:var(--gold); font-size:12px;">پاسخگویی سریع کارشناسان فروش</small>
@@ -315,7 +373,9 @@
       <!-- Card: Working Hours -->
       <div class="contact-card">
         <div class="contact-card__head">
-          <div class="contact-card__icon"><i class="fa-solid fa-clock"></i></div>
+          <div class="contact-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
           <div class="contact-card__title">ساعات کاری و پاسخگویی</div>
         </div>
         <div class="contact-card__content">
@@ -328,27 +388,72 @@
       <!-- Card: Social Media & Messengers -->
       <div class="contact-card">
         <div class="contact-card__head">
-          <div class="contact-card__icon"><i class="fa-solid fa-share-nodes"></i></div>
+          <div class="contact-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </div>
           <div class="contact-card__title">شبکه‌های اجتماعی و پیام‌رسان‌ها</div>
         </div>
         <div class="contact-card__content">
           <p style="margin-bottom:8px; font-size:13.5px;">ما در تمامی پیام‌رسان‌های پرمخاطب همراه شما هستیم:</p>
           <div class="social-grid">
-            <a href="https://wa.me/989308743868" target="_blank" rel="noopener" class="social-item" title="واتساپ">
-              <i class="fa-brands fa-whatsapp" style="color:#25D366;"></i>
-              <span>واتساپ</span>
+            <a href="https://wa.me/989308743868" target="_blank" rel="noopener" class="social-item" title="واتساپ (۰۹۳۰۸۷۴۳۸۶۸)">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="color:#25D366;" aria-hidden="true">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.97.54 1.769.809 2.796.809 3.182 0 5.769-2.587 5.77-5.766.001-3.182-2.586-5.795-5.77-5.795zm0 10.378c-.902 0-1.745-.256-2.508-.724l-.18-.111-1.859.488.497-1.813-.119-.189a4.597 4.597 0 0 1-.715-2.463c.001-2.545 2.072-4.615 4.618-4.615 2.545 0 4.617 2.071 4.618 4.616-.001 2.546-2.073 4.811-4.618 4.811zm2.531-3.488c-.139-.07-8.232-.411-.268-.475-.036-.065-.065-.1-.139-.232s-.278-.2-.417-.2-.278.07-.417.2-.556.556-.695.695-.278.139-.417.07c-.139-.07-.587-.216-1.119-.69-.413-.368-.691-.822-.772-.961-.081-.139-.009-.214.061-.283.063-.062.139-.163.208-.244.07-.081.093-.139.139-.232.046-.093.023-.174-.012-.244-.035-.07-.417-1.006-.571-1.378-.15-.362-.303-.313-.417-.319-.108-.005-.232-.007-.356-.007s-.325.046-.495.232c-.17.186-.649.634-.649 1.547 0 .913.665 1.796.758 1.92.093.124 1.309 2.059 3.226 2.859.456.19.812.304 1.089.392.458.146.875.125 1.205.076.368-.055 1.13-.462 1.29-.908.16-.446.16-.828.112-.908-.047-.08-.172-.127-.311-.197z" />
+                <path d="M12.031 0C5.396 0 .016 5.38.016 12.015c0 2.118.553 4.187 1.603 6.007L0 24l6.162-1.616a11.97 11.97 0 0 0 5.869 1.528c6.634 0 12.014-5.38 12.014-12.015C24.045 5.38 18.665 0 12.031 0zm0 21.908a9.88 9.88 0 0 1-5.044-1.385l-.362-.215-3.744.982.999-3.649-.236-.376A9.87 9.87 0 0 1 2.135 12.015c0-5.457 4.439-9.896 9.896-9.896 5.457 0 9.896 4.439 9.896 9.896 0 5.457-4.439 9.893-9.896 9.893z" />
+              </svg>
+              <div class="social-item__text">
+                <span class="social-item__name">واتساپ</span>
+                <span class="social-item__id" dir="ltr">۰۹۳۰۸۷۴۳۸۶۸</span>
+              </div>
             </a>
-            <a href="https://ble.ir/sidoos" target="_blank" rel="noopener" class="social-item" title="پیام‌رسان بله">
-              <i class="fa-solid fa-comment-dots" style="color:var(--gold);"></i>
-              <span>بله (sidoos@)</span>
+            <a href="https://ble.ir/sidoos" target="_blank" rel="noopener" class="social-item" title="بله (sidoos@)">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="color:#00AA65;" aria-hidden="true">
+                <path d="M11.425 23.987a12.218 12.218 0 0 1-2.95-.514 6.578 6.578 0 0 0-.336-.116C4.936 22.303 2.22 19.763.913 16.599a11.92 11.92 0 0 1-.9-4.063C.005 12.377.001 10.246 0 6.74 0 .71-.005 1.137.07.903.23.394.673.05 1.224.005c.421-.034.7.088 1.603.699.562.38 1.119.78 1.796 1.289.315.237.353.261.376.247l.35-.23c.58-.381 1.11-.677 1.7-.945A11.913 11.913 0 0 1 9.766.21a11.19 11.19 0 0 1 2.041-.2c1.14-.016 2.077.091 3.152.36 3.55.888 6.538 3.411 8.028 6.78.492 1.113.845 2.43.945 3.522.033.366.039.43.053.611.008.105.015.406.015.669 0 .783-.065 1.57-.169 2.064a5.474 5.474 0 0 0-.046.26c-.056.378-.214.987-.399 1.535-.205.613-.367.999-.684 1.633a11.95 11.95 0 0 1-2.623 3.436c-.44.396-.829.705-1.26 1.003-.647.445-1.307.812-2.039 1.134-.6.265-1.44.539-2.101.686a11.165 11.165 0 0 1-1.178.202 12.28 12.28 0 0 1-2.076.082zm-.61-5.92c.294-.06.678-.209.864-.337.144-.099.428-.376 2.064-2.013a161.8 161.8 0 0 1 1.764-1.753c.017 0 1.687-1.67 1.687-1.689 0-.02 1.64-1.648 1.661-1.648.01 0 .063-.047.118-.106.467-.495.682-.957.716-1.547.026-.433-.06-.909-.217-1.196a2.552 2.552 0 0 0-.983-1.024c-.281-.163-.512-.233-.888-.27-.306-.031-.688 0-.948.075-.243.07-.603.274-.853.481-.042.035-1.279 1.265-2.748 2.733l-2.671 2.67-1.093-1.09c-.6-.6-1.12-1.114-1.155-1.142a2.419 2.419 0 0 0-1.338-.51c-.404-.013-.91.09-1.224.25a2.89 2.89 0 0 0-.659.526c-.108.12-.287.357-.29.385-.003.03-.009.044-.065.16a2.312 2.312 0 0 0-.224.91c-.011.229-.01.265.019.491.045.353.24.781.51 1.115.05.063.97.992 2.044 2.064 1.507 1.505 1.98 1.97 2.074 2.039.327.24.683.388 1.101.456.182.03.5.016.734-.03z" />
+              </svg>
+              <div class="social-item__text">
+                <span class="social-item__name">بله</span>
+                <span class="social-item__id" dir="ltr">@sidoos</span>
+              </div>
             </a>
-            <a href="https://www.instagram.com/__sidos.ir__/" target="_blank" rel="noopener" class="social-item" title="اینستاگرام">
-              <i class="fa-brands fa-instagram" style="color:#E1306C;"></i>
-              <span>اینستاگرام</span>
+            <a href="https://www.instagram.com/__sidos.ir__/" target="_blank" rel="noopener" class="social-item" title="اینستاگرام (__sidos.ir__)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:#E1306C;" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
+              </svg>
+              <div class="social-item__text">
+                <span class="social-item__name">اینستاگرام</span>
+                <span class="social-item__id" dir="ltr">@__sidos.ir__</span>
+              </div>
             </a>
-            <a href="https://rubika.ir/sidos1402" target="_blank" rel="noopener" class="social-item" title="روبیکا">
-              <i class="fa-solid fa-cube" style="color:var(--gold);"></i>
-              <span>روبیکا</span>
+            <a href="https://rubika.ir/sidos1402" target="_blank" rel="noopener" class="social-item" title="روبیکا (sidos1402@)">
+              <svg viewBox="1270 575 510 555" fill="currentColor" style="color:#793F98;" aria-hidden="true">
+                <path d="M1523.57,579.8h1.76c.48,42.73-.25,128.44-.25,128.44-40.86-22.92-82-45.3-122.84-68.29q40.13-22.82,80.32-45.51c12.69-7.16,26.33-13.31,41-14.64Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1525.23,579.79h3c15.89,1.43,30.25,9,43.94,16.68q38.24,21.57,76.38,43.34c-41,22.73-82.45,45.82-123.51,68.48-.35-42.73.63-85.77.15-128.5Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1402.27,639.9l122.84,68.29-123.69,72.26s-.06-45.85.08-68.71C1401.39,688,1402.27,639.9,1402.27,639.9Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1648.69,639.82l.35.19c-.1,42.59,0,85.18,0,127.77-.07,4.17-.11,12.77-.11,12.77l-123.81-72.31s82.58-45.69,123.61-68.42Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1648.94,640c27.28,15.51,54.37,31.36,81.47,47.17,13.11,7.36,27,15.52,34.16,29.39-38.38,21.25-115.68,64-115.68,64s-.06-8.61,0-12.78c0-42.59-.06-85.18,0-127.77Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1324,684.82c25.65-15,78.19-44.88,78.19-44.88l-.72,140.51s-77-42.45-115.26-63.71c8.34-14.82,23.4-23.83,37.79-31.92Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1525,708.23l123.81,72.3s-39.84,22.05-59.62,32.64c-21.14,12-64.09,35.82-64.09,35.82l-123.66-68.54Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1277.5,772.82c.11-18.86-.23-38.88,8.66-56.08,38.29,21.26,115.26,63.71,115.26,63.71-41.37,23.92-82.54,48.2-123.89,72.15-.06-26.6,0-53.19,0-79.78Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1764.57,716.56c7.54,14.1,8.64,30.5,8.22,46.19,0,29.81,0,90.11,0,90.11l-123.88-72.31S1726.19,737.81,1764.57,716.56Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1401.42,780.45c.19-.08,123.66,68.54,123.66,68.54s.05,71.69.07,106.76c.2,11.29-.07,34.11-.07,34.11-41.27-22.78-82.32-45.76-123.6-68.54l-.07-.31q0-70.28,0-140.56Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1277.53,852.6c41.35-24,82.52-48.23,123.89-72.15q-.06,70.29,0,140.56c-6.35-2.65-12.13-6.43-18.19-9.64C1348,892,1312.88,872.18,1277.52,853v-.37Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1648.89,780.55q0,43.1,0,86.18c-.13,18.27.46,36.47,0,54.73-41.21,22.4-123.82,68.4-123.82,68.4s.27-22.82.07-34.11c0-35.07-.07-106.76-.07-106.76Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1648.89,780.55s123.88,72.14,123.88,72.31c-41.17,22.82-123.87,68.6-123.87,68.6h0c.46-18.26-.13-36.46,0-54.73q0-43.1,0-86.18Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1277.52,853c35.36,19.21,70.43,39,105.7,58.4,6.06,3.21,11.84,7,18.19,9.64l.07.31q-57,33.23-113.94,66.49c-4-6.09-6-13.19-7.51-20.25-2.39-11.77-2.52-23.83-2.52-35.79q0-39.4,0-78.8Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1772.77,852.86c.06,27.65,0,55.3,0,82.95.4,17.73-.12,36.62-9.57,52.25-34.2-20-114.33-66.6-114.33-66.6S1731.6,875.68,1772.77,852.86Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1287.54,987.81q56.94-33.3,113.94-66.49c-.25,46.83.08,93.67-.16,140.49q-40.35-22.75-80.49-45.86c-12.51-7.4-25.32-15.63-33.29-28.14Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1401.48,921.32c41.28,22.78,82.33,45.76,123.6,68.54-41.2,24-123.7,72-123.76,71.95.24-46.82-.09-93.66.16-140.49Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1648.7,921.55l.2-.09c.12,46.84-.25,93.69.19,140.53l-.31.15c-32.66-19.51-65.71-38.4-98.52-57.68-8.26-4.7-25.18-14.6-25.18-14.6S1607.49,944,1648.7,921.55Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1648.9,921.46h0c3.65,2.49,80.13,46.62,114.33,66.6-4.86,8.3-12.56,14.39-20.32,19.84-12.52,8.42-25.88,15.47-38.9,23.05-18.31,10.35-36.5,20.91-54.92,31-.44-46.84-.07-93.69-.19-140.53Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1525.08,989.86v132.93c-10.25-1.51-21.42-3.87-30.5-9.08-31.11-17.26-62.27-34.42-93.26-51.9C1442.52,1037.76,1483.88,1013.91,1525.08,989.86Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+                <path d="M1525.08,989.86s16.92,9.9,25.18,14.6c32.81,19.28,65.86,38.17,98.52,57.68q-47.79,26.44-95.57,53a62.48,62.48,0,0,1-25.87,7.69c-.56,0-2.26,0-2.26,0Z" stroke="var(--charcoal)" stroke-width="12" stroke-linejoin="round" />
+              </svg>
+              <div class="social-item__text">
+                <span class="social-item__name">روبیکا</span>
+                <span class="social-item__id" dir="ltr">@sidos1402</span>
+              </div>
             </a>
           </div>
         </div>
@@ -357,13 +462,15 @@
       <!-- Card: Email -->
       <div class="contact-card">
         <div class="contact-card__head">
-          <div class="contact-card__icon"><i class="fa-solid fa-envelope"></i></div>
+          <div class="contact-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </div>
           <div class="contact-card__title">مکاتبات و ایمیل</div>
         </div>
         <div class="contact-card__content">
           <p style="margin:0;">
             ارسال نامه‌ها و درخواست‌های همکاری رسمی:<br>
-            <a href="mailto:sidoos@sidoos.ir" class="contact-card__link" dir="ltr">sidoos@sidoos.ir</a>
+            <a href="mailto:support@sidoos.ir" class="contact-card__link" dir="ltr">support@sidoos.ir</a>
           </p>
         </div>
       </div>
@@ -377,14 +484,14 @@
 
       {% if sent %}
         <div class="contact-alert-success" role="alert">
-          <i class="fa-solid fa-circle-check"></i>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           <span>پیام شما با موفقیت دریافت گردید. به زودی با شما تماس خواهیم گرفت.</span>
         </div>
       {% endif %}
 
       {% if error_message %}
         <div style="background:rgba(220,53,69,.15); border:1px solid rgba(220,53,69,.4); color:#e05260; padding:14px 18px; border-radius:var(--radius-sm); margin-bottom:22px; font-size:14px; display:flex; align-items:center; gap:10px;" role="alert">
-          <i class="fa-solid fa-triangle-exclamation"></i>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <span>{{ error_message }}</span>
         </div>
       {% endif %}
@@ -433,7 +540,7 @@
 
         <button type="submit" class="btn-submit">
           <span>ارسال پیام به کارشناسان</span>
-          <i class="fa-solid fa-paper-plane"></i>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </form>
 
@@ -442,7 +549,7 @@
         <p>همکاران و مشتریان دارای حساب کاربری می‌توانند از پنل تیکتینگ نیز استفاده کنند.</p>
         <a href="{% url 'support:ticket_list' %}">
           <span>ورود به سامانه پشتیبانی و تیکت</span>
-          <i class="fa-solid fa-arrow-left"></i>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         </a>
       </div>
 
