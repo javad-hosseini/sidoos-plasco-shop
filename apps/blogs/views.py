@@ -99,6 +99,7 @@ def article_detail(request, slug):
     canonical = article.canonical_url or request.build_absolute_uri(
         reverse('blogs:article_detail', kwargs={'slug': article.slug})
     )
+    context['canonical_url'] = canonical
 
     response = render(request, "blogs/article_detail.html", context)
     # adding Last-Modified timestamp for SEO/Crawler optimization

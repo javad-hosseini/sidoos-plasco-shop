@@ -30,12 +30,45 @@ is handled by the web server and Django's URL routing layer.
 import re
 
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, URLValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django_ckeditor_5.fields import CKEditor5Field
 from taggit.managers import TaggableManager
+
+
+def normalize_and_validate_canonical_url(val: str, default_prefix: str = "blogs") -> str:
+    """
+    Normalizes and validates a canonical URL:
+    - Strips leading/trailing whitespace
+    - Normalizes relative paths (e.g. /blogs/test/ -> https://sidoos.ir/blogs/test/)
+    - Normalizes URLs without scheme (e.g. sidoos.ir/... -> https://sidoos.ir/...)
+    - Validates URL structure
+    - Ensures maximum length of 500 characters
+    """
+    if not val:
+        return ""
+    v = str(val).strip()
+    if not v:
+        return ""
+    if v.startswith("/"):
+        v = f"https://sidoos.ir{v}"
+    elif not (v.startswith("http://") or v.startswith("https://")):
+        if v.startswith("sidoos.ir") or v.startswith("www.sidoos.ir") or v.startswith("sidos.ir"):
+            v = f"https://{v}"
+        elif "/" in v:
+            v = f"https://sidoos.ir/{v.lstrip('/')}"
+        else:
+            v = f"https://{v}"
+    validator = URLValidator()
+    try:
+        validator(v)
+    except ValidationError:
+        raise ValidationError("لطفاً یک آدرس اینترنتی یا مسیر معتبر وارد کنید.")
+    if len(v) > 500:
+        raise ValidationError("طول آدرس نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد.")
+    return v
 
 
 class Article(models.Model):
@@ -145,11 +178,13 @@ class Article(models.Model):
         help_text="توضیح کوتاهی درباره محتوای مقاله که می‌تواند در نتایج موتورهای جستجو نمایش داده شود.",
     )
 
-    canonical_url = models.URLField(
+    canonical_url = models.CharField(
+        max_length=500,
         blank=True,
         verbose_name="آدرس canonical",
-        help_text="در صورت نیاز، آدرس اصلی و ترجیحی این مقاله را وارد کنید.",
+        help_text="در صورت نیاز به آدرس اختصاصی، این فیلد را پر کنید. در غیر این صورت خالی بگذارید تا آدرس خودکار سیستم اعمال شود.",
     )
+
 
     og_title = models.CharField(
         max_length=200,
@@ -229,6 +264,17 @@ class Article(models.Model):
         """
         return reverse("blogs:article_detail", kwargs={"slug": self.slug})
 
+    def get_default_canonical_url(self) -> str:
+        """Returns the default auto-generated canonical URL for this article."""
+        if self.slug:
+            return f"https://sidoos.ir/blogs/{self.slug}/"
+        return "https://sidoos.ir/blogs/"
+
+    @property
+    def effective_canonical_url(self) -> str:
+        """Returns the active canonical URL: custom override if present, else default."""
+        return self.canonical_url or self.get_default_canonical_url()
+
     def clean(self) -> None:
         """
         Performs model-level validation.
@@ -237,11 +283,20 @@ class Article(models.Model):
         - The slug contains only URL-safe characters (Persian, English,
           numbers, hyphens, underscores)
         - Published articles have a publication date
+        - Canonical URL (if provided) is normalized and valid
 
         Raises:
             ValidationError: If any validation rule is violated.
         """
         super().clean()
+
+        # Normalize and validate canonical URL if entered
+        if self.canonical_url:
+            try:
+                self.canonical_url = normalize_and_validate_canonical_url(self.canonical_url, "blogs")
+            except ValidationError as err:
+                raise ValidationError({'canonical_url': err.messages if hasattr(err, 'messages') else str(err)})
+
 
         # Validate slug format: only Persian/English chars, numbers,
         # hyphens, underscores, and spaces (spaces will be converted to hyphens)
@@ -259,6 +314,7 @@ class Article(models.Model):
             raise ValidationError({
                 'published_at': 'برای انتشار مقاله، تاریخ انتشار الزامی است.'
             })
+
 
     def save(self, *args, **kwargs) -> None:
         """

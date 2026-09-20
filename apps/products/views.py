@@ -141,12 +141,11 @@ def product_detail(request, slug):
         'breadcrumbs': breadcrumbs,
     }
 
-    # Build the absolute canonical URL
-    canonical_url = request.build_absolute_uri(
+    # Build the absolute canonical URL (custom canonical_url takes precedence if set)
+    canonical_url = product.canonical_url or request.build_absolute_uri(
         reverse('products:product_detail', kwargs={'slug': product.slug})
     )
-
-
+    context['canonical_url'] = canonical_url
 
     response = render(request, "products/product_detail.html", context)
     #adding Last-Modified timestamp for SEO/Crawler optimization

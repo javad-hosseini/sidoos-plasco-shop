@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Category, Product, ProductImage, ProductSave, ProductLike
@@ -50,7 +51,7 @@ class ProductAdmin(admin.ModelAdmin):
         'meta_title',
         'meta_description',
     )
-    readonly_fields = ('slug', 'created_at', 'updated_at', 'discount_percentage')
+    readonly_fields = ('slug', 'created_at', 'updated_at', 'discount_percentage', 'canonical_preview')
     autocomplete_fields = ('category', 'creator')
 
     fieldsets = (
@@ -65,9 +66,10 @@ class ProductAdmin(admin.ModelAdmin):
             'description': 'برای پنهان کردن قیمت و نمایش «تماس بگیرید»، «تماس برای قیمت» را فعال کنید. درصد تخفیف به‌طور خودکار محاسبه می‌شود.'
         }),
         ('بهینه‌سازی موتور جستجو (SEO)', {
-            'fields': ('meta_title', 'meta_description', 'og_image', 'canonical_url'),
-            'description': 'این فیلدها برای بهبود رتبه در گوگل و شبکه‌های اجتماعی استفاده می‌شوند. در صورت خالی بودن، مقادیر پیش‌فرض (نام محصول) استفاده خواهد شد.'
+            'fields': ('meta_title', 'meta_description', 'og_image', 'canonical_preview', 'canonical_url'),
+            'description': 'این فیلدها برای بهبود رتبه در گوگل و شبکه‌های اجتماعی استفاده می‌شوند. آدرس Canonical بر اساس نام و اسلاگ محصول به صورت خودکار تعیین می‌شود.'
         }),
+
         ('وضعیت و نمایش', {
             'fields': (
                 'published',
@@ -86,6 +88,45 @@ class ProductAdmin(admin.ModelAdmin):
     )
 
     inlines = [ProductImageInline]
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "canonical_url":
+            kwargs["widget"] = forms.TextInput(
+                attrs={
+                    "placeholder": "برای استفاده از آدرس خودکار بالا خالی بگذارید، یا آدرس جدید را وارد کنید (مانند /products/...)",
+                    "style": "width: 100%; max-width: 650px; direction: ltr; text-align: left;",
+                }
+            )
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
+    @admin.display(description="آدرس Canonical فعال (پیش‌نمایش خودکار)")
+    def canonical_preview(self, obj):
+        if not obj or not obj.pk:
+            return format_html(
+                '<div style="background: rgba(13,110,253,0.06); border: 1px dashed #0d6efd; border-radius: 6px; padding: 8px 12px; font-size: 13px; color: #495057;">'
+                'ℹ️ <strong>راهنما:</strong> پس از ذخیره اولیه محصول، آدرس اختصاصی پیش‌فرض سیستم (<code>https://sidoos.ir/products/اسلاگ/</code>) به صورت خودکار ایجاد و فعال می‌شود. '
+                'اگر می‌خواهید از همین آدرس پیش‌فرض استفاده شود، <strong>کادر «آدرس canonical» زیر را خالی بگذارید</strong>.'
+                '</div>'
+            )
+        default_url = obj.get_default_canonical_url()
+        if obj.canonical_url:
+            return format_html(
+                '<div style="background: rgba(255,193,7,0.12); border: 1px solid rgba(255,193,7,0.4); border-radius: 6px; padding: 10px 14px; margin-bottom: 6px;">'
+                '<span style="display:inline-block; padding:3px 9px; border-radius:4px; font-weight:bold; font-size:11px; background:#ffc107; color:#000; margin-bottom:6px;">⚠️ آدرس سفارشی دستی (توسط شما وارد شده)</span><br>'
+                '<strong>آدرس Canonical فعال در سایت:</strong> <a href="{0}" target="_blank" style="direction:ltr; text-align:left; display:inline-block; word-break:break-all; font-family:monospace; font-weight:bold; color:#0d6efd; margin: 4px 0;">{0}</a><br>'
+                '<span style="color:#6c757d; font-size:12px;">آدرس پیش‌فرض خودکار سیستم در صورت خالی کردن کادر زیر: <span style="direction:ltr; display:inline-block; font-family:monospace;">{1}</span></span>'
+                '</div>',
+                obj.canonical_url,
+                default_url
+            )
+        return format_html(
+            '<div style="background: rgba(255,193,7,0.12); border: 1px solid rgba(25,135,84,0.3); border-radius: 6px; padding: 10px 14px; margin-bottom: 6px; background-color: rgba(25,135,84,0.08);">'
+            '<span style="display:inline-block; padding:3px 9px; border-radius:4px; font-weight:bold; font-size:11px; background:#198754; color:#fff; margin-bottom:6px;">✅ آدرس خودکار سیستم (فعال)</span><br>'
+            '<strong>آدرس Canonical فعال در سایت:</strong> <a href="{0}" target="_blank" style="direction:ltr; text-align:left; display:inline-block; word-break:break-all; font-family:monospace; font-weight:bold; color:#0d6efd; margin: 4px 0;">{0}</a><br>'
+            '<span style="color:#6c757d; font-size:12px;">💡 این آدرس بر اساس اسلاگ محصول تولید شده و به طور پیش‌فرض استفاده می‌شود. تنها در صورتی که تصمیم به تغییر آن دارید، کادر زیر را پر کنید.</span>'
+            '</div>',
+            default_url
+        )
 
     def price_display(self, obj):
         if obj.call_for_price:
