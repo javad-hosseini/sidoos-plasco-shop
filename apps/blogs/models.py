@@ -27,13 +27,17 @@ The model must not manually encode/decode Unicode slugs. URL encoding
 is handled by the web server and Django's URL routing layer.
 """
 
+import math
 import re
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator, URLValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import strip_tags
+from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
 from taggit.managers import TaggableManager
 
@@ -128,14 +132,26 @@ class Article(models.Model):
         config_name="default",
     )
 
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="articles_created",
+        verbose_name="ایجادکننده",
+        help_text="کاربری که این مقاله را در پنل مدیریت ثبت کرده است.",
+    )
+
     # ============================================================
     # Publication & Scheduling
     # ============================================================
 
     reading_time = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(60)],
+        null=True,
+        blank=True,
         verbose_name="زمان مطالعه",
-        help_text="زمان تقریبی مطالعه مقاله بر حسب دقیقه (فقط عدد وارد شود).",
+        help_text="زمان تقریبی مطالعه مقاله بر حسب دقیقه (در صورت خالی بودن، خودکار بر اساس متن محاسبه می‌شود).",
     )
 
     published_at = models.DateTimeField(
@@ -298,21 +314,56 @@ class Article(models.Model):
                 raise ValidationError({'canonical_url': err.messages if hasattr(err, 'messages') else str(err)})
 
 
+        # Auto-generate slug if empty
+        if not self.slug and self.title:
+            base_slug = slugify(self.title, allow_unicode=True) or "article"
+            candidate = base_slug
+            idx = 1
+            while Article.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                candidate = f"{base_slug}-{idx}"
+                idx += 1
+            self.slug = candidate
+
+        # Auto-generate reading_time if missing or 0
+        if not self.reading_time:
+            plain_text = strip_tags(self.content or "") + " " + (self.summary or "")
+            words = len(re.findall(r"[\w\u0600-\u06FF]+", plain_text))
+            self.reading_time = max(1, min(60, math.ceil(words / 180))) if words > 0 else 1
+
+        # Auto-generate SEO & social fields if empty
+        if not self.meta_title and self.title:
+            self.meta_title = self.title[:200]
+
+        if not self.meta_description:
+            raw_desc = self.summary or strip_tags(self.content or "")
+            clean_desc = " ".join(raw_desc.split())
+            self.meta_description = clean_desc[:157] + "..." if len(clean_desc) > 160 else clean_desc
+
+        if not self.og_title:
+            self.og_title = (self.meta_title or self.title)[:200]
+
+        if not self.og_description:
+            self.og_description = self.meta_description or self.summary or ""
+
+        if not self.og_image and self.featured_image:
+            self.og_image = self.featured_image
+
+        # Auto-set published_at if published but timestamp is missing
+        if self.is_published and not self.published_at:
+            self.published_at = timezone.now()
+
         # Validate slug format: only Persian/English chars, numbers,
         # hyphens, underscores, and spaces (spaces will be converted to hyphens)
-        slug_pattern = re.compile(r'^[\w\u0600-\u06FF\s\-]+$')
-        if not slug_pattern.match(self.slug):
+        if self.slug:
+            self.slug = self.slug.replace(" ", "-")
+            slug_pattern = re.compile(r"^[\w\u0600-\u06FF\-]+$")
+            if not slug_pattern.match(self.slug):
+                raise ValidationError({
+                    "slug": "اسلاگ فقط می‌تواند شامل حروف فارسی، حروف انگلیسی، اعداد و خط تیره باشد."
+                })
+        else:
             raise ValidationError({
-                'slug': 'اسلاگ فقط می‌تواند شامل حروف فارسی، حروف انگلیسی، اعداد، خط تیره و فاصله باشد.'
-            })
-
-        # Replace spaces with hyphens in slug for URL safety
-        self.slug = self.slug.replace(' ', '-')
-
-        # Validate publication logic
-        if self.is_published and not self.published_at:
-            raise ValidationError({
-                'published_at': 'برای انتشار مقاله، تاریخ انتشار الزامی است.'
+                "slug": "اسلاگ مقاله الزامی است یا باید عنوان برای تولید خودکار آن وارد شود."
             })
 
 

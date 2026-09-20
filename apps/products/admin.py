@@ -51,12 +51,14 @@ class ProductAdmin(admin.ModelAdmin):
         'meta_title',
         'meta_description',
     )
-    readonly_fields = ('slug', 'created_at', 'updated_at', 'discount_percentage', 'canonical_preview')
+    readonly_fields = ('created_at', 'updated_at', 'discount_percentage', 'canonical_preview')
     autocomplete_fields = ('category', 'creator')
+    prepopulated_fields = {'slug': ('name',)}
 
     fieldsets = (
-        ('اطلاعات پایه', {
-            'fields': ('name', 'slug', 'description')
+        ('اطلاعات پایه و دسته‌بندی', {
+            'fields': ('name', 'slug', 'category', 'creator', 'description', 'tags'),
+            'description': 'اطلاعات اصلی، دسته‌بندی، ثبت‌کننده محصول و برچسب‌های مرتبط.'
         }),
         ('تصویر شاخص', {
             'fields': ('cover_image',)
@@ -67,9 +69,8 @@ class ProductAdmin(admin.ModelAdmin):
         }),
         ('بهینه‌سازی موتور جستجو (SEO)', {
             'fields': ('meta_title', 'meta_description', 'og_image', 'canonical_preview', 'canonical_url'),
-            'description': 'این فیلدها برای بهبود رتبه در گوگل و شبکه‌های اجتماعی استفاده می‌شوند. آدرس Canonical بر اساس نام و اسلاگ محصول به صورت خودکار تعیین می‌شود.'
+            'description': 'در صورت خالی گذاشتن، عنوان و توضیحات سئو به صورت خودکار از نام و توضیحات محصول تولید می‌شوند.'
         }),
-
         ('وضعیت و نمایش', {
             'fields': (
                 'published',
@@ -77,9 +78,6 @@ class ProductAdmin(admin.ModelAdmin):
                 'is_featured',
                 'featured_order',
             )
-        }),
-        ('دسته‌بندی، برچسب‌ها و ایجادکننده', {
-            'fields': ('category', 'tags', 'creator')
         }),
         ('زمان‌بندی', {
             'fields': ('created_at', 'updated_at'),
@@ -89,12 +87,38 @@ class ProductAdmin(admin.ModelAdmin):
 
     inlines = [ProductImageInline]
 
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if "creator" not in initial:
+            initial["creator"] = request.user.pk
+        return initial
+
+    def save_model(self, request, obj, form, change):
+        if not obj.creator_id:
+            obj.creator = request.user
+        super().save_model(request, obj, form, change)
+
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == "canonical_url":
             kwargs["widget"] = forms.TextInput(
                 attrs={
                     "placeholder": "برای استفاده از آدرس خودکار بالا خالی بگذارید، یا آدرس جدید را وارد کنید (مانند /products/...)",
                     "style": "width: 100%; max-width: 650px; direction: ltr; text-align: left;",
+                }
+            )
+        elif db_field.name == "meta_title":
+            kwargs["widget"] = forms.TextInput(
+                attrs={
+                    "placeholder": "پیش‌فرض خودکار: [نام محصول] | سیدوس",
+                    "style": "width: 100%; max-width: 650px;",
+                }
+            )
+        elif db_field.name == "meta_description":
+            kwargs["widget"] = forms.Textarea(
+                attrs={
+                    "placeholder": "پیش‌فرض خودکار: برگرفته از توضیحات محصول (حداکثر ۱۶۰ کاراکتر)",
+                    "rows": 3,
+                    "style": "width: 100%; max-width: 650px;",
                 }
             )
         return super().formfield_for_dbfield(db_field, request, **kwargs)

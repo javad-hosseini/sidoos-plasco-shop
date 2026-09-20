@@ -78,6 +78,7 @@ class ArticleAdmin(admin.ModelAdmin):
     # List display configuration
     list_display = [
         "title_with_status",
+        "creator",
         "featured_image_thumbnail",
         "reading_time_display",
         "publication_status",
@@ -92,6 +93,7 @@ class ArticleAdmin(admin.ModelAdmin):
     list_filter = [
         PublishedFilter,
         HasImageFilter,
+        "creator",
         "created_at",
         "updated_at",
     ]
@@ -101,12 +103,18 @@ class ArticleAdmin(admin.ModelAdmin):
         "summary",
         "content",
         "slug",
+        "creator__username",
+        "creator__first_name",
+        "creator__last_name",
         "meta_title",
         "meta_description",
     ]
 
     # List pagination
     list_per_page = 20
+
+    prepopulated_fields = {"slug": ("title",)}
+    autocomplete_fields = ["creator"]
 
     # Form layout
     fieldsets = [
@@ -116,6 +124,7 @@ class ArticleAdmin(admin.ModelAdmin):
                 "fields": (
                     "title",
                     "slug",
+                    "creator",
                     "summary",
                     "featured_image",
                     "content",
@@ -131,7 +140,7 @@ class ArticleAdmin(admin.ModelAdmin):
                     "published_at",
                     "reading_time",
                 ),
-                "description": "وضعیت انتشار و زمان مطالعه مقاله را مشخص کنید.",
+                "description": "وضعیت انتشار و زمان مطالعه مقاله. در صورت خالی گذاشتن، زمان مطالعه به صورت خودکار بر اساس تعداد کلمات محاسبه می‌شود.",
             },
         ),
         (
@@ -212,6 +221,19 @@ class ArticleAdmin(admin.ModelAdmin):
 
         return readonly
 
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if "creator" not in initial:
+            initial["creator"] = request.user.pk
+        if "published_at" not in initial:
+            initial["published_at"] = timezone.now()
+        return initial
+
+    def save_model(self, request, obj, form, change):
+        if not obj.creator_id:
+            obj.creator = request.user
+        super().save_model(request, obj, form, change)
+
     # ============================================================
     # Custom Display Methods
     # ============================================================
@@ -222,6 +244,28 @@ class ArticleAdmin(admin.ModelAdmin):
                 attrs={
                     "placeholder": "برای استفاده از آدرس خودکار بالا خالی بگذارید، یا آدرس جدید را وارد کنید (مانند /blogs/...)",
                     "style": "width: 100%; max-width: 650px; direction: ltr; text-align: left;",
+                }
+            )
+        elif db_field.name == "meta_title":
+            kwargs["widget"] = forms.TextInput(
+                attrs={
+                    "placeholder": "پیش‌فرض خودکار: همان عنوان مقاله",
+                    "style": "width: 100%; max-width: 650px;",
+                }
+            )
+        elif db_field.name == "meta_description":
+            kwargs["widget"] = forms.Textarea(
+                attrs={
+                    "placeholder": "پیش‌فرض خودکار: برگرفته از خلاصه یا محتوای مقاله (حداکثر ۱۶۰ کاراکتر)",
+                    "rows": 3,
+                    "style": "width: 100%; max-width: 650px;",
+                }
+            )
+        elif db_field.name == "reading_time":
+            kwargs["widget"] = forms.NumberInput(
+                attrs={
+                    "placeholder": "محاسبه خودکار بر اساس تعداد کلمات (در صورت خالی بودن)",
+                    "style": "width: 100%; max-width: 250px;",
                 }
             )
         return super().formfield_for_dbfield(db_field, request, **kwargs)
