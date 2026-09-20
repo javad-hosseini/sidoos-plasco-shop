@@ -1,10 +1,43 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, URLValidator
 from django.utils.text import slugify
 from taggit.managers import TaggableManager
 from django.conf import settings
 from django_ckeditor_5.fields import CKEditor5Field
+
+
+def normalize_and_validate_canonical_url(val: str, default_prefix: str = "products") -> str:
+    """
+    Normalizes and validates a canonical URL:
+    - Strips leading/trailing whitespace
+    - Normalizes relative paths (e.g. /products/test/ -> https://sidoos.ir/products/test/)
+    - Normalizes URLs without scheme (e.g. sidoos.ir/... -> https://sidoos.ir/...)
+    - Validates URL structure
+    - Ensures maximum length of 500 characters
+    """
+    if not val:
+        return ""
+    v = str(val).strip()
+    if not v:
+        return ""
+    if v.startswith("/"):
+        v = f"https://sidoos.ir{v}"
+    elif not (v.startswith("http://") or v.startswith("https://")):
+        if v.startswith("sidoos.ir") or v.startswith("www.sidoos.ir") or v.startswith("sidos.ir"):
+            v = f"https://{v}"
+        elif "/" in v:
+            v = f"https://sidoos.ir/{v.lstrip('/')}"
+        else:
+            v = f"https://{v}"
+    validator = URLValidator()
+    try:
+        validator(v)
+    except ValidationError:
+        raise ValidationError("لطفاً یک آدرس اینترنتی یا مسیر معتبر وارد کنید.")
+    if len(v) > 500:
+        raise ValidationError("طول آدرس نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد.")
+    return v
 
 
 class Category(models.Model):
@@ -220,12 +253,25 @@ class Product(models.Model):
         verbose_name="تصویر اشتراک‌گذاری",
         help_text="تصویری که هنگام اشتراک‌گذاری محصول در شبکه‌های اجتماعی نمایش داده می‌شود.",
     )
-    canonical_url = models.URLField(
+    canonical_url = models.CharField(
+        max_length=500,
         blank=True,
         verbose_name="آدرس canonical",
-        help_text="در صورت نیاز، آدرس اصلی و ترجیحی این محصول را وارد کنید.",
+        help_text="در صورت نیاز به آدرس اختصاصی، این فیلد را پر کنید. در غیر این صورت خالی بگذارید تا آدرس خودکار سیستم اعمال شود.",
     )
+
+    def get_default_canonical_url(self) -> str:
+        """Returns the default auto-generated canonical URL for this product."""
+        if self.slug:
+            return f"https://sidoos.ir/products/{self.slug}/"
+        return "https://sidoos.ir/products/"
+
+    @property
+    def effective_canonical_url(self) -> str:
+        """Returns the active canonical URL: custom override if present, else default."""
+        return self.canonical_url or self.get_default_canonical_url()
     # ================================================================
+
 
     # Timestamps
     created_at = models.DateTimeField(
@@ -265,6 +311,13 @@ class Product(models.Model):
     def clean(self):
         super().clean()
 
+        if self.canonical_url:
+            try:
+                self.canonical_url = normalize_and_validate_canonical_url(self.canonical_url, "products")
+            except ValidationError as err:
+                raise ValidationError({'canonical_url': err.messages if hasattr(err, 'messages') else str(err)})
+
+
         if self.call_for_price:
             self.price = 0
             if self.on_sale_price is not None:
@@ -276,6 +329,7 @@ class Product(models.Model):
             raise ValidationError({
                 'on_sale_price': 'قیمت فروش ویژه نمی‌تواند بیشتر از قیمت اصلی باشد.'
             })
+
 
     def save(self, *args, **kwargs):
         if not self.slug:

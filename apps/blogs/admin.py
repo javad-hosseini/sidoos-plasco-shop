@@ -147,11 +147,12 @@ class ArticleAdmin(admin.ModelAdmin):
                 "fields": (
                     "meta_title",
                     "meta_description",
+                    "canonical_preview",
                     "canonical_url",
                     "robots",
                 ),
                 "classes": ("collapse",),
-                "description": "تنظیمات مربوط به موتورهای جستجو را وارد کنید.",
+                "description": "تنظیمات مربوط به موتورهای جستجو و آدرس ترجیحی (Canonical) مقاله.",
             },
         ),
         (
@@ -180,7 +181,8 @@ class ArticleAdmin(admin.ModelAdmin):
     ]
 
     # Read-only fields
-    readonly_fields = ["created_at", "updated_at"]
+    readonly_fields = ["created_at", "updated_at", "canonical_preview"]
+
 
     # Form actions
     actions = [
@@ -213,6 +215,45 @@ class ArticleAdmin(admin.ModelAdmin):
     # ============================================================
     # Custom Display Methods
     # ============================================================
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "canonical_url":
+            kwargs["widget"] = forms.TextInput(
+                attrs={
+                    "placeholder": "برای استفاده از آدرس خودکار بالا خالی بگذارید، یا آدرس جدید را وارد کنید (مانند /blogs/...)",
+                    "style": "width: 100%; max-width: 650px; direction: ltr; text-align: left;",
+                }
+            )
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
+    @admin.display(description="آدرس Canonical فعال (پیش‌نمایش خودکار)")
+    def canonical_preview(self, obj):
+        if not obj or not obj.pk:
+            return format_html(
+                '<div style="background: rgba(13,110,253,0.06); border: 1px dashed #0d6efd; border-radius: 6px; padding: 8px 12px; font-size: 13px; color: #495057;">'
+                'ℹ️ <strong>راهنما:</strong> پس از ذخیره اولیه مقاله، آدرس اختصاصی پیش‌فرض سیستم (<code>https://sidoos.ir/blogs/اسلاگ/</code>) به صورت خودکار ایجاد و فعال می‌شود. '
+                'اگر می‌خواهید از همین آدرس پیش‌فرض استفاده شود، <strong>کادر «آدرس canonical» زیر را خالی بگذارید</strong>.'
+                '</div>'
+            )
+        default_url = obj.get_default_canonical_url()
+        if obj.canonical_url:
+            return format_html(
+                '<div style="background: rgba(255,193,7,0.12); border: 1px solid rgba(255,193,7,0.4); border-radius: 6px; padding: 10px 14px; margin-bottom: 6px;">'
+                '<span style="display:inline-block; padding:3px 9px; border-radius:4px; font-weight:bold; font-size:11px; background:#ffc107; color:#000; margin-bottom:6px;">⚠️ آدرس سفارشی دستی (توسط شما وارد شده)</span><br>'
+                '<strong>آدرس Canonical فعال در سایت:</strong> <a href="{0}" target="_blank" style="direction:ltr; text-align:left; display:inline-block; word-break:break-all; font-family:monospace; font-weight:bold; color:#0d6efd; margin: 4px 0;">{0}</a><br>'
+                '<span style="color:#6c757d; font-size:12px;">آدرس پیش‌فرض خودکار سیستم در صورت خالی کردن کادر زیر: <span style="direction:ltr; display:inline-block; font-family:monospace;">{1}</span></span>'
+                '</div>',
+                obj.canonical_url,
+                default_url
+            )
+        return format_html(
+            '<div style="background: rgba(25,135,84,0.1); border: 1px solid rgba(25,135,84,0.3); border-radius: 6px; padding: 10px 14px; margin-bottom: 6px;">'
+            '<span style="display:inline-block; padding:3px 9px; border-radius:4px; font-weight:bold; font-size:11px; background:#198754; color:#fff; margin-bottom:6px;">✅ آدرس خودکار سیستم (فعال)</span><br>'
+            '<strong>آدرس Canonical فعال در سایت:</strong> <a href="{0}" target="_blank" style="direction:ltr; text-align:left; display:inline-block; word-break:break-all; font-family:monospace; font-weight:bold; color:#0d6efd; margin: 4px 0;">{0}</a><br>'
+            '<span style="color:#6c757d; font-size:12px;">💡 این آدرس بر اساس اسلاگ مقاله تولید شده و به طور پیش‌فرض استفاده می‌شود. تنها در صورتی که تصمیم به تغییر آن دارید، کادر زیر را پر کنید.</span>'
+            '</div>',
+            default_url
+        )
 
     def title_with_status(self, obj):
         """
