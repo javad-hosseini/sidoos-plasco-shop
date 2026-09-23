@@ -93,6 +93,8 @@ class ProductAdmin(admin.ModelAdmin):
         initial = super().get_changeform_initial_data(request)
         if "creator" not in initial:
             initial["creator"] = request.user.pk
+        if "featured_order" not in initial:
+            initial["featured_order"] = 2
         return initial
 
     def save_model(self, request, obj, form, change):

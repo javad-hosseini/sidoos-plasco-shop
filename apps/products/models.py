@@ -207,9 +207,9 @@ class Product(models.Model):
         help_text="نمایش در بخش «محصولات منتخب» صفحه اصلی"
     )
     featured_order = models.PositiveIntegerField(
-        default=0,
+        default=2,
         verbose_name="ترتیب نمایش ویژه",
-        help_text="ترتیب نمایش در «محصولات منتخب» صفحه اصلی (کوچک‌تر = جلوتر)"
+        help_text="ترتیب نمایش در فروشگاه و بخش محصولات منتخب (کوچک‌تر = جلوتر)"
     )
 
     # Relations
@@ -291,11 +291,12 @@ class Product(models.Model):
     class Meta:
         verbose_name = "محصول"
         verbose_name_plural = "محصولات"
-        ordering = ['-created_at']
+        ordering = ['featured_order', '-created_at']
         indexes = [
             models.Index(fields=['published']),
             models.Index(fields=['featured_in_special_sales']),
             models.Index(fields=['is_featured', 'featured_order']),
+            models.Index(fields=['featured_order', '-created_at']),
             models.Index(fields=['slug']),
         ]
         constraints = [

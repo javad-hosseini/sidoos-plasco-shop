@@ -48,7 +48,11 @@ def product_list(request):
         products = products.filter(
             Q(name__icontains=search_query) | Q(description__icontains=search_query)
         )
-    products = products.select_related('category').prefetch_related('images', 'tags')
+    products = (
+        products.select_related('category')
+        .prefetch_related('images', 'tags')
+        .order_by('featured_order', '-created_at')
+    )
 
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page', 1)
@@ -228,6 +232,7 @@ def category_products(request, slug):
         Product.objects.filter(published=True, category_id__in=category_ids)
         .select_related('category')
         .prefetch_related('images', 'tags')
+        .order_by('featured_order', '-created_at')
     )
 
     paginator = Paginator(products, 12)
