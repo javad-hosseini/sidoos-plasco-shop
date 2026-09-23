@@ -9,8 +9,11 @@
     gap:24px;
     padding:24px 6vw;
     font-family:var(--font-body);
-    transition:padding .35s var(--ease), background .35s var(--ease), backdrop-filter .35s var(--ease), border-color .35s var(--ease);
-    border-bottom:1px solid transparent;
+    transition:padding .35s var(--ease), background .35s var(--ease), backdrop-filter .35s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease);
+    background:rgba(18, 19, 17, 0.72);
+    backdrop-filter:blur(16px) saturate(140%);
+    -webkit-backdrop-filter:blur(16px) saturate(140%);
+    border-bottom:1px solid rgba(245, 240, 232, 0.08);
   }
   .site-header.scrolled{
     padding:14px 6vw;

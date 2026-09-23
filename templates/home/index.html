@@ -87,20 +87,41 @@
   .hero-slide.active .hero-cta-wrap{ opacity:1; transform:translateY(0); }
 
 
-  .hero-nav{ position:absolute; bottom:46px; right:6vw; z-index:3; display:flex; align-items:center; gap:22px; }
+  .hero-nav{
+    position:absolute; bottom:46px; right:6vw; z-index:3;
+    display:flex; align-items:center; gap:22px;
+    padding:8px 18px; border-radius:30px;
+    background:rgba(20,22,19,.58);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border:1px solid rgba(245,240,232,.18);
+    box-shadow:0 4px 18px rgba(0,0,0,.25);
+    transition:background .35s, border-color .35s, box-shadow .35s;
+  }
   .hero-dots{ display:flex; gap:12px; }
-  .hero-dot{ width:34px; height:2px; background:rgba(245,240,232,.28); position:relative; overflow:hidden; }
+  .hero-dot{ width:34px; height:2px; background:rgba(245,240,232,.35); position:relative; overflow:hidden; }
   .hero-dot i{ position:absolute; inset:0; width:0; background:var(--gold); }
   .hero-dot.active i{ width:100%; transition:width 6s linear; }
   .hero-count{ font-family:var(--font-display); font-size:14px; color:var(--beige); letter-spacing:.05em; }
   .hero-arrows{ position:absolute; bottom:46px; left:6vw; z-index:3; display:flex; gap:14px; }
   .arrow-btn{
-    width:44px; height:44px; border:1px solid rgba(245,240,232,.24);
+    width:44px; height:44px;
     border-radius:var(--radius-sm);
     display:flex; align-items:center; justify-content:center;
-    transition:border-color .3s, background .3s;
+    background:rgba(20,22,19,.62);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border:1px solid rgba(245,240,232,.22);
+    color:#F5F0E8;
+    box-shadow:0 4px 18px rgba(0,0,0,.28);
+    cursor:pointer;
+    transition:border-color .3s, background .3s, color .3s, transform .2s, box-shadow .3s;
   }
-  .arrow-btn:hover{ border-color:var(--gold); background:rgba(184,155,94,.1); }
+  .arrow-btn:hover{
+    border-color:var(--gold);
+    background:rgba(184,155,94,.35);
+    color:#FFFFFF;
+    transform:translateY(-2px);
+    box-shadow:0 6px 22px rgba(184,155,94,.25);
+  }
   .arrow-btn svg{ width:16px; height:16px; }
 
   .scroll-cue{
