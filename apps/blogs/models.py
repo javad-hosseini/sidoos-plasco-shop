@@ -119,6 +119,7 @@ class Article(models.Model):
     )
 
     featured_image = models.ImageField(
+        max_length=500,
         upload_to="blogs/articles/%Y/%m/",
         null=True,
         blank=True,
@@ -216,6 +217,7 @@ class Article(models.Model):
     )
 
     og_image = models.ImageField(
+        max_length=500,
         upload_to="blogs/og-images/%Y/%m/",
         null=True,
         blank=True,

@@ -179,6 +179,7 @@ class Product(models.Model):
 
     # Media
     cover_image = models.ImageField(
+        max_length=500,
         upload_to='products/covers/',
         verbose_name="تصویر شاخص",
         help_text="تصویر اصلی محصول که در فهرست محصولات و بالای صفحه اختصاصی آن نمایش داده می‌شود. تصویر روشن و باکیفیت انتخاب کنید.",
@@ -248,6 +249,7 @@ class Product(models.Model):
         help_text="توضیح کوتاهی درباره محتوای محصول که می‌تواند در نتایج موتورهای جستجو نمایش داده شود.",
     )
     og_image = models.ImageField(
+        max_length=500,
         upload_to="products/og-images/%Y/%m/",
         null=True,
         blank=True,
@@ -377,6 +379,7 @@ class ProductImage(models.Model):
         help_text="محصولی که این تصویر به گالری آن تعلق دارد.",
     )
     image = models.ImageField(
+        max_length=500,
         upload_to='products/images/',
         verbose_name="تصویر",
         help_text="یکی از تصاویر گالری این محصول (علاوه بر تصویر شاخص).",
