@@ -116,7 +116,13 @@ class ArticleAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
 
     class Media:
-        js = ("admin/js/auto_prepopulate_seo.js",)
+        css = {
+            "all": ("admin/css/ckeditor_seo_companion.css",)
+        }
+        js = (
+            "admin/js/auto_prepopulate_seo.js",
+            "admin/js/ckeditor_seo_companion.js",
+        )
 
     # Form layout
     fieldsets = [
