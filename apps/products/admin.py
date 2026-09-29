@@ -55,13 +55,7 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
     class Media:
-        css = {
-            'all': ('admin/css/ckeditor_seo_companion.css',)
-        }
-        js = (
-            'admin/js/auto_prepopulate_seo.js',
-            'admin/js/ckeditor_seo_companion.js',
-        )
+        js = ('admin/js/auto_prepopulate_seo.js',)
 
     fieldsets = (
         ('اطلاعات پایه و دسته‌بندی', {
