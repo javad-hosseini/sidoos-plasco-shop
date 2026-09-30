@@ -92,11 +92,11 @@ class LegacyRedirectMiddleware:
         if decoded_path in ('/mag', '/blog', '/articles', '/article'):
             return '/blogs/'
 
-        # Common WooCommerce utility routes
-        if decoded_path in ('/cart', '/checkout', '/basket'):
+        # Common WooCommerce / WordPress utility routes
+        if decoded_path in ('/cart', '/checkout', '/basket', '/compare'):
             return '/products/'
 
-        if decoded_path in ('/my-account', '/myaccount'):
+        if decoded_path in ('/my-account', '/myaccount', '/wishlist'):
             return '/accounts/login/'
 
         return None
