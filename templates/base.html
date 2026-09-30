@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}سیدوس | صنایع دکوراتیو و ظروف خانه{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر برای فروشگاه‌ها و عمده‌فروشان سراسر کشور.{% endblock %}">
+<meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
 {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
 
 {# ========== Favicon & App Icons ========== #}
@@ -1065,6 +1066,45 @@
 </style>
 
 {% block extra_css %}{% endblock %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization",
+      "name": "سیدوس",
+      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}",
+      "description": "تولید و پخش عمده انواع گلدان، ظروف دکوراتیو و لوازم خانه پلاستیکی و پلاسکو با کیفیت صادراتی",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+98-21-33644040",
+        "contactType": "sales",
+        "areaServed": "IR",
+        "availableLanguage": ["Persian"]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "{{ request.scheme }}://{{ request.get_host }}/#website",
+      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "name": "سیدوس",
+      "publisher": {
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "{{ request.scheme }}://{{ request.get_host }}/products/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>
 {% block schema %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">

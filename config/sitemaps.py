@@ -32,7 +32,7 @@ class ProductSitemap(Sitemap):
     priority = 0.8
 
     def items(self):
-        return Product.objects.filter(published=True).only("slug", "name", "cover_image", "updated_at")
+        return Product.objects.filter(published=True).prefetch_related("images").only("slug", "name", "cover_image", "updated_at")
 
     def lastmod(self, obj):
         return obj.updated_at

@@ -57,10 +57,19 @@
     "@type": "WebPage",
     "@id": "{{ request.build_absolute_uri }}"
   },
-  "publisher": {
+  "author": {
     "@type": "Organization",
     "name": "سیدوس",
     "url": "{{ request.scheme }}://{{ request.get_host }}/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "سیدوس",
+    "url": "{{ request.scheme }}://{{ request.get_host }}/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}"
+    }
   }
 }
 </script>

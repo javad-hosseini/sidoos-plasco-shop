@@ -3,6 +3,7 @@
 
 {% block title %}{% if selected_category %}{{ selected_category.name }} | سیدوس{% else %}فروشگاه | سیدوس{% endif %}{% endblock %}
 {% block meta_description %}{% if selected_category %}مشاهده محصولات {{ selected_category.name }} و زیرمجموعه‌های آن در فروشگاه سیدوس.{% else %}مشاهده تمام محصولات سیدوس؛ گلدان‌ها، ظروف دکوراتیو و لوازم خانه با تنوع کامل.{% endif %}{% endblock %}
+{% block meta_robots %}{% if search_query or page_obj.number > 1 %}noindex, follow{% else %}index, follow{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>

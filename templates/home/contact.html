@@ -4,6 +4,39 @@
 {% block title %}تماس با ما | سیدوس{% endblock %}
 {% block meta_description %}اطلاعات تماس، شماره‌های ثابت و همراه، ساعات کاری، شبکه‌های اجتماعی و فرم ارتباط مستقیم با مجموعه تولیدی و بازرگانی سیدوس.{% endblock %}
 
+{% block schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "تماس با شرکت سیدوس",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'home:contact' %}",
+  "mainEntity": {
+    "@type": "LocalBusiness",
+    "name": "سیدوس",
+    "image": "{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}",
+    "telephone": "+98-21-33644040",
+    "email": "support@sidoos.ir",
+    "priceRange": "$$",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "مشهد",
+      "addressRegion": "خراسان رضوی",
+      "addressCountry": "IR"
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
+        "opens": "08:00",
+        "closes": "18:00"
+      }
+    ]
+  }
+}
+</script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
   .contact-page-wrap{

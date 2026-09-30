@@ -14,6 +14,12 @@
       <image:loc>{{ request.scheme }}://{{ request.get_host }}{{ url.item.cover_image.url }}</image:loc>
       <image:title>{{ url.item.name|default:"" }}</image:title>
     </image:image>
+    {% for img in url.item.images.all %}
+    <image:image>
+      <image:loc>{{ request.scheme }}://{{ request.get_host }}{{ img.image.url }}</image:loc>
+      <image:title>{{ url.item.name|default:"" }}</image:title>
+    </image:image>
+    {% endfor %}
     {% elif url.item.featured_image %}
     <image:image>
       <image:loc>{{ request.scheme }}://{{ request.get_host }}{{ url.item.featured_image.url }}</image:loc>

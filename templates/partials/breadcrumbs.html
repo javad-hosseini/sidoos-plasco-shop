@@ -14,3 +14,22 @@
     {% endif %}
   {% endfor %}
 </nav>
+
+{% if breadcrumbs %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {% for crumb in breadcrumbs %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "name": "{{ crumb.label|escapejs }}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{{ crumb.url|default:request.path }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}

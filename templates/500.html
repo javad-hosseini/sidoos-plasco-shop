@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}صفحه پیدا نشد | سیدوس{% endblock %}
-{% block meta_robots %}noindex, follow{% endblock %}
+{% block title %}خطای سرور | سیدوس{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -9,7 +9,7 @@
     min-height:70vh; display:flex; align-items:center; justify-content:center;
     padding-top:calc(var(--header-height) + 34px); padding-bottom:80px; text-align:center;
   }
-  .err-inner{ max-width:440px; }
+  .err-inner{ max-width:480px; }
   .err-code{ font-family:var(--font-display); font-size:clamp(56px,9vw,96px); color:var(--gold); line-height:1; }
   .err-inner h1{ font-size:clamp(22px,2.6vw,30px); margin-top:18px; }
   .err-inner p{ color:var(--cream-soft); font-size:14.5px; line-height:1.9; margin-top:14px; }
@@ -20,9 +20,9 @@
 {% block content %}
 <div class="err-wrap">
   <div class="err-inner reveal">
-    <div class="err-code">۴۰۴</div>
-    <h1>صفحه‌ی موردنظر پیدا نشد</h1>
-    <p>این صفحه یا دسته‌بندی وجود ندارد یا جابه‌جا شده است. می‌توانید از صفحه اصلی یا فروشگاه ادامه دهید.</p>
+    <div class="err-code">۵۰۰</div>
+    <h1>خطایی در سرور رخ داده است</h1>
+    <p>متأسفانه در پردازش درخواست شما مشکلی پیش آمده است. تیم فنی ما در جریان قرار گرفته است. لطفاً لحظاتی دیگر مجدداً تلاش فرمایید.</p>
     <a href="{% url 'home:home' %}" class="btn-gold">
       بازگشت به صفحه اصلی
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 5l-7 7 7 7"/></svg>

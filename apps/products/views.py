@@ -88,8 +88,8 @@ def product_list(request):
 
     add_pagination_headers(request, response, page_obj)  #adds pagination (rel="prev" / rel="next") headers to response
 
-    # Tell Google not to index any page beyond page 1
-    if page_obj.number > 1:
+    # Tell Google not to index internal search queries or pages beyond page 1
+    if search_query or page_obj.number > 1:
         response['X-Robots-Tag'] = 'noindex, follow'
 
     return response

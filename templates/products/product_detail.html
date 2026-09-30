@@ -54,8 +54,12 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "{{ product.meta_title|default:product.name|escapejs }}",
+  "sku": "{{ product.pk }}",
   "description": "{{ product.meta_description|default:product.description|striptags|truncatewords:30|escapejs }}",
-  {% if product.og_image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ product.og_image.url }}",{% elif product.cover_image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ product.cover_image.url }}",{% endif %}
+  "image": [
+    {% if product.cover_image %}"{{ request.scheme }}://{{ request.get_host }}{{ product.cover_image.url }}"{% endif %}
+    {% for img in images %}{% if product.cover_image or not forloop.first %},{% endif %}"{{ request.scheme }}://{{ request.get_host }}{{ img.image.url }}"{% endfor %}
+  ],
   {% if product.category %}"category": "{{ product.category.name|escapejs }}",{% endif %}
   "url": "{{ canonical_url|default:request.build_absolute_uri }}",
   "brand": {
@@ -68,7 +72,13 @@
     "url": "{{ canonical_url|default:request.build_absolute_uri }}",
     "priceCurrency": "IRR",
     "price": "{{ product.on_sale_price|default:product.price }}",
-    "availability": "{% if product.published %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+    "priceValidUntil": "2027-12-31",
+    "itemCondition": "https://schema.org/NewCondition",
+    "availability": "{% if product.published %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+    "seller": {
+      "@type": "Organization",
+      "name": "سیدوس"
+    }
   }
   {% endif %}
 }
