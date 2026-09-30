@@ -34,14 +34,16 @@ class LegacyRedirectMiddlewareTests(TestCase):
             price=100000,
             cover_image=dummy_img,
             category=self.category,
-            creator=self.user
+            creator=self.user,
+            published=True
         )
         self.article = Article.objects.create(
             title='Test Article',
             slug='test-article',
             summary='Summary',
             content='<p>Content</p>',
-            reading_time=3
+            reading_time=3,
+            is_published=True
         )
 
     def test_product_redirect(self):
@@ -114,3 +116,27 @@ class LegacyRedirectMiddlewareTests(TestCase):
         response = middleware(request)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"Normal Route OK")
+
+    def test_seo_search_robots_header(self):
+        response = self.client.get('/products/?q=bucket')
+        self.assertEqual(response['X-Robots-Tag'], 'noindex, follow')
+        self.assertContains(response, '<meta name="robots" content="noindex, follow">')
+
+    def test_seo_homepage_structured_data(self):
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'SearchAction')
+        self.assertContains(response, 'Organization')
+        self.assertContains(response, 'WebSite')
+
+    def test_seo_faq_structured_data(self):
+        response = self.client.get('/faq/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'FAQPage')
+
+    def test_seo_breadcrumbs_structured_data(self):
+        response = self.client.get(f'/products/{self.product.slug}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'BreadcrumbList')
+        self.assertContains(response, 'Product')
+
