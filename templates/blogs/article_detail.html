@@ -18,7 +18,7 @@
   {% elif article.featured_image %}
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}">
   {% else %}
-    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-logo.jpg' %}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}">
   {% endif %}
 
   {# Twitter Card #}
@@ -31,7 +31,7 @@
   {% elif article.featured_image %}
     <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}">
   {% else %}
-    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-logo.jpg' %}">
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}">
   {% endif %}
 
   {# Article timestamps #}

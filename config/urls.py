@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic.base import RedirectView
-from config.sitemaps import StaticViewSitemap, ProductSitemap, CategorySitemap
+from config.sitemaps import StaticViewSitemap, ProductSitemap, CategorySitemap, ArticleSitemap
 
 from config import settings
 
@@ -27,6 +27,7 @@ sitemaps = {
     "static": StaticViewSitemap,
     "products": ProductSitemap,
     "categories": CategorySitemap,
+    "articles": ArticleSitemap,
 }
 
 # Note: robots.txt is served by apps.home.views.robots_txt, registered via

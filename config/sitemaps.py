@@ -1,6 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
+from apps.blogs.models import Article
 from apps.products.models import Category, Product
 
 
@@ -31,7 +32,7 @@ class ProductSitemap(Sitemap):
     priority = 0.8
 
     def items(self):
-        return Product.objects.filter(published=True).only("slug", "updated_at")
+        return Product.objects.filter(published=True).only("slug", "name", "cover_image", "updated_at")
 
     def lastmod(self, obj):
         return obj.updated_at
@@ -49,3 +50,17 @@ class CategorySitemap(Sitemap):
 
     def location(self, obj):
         return reverse("products:category_products", kwargs={"slug": obj.slug})
+
+
+class ArticleSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.7
+
+    def items(self):
+        return Article.objects.filter(is_published=True).only("slug", "title", "featured_image", "updated_at")
+
+    def lastmod(self, obj):
+        return obj.updated_at
+
+    def location(self, obj):
+        return reverse("blogs:article_detail", kwargs={"slug": obj.slug})

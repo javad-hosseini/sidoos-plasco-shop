@@ -20,7 +20,7 @@
   {% elif product.cover_image %}
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.cover_image.url }}">
   {% else %}
-    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-logo.jpg' %}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}">
   {% endif %}
 
   {# Twitter Card #}
@@ -33,7 +33,7 @@
   {% elif product.cover_image %}
     <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.cover_image.url }}">
   {% else %}
-    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-logo.jpg' %}">
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}">
   {% endif %}
 
   {# Product metadata #}
