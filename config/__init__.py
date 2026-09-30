@@ -5,7 +5,7 @@ affect Django 4.2 template context copying.
 """
 import sys
 
-# Python 3.14 compatibility patch for django.template.context.BaseContext.__copy__
+# Python 3.14 / Django 6.0 compatibility patches
 if sys.version_info >= (3, 14):
     try:
         import django.template.context
@@ -17,5 +17,17 @@ if sys.version_info >= (3, 14):
             return duplicate
 
         django.template.context.BaseContext.__copy__ = _base_context_copy
+    except ImportError:
+        pass
+
+    try:
+        import django.db.models
+        if hasattr(django.db.models, 'CheckConstraint'):
+            _orig_cc_init = django.db.models.CheckConstraint.__init__
+            def _compat_cc_init(self, *args, **kwargs):
+                if 'check' in kwargs and 'condition' not in kwargs:
+                    kwargs['condition'] = kwargs.pop('check')
+                _orig_cc_init(self, *args, **kwargs)
+            django.db.models.CheckConstraint.__init__ = _compat_cc_init
     except ImportError:
         pass

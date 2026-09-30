@@ -17,7 +17,10 @@ from django.urls import path, register_converter
 from apps.blogs import views
 from apps.blogs.converters import UnicodeSlugConverter
 
-register_converter(UnicodeSlugConverter, "unicode_slug")
+try:
+    register_converter(UnicodeSlugConverter, "unicode_slug")
+except ValueError:
+    pass
 
 app_name = "blogs"
 
