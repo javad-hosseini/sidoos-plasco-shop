@@ -200,36 +200,37 @@ class Command(BaseCommand):
         for app_label, model_name, field_names in IMAGE_FIELD_MAP:
             Model = apps.get_model(app_label, model_name)
             for obj in Model.objects.all().iterator():
-                changed = False
-                for field_name in field_names:
-                    value = getattr(obj, field_name)
-                    if not value or not value.name:
+                update_dict = {}
+                for fn in field_names:
+                    val = getattr(obj, fn)
+                    if not val or not val.name:
                         continue
-                    old_name = value.name.replace('\\', '/')
-                    if old_name in self.converted_map:
-                        new_name = self.converted_map[old_name]
-                        if self.execute_mode:
-                            setattr(obj, field_name, new_name)
-                            changed = True
-                        else:
-                            self.log(
-                                f'  {model_name}.{field_name} pk={obj.pk}: '
-                                f'{old_name} -> {new_name}'
-                            )
+                    name = val.name.replace('\\', '/')
+                    if name in self.converted_map:
+                        update_dict[fn] = self.converted_map[name]
+                    elif not name.endswith('.webp'):
+                        base, _ = os.path.splitext(name)
+                        candidate = base + '.webp'
+                        if os.path.exists(os.path.join(settings.MEDIA_ROOT, candidate.replace('/', os.sep))):
+                            update_dict[fn] = candidate
+
+                if update_dict:
+                    if self.execute_mode:
+                        try:
+                            Model.objects.filter(pk=obj.pk).update(**update_dict)
                             updated += 1
-                if changed and self.execute_mode:
-                    # Use update_fields to avoid triggering full_clean / save hooks
-                    try:
-                        Model.objects.filter(pk=obj.pk).update(
-                            **{fn: getattr(obj, fn) for fn in field_names
-                               if getattr(obj, fn)}
-                        )
+                        except Exception as exc:
+                            self.log(
+                                f'  ERROR updating {model_name} pk={obj.pk}: {exc}',
+                                self.style.ERROR,
+                            )
+                    else:
+                        for fn, new_val in update_dict.items():
+                            self.log(
+                                f'  {model_name}.{fn} pk={obj.pk}: '
+                                f'{getattr(obj, fn).name} -> {new_val}'
+                            )
                         updated += 1
-                    except Exception as exc:
-                        self.log(
-                            f'  ERROR updating {model_name} pk={obj.pk}: {exc}',
-                            self.style.ERROR,
-                        )
 
         self.log(
             f'  DB records {"updated" if self.execute_mode else "to update"}: {updated}'
