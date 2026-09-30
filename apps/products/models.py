@@ -7,6 +7,8 @@ from taggit.managers import TaggableManager
 from django.conf import settings
 from django_ckeditor_5.fields import CKEditor5Field
 
+from utils.images import convert_imagefield_to_webp
+
 
 def normalize_and_validate_canonical_url(val: str, default_prefix: str = "products") -> str:
     """
@@ -359,6 +361,8 @@ class Product(models.Model):
             self.slug = candidate
 
         self.full_clean()
+        convert_imagefield_to_webp(self, 'cover_image')
+        convert_imagefield_to_webp(self, 'og_image')
         super().save(*args, **kwargs)
 
     def get_discount_percentage(self):
@@ -403,6 +407,10 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"تصویر محصول «{self.product.name}»"
+
+    def save(self, *args, **kwargs):
+        convert_imagefield_to_webp(self, 'image')
+        super().save(*args, **kwargs)
 
 
 class ProductSave(models.Model):

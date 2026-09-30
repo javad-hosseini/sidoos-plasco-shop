@@ -13,6 +13,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import NoReverseMatch, reverse
+
+from utils.images import convert_imagefield_to_webp
 from django.utils.translation import gettext_lazy as _
 
 
@@ -97,6 +99,10 @@ class HeroSlide(models.Model):
     def __str__(self):
         first_line = self.title.splitlines()[0] if self.title else ""
         return first_line or f"اسلاید {self.pk}"
+
+    def save(self, *args, **kwargs):
+        convert_imagefield_to_webp(self, 'background_image')
+        super().save(*args, **kwargs)
 
     def get_cta_url(self):
         """
@@ -232,6 +238,10 @@ class FeaturedCategory(models.Model):
     def __str__(self):
         status = "فعال" if self.is_active else "غیرفعال"
         return f"{self.category.name} ({status})"
+
+    def save(self, *args, **kwargs):
+        convert_imagefield_to_webp(self, 'image')
+        super().save(*args, **kwargs)
 
 
 class SpecialSaleFeature(models.Model):

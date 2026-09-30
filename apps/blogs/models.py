@@ -41,6 +41,8 @@ from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
 from taggit.managers import TaggableManager
 
+from utils.images import convert_imagefield_to_webp
+
 
 def normalize_and_validate_canonical_url(val: str, default_prefix: str = "blogs") -> str:
     """
@@ -378,4 +380,6 @@ class Article(models.Model):
             **kwargs: Arbitrary keyword arguments.
         """
         self.full_clean()
+        convert_imagefield_to_webp(self, 'featured_image')
+        convert_imagefield_to_webp(self, 'og_image')
         super().save(*args, **kwargs)

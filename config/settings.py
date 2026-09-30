@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'apps.support.apps.SupportConfig',
     'apps.translation.apps.TranslationConfig',
     'apps.sms_service.apps.SmsServiceConfig',
+    'utils.apps.UtilsConfig',
 ]
 
 
