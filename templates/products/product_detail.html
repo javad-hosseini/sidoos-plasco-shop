@@ -43,6 +43,9 @@
   <meta property="product:retailer_item_id" content="{{ product.id }}">
   <meta property="product:category" content="{{ product.category.name|default:'' }}">
   <meta name="google-product-category" content="{{ product.category.name|default:'' }}">
+  {% if product.cover_image %}
+    <link rel="preload" as="image" href="{{ product.cover_image.url }}" fetchpriority="high">
+  {% endif %}
 {% endblock %}
 
 {% block schema %}
@@ -207,13 +210,13 @@
     <div class="pd-main">
 
       {# ============ GALLERY ============ #}
-      <div class="pd-gallery reveal">
+      <div class="pd-gallery">
         <div class="pd-stage" id="pdStage">
           {% if product.featured_in_special_sales %}<span class="pd-stage__badge">فروش ویژه</span>{% endif %}
           {% if discount %}<span class="pd-stage__sale">{{ discount|floatformat:0|persian_digits }}٪ تخفیف</span>{% endif %}
 
           {% if product.cover_image %}
-            <img src="{{ product.cover_image.url }}" alt="{{ product.name }}" class="pd-stage__img is-active" data-index="0">
+            <img src="{{ product.cover_image.url }}" alt="{{ product.name }}" class="pd-stage__img is-active" data-index="0" fetchpriority="high">
           {% endif %}
           {% for image in images %}
             <img src="{{ image.image.url }}" alt="{{ product.name }} - تصویر {{ forloop.counter }}" class="pd-stage__img" data-index="{{ forloop.counter }}" loading="lazy">
@@ -233,7 +236,7 @@
       </div>
 
       {# ============ INFO ============ #}
-      <div class="pd-info reveal reveal-delay-1">
+      <div class="pd-info">
         {% if product.category %}
           <a href="{% url 'products:category_products' product.category.slug %}" class="pd-cat">{{ product.category.name }}</a>
         {% endif %}

@@ -203,7 +203,7 @@
     </div>
     {% endif %}
 
-    <div class="reveal">
+    <div>
       <div class="pl-section-head">
         <h2>{% if search_query %}نتایج جستجو{% elif selected_category %}محصولات این دسته‌بندی{% else %}همه محصولات{% endif %}</h2>
         {% if page_obj %}<span>{{ page_obj.paginator.count|persian_digits }} محصول</span>{% endif %}
@@ -215,7 +215,11 @@
         <a class="pl-card" href="{% url 'products:product_detail' product.slug %}">
           <div class="pl-card__media">
             {% if product.cover_image %}
-              <img src="{{ product.cover_image.url }}" alt="{{ product.name }}" loading="lazy">
+              {% if forloop.counter <= 4 %}
+                <img src="{{ product.cover_image.url }}" alt="{{ product.name }}" {% if forloop.first %}fetchpriority="high"{% endif %}>
+              {% else %}
+                <img src="{{ product.cover_image.url }}" alt="{{ product.name }}" loading="lazy">
+              {% endif %}
             {% else %}
               <span class="ph"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 15l-5-5-9 9"/></svg></span>
             {% endif %}

@@ -37,6 +37,10 @@
   {# Article timestamps #}
   <meta property="article:published_time" content="{{ article.published_at|date:'c' }}">
   <meta property="article:modified_time" content="{{ article.updated_at|date:'c' }}">
+
+  {% if article.featured_image %}
+    <link rel="preload" as="image" href="{{ article.featured_image.url }}" fetchpriority="high">
+  {% endif %}
 {% endblock %}
 
 {% block schema %}
@@ -153,7 +157,7 @@
 
     {% if article.featured_image %}
     <div class="ad-cover">
-      <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
+      <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" fetchpriority="high">
     </div>
     {% endif %}
 

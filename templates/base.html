@@ -35,7 +35,8 @@
 <link rel="preload" href="{% static 'fonts/vazirmatn-arabic-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{% static 'fonts/vazirmatn-arabic-700-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{% static 'fonts/fonts.css' %}">
-<link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+<link rel="preload" href="{% static 'vendor/fontawesome/css/all.min.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}"></noscript>
 {% block fonts %}{% endblock %}
 
 <script>
@@ -1114,6 +1115,8 @@
 (function(){
   const canvas = document.getElementById('particles');
   if(!canvas) return;
+  // Skip on mobile/touch screens (< 768px or touch primary) to save main-thread frame budget for LCP/INP
+  if(window.innerWidth < 768 || ('ontouchstart' in window)) return;
   const ctx = canvas.getContext('2d');
   let w, h, particles = [];
   const darkColors = ['rgba(184,155,94,ALPHA)','rgba(184,155,94,ALPHA)','rgba(245,240,232,ALPHA)','rgba(18,60,54,ALPHA)'];
@@ -1121,7 +1124,7 @@
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function resize(){ w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-  function density(){ return Math.min(95, Math.max(40, Math.floor((w*h)/20000))); }
+  function density(){ return Math.min(75, Math.max(30, Math.floor((w*h)/25000))); }
   function makeParticles(){
     const n = density();
     particles = [];
@@ -1145,6 +1148,7 @@
   let mx = w/2, my = h/2;
   window.addEventListener('mousemove', e=>{ mx = e.clientX; my = e.clientY; });
 
+  let animId = null;
   function frame(){
     ctx.clearRect(0,0,w,h);
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -1170,9 +1174,13 @@
       ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
       ctx.fill();
     });
-    requestAnimationFrame(frame);
+    animId = requestAnimationFrame(frame);
   }
-  requestAnimationFrame(frame);
+  animId = requestAnimationFrame(frame);
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden && animId) cancelAnimationFrame(animId);
+    else if(!document.hidden) animId = requestAnimationFrame(frame);
+  });
 })();
 
 /* ================= BACK TO TOP ================= */

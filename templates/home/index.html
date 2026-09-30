@@ -19,6 +19,9 @@
   <meta name="twitter:title" content="سیدوس | صنایع دکوراتیو و ظروف خانه">
   <meta name="twitter:description" content="سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر برای فروشگاه‌ها و عمده‌فروشان سراسر کشور.">
   <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-logo.jpg' %}">
+  {% if hero_slides and hero_slides.0.background_image %}
+    <link rel="preload" as="image" href="{{ hero_slides.0.background_image.url }}" fetchpriority="high">
+  {% endif %}
 {% endblock %}
 
 {% block extra_css %}
@@ -85,6 +88,13 @@
     display:flex; gap:18px; align-items:center;
   }
   .hero-slide.active .hero-cta-wrap{ opacity:1; transform:translateY(0); }
+
+  /* Initial active slide renders immediately for fast FCP/LCP */
+  .hero-slide:first-child.active .hero-title,
+  .hero-slide:first-child.active .hero-sub,
+  .hero-slide:first-child.active .hero-cta-wrap {
+    opacity:1; transform:translateY(0); transition:none;
+  }
 
 
   .hero-nav{

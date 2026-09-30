@@ -11,7 +11,7 @@
             <img
                 src="{{ article.featured_image.url }}"
                 alt="{{ article.title }}"
-                loading="lazy"
+                {% if forloop.counter <= 3 %}{% if forloop.first %}fetchpriority="high"{% endif %}{% else %}loading="lazy"{% endif %}
             >
         {% else %}
             <span class="mag-card__media--fallback">
