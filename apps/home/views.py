@@ -42,13 +42,12 @@ def home(request):
         .order_by("featured_order", "-created_at")[:FEATURED_LIMIT]
     )
 
-    best_sellers = [
-        entry.product
-        for entry in BestSeller.objects.filter(
+    best_sellers = (
+        BestSeller.objects.filter(
             is_active=True,
             product__published=True,
         ).select_related("product", "product__category")[:BEST_SELLERS_LIMIT]
-    ]
+    )
 
     featured_categories = (
         FeaturedCategory.objects.filter(is_active=True)

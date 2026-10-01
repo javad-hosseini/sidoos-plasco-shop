@@ -130,11 +130,12 @@ class HomeSectionFilteringTests(TestCase):
 
         visible = self._product(name="پرفروش فعال")
         hidden_product = self._product(name="پرفروش غیرفعال")
-        BestSeller.objects.create(product=visible, is_active=True, display_order=1)
+        BestSeller.objects.create(product=visible, subtitle="توضیح تستی زیرعنوان", is_active=True, display_order=1)
         BestSeller.objects.create(product=hidden_product, is_active=False, display_order=2)
 
         response = self.client.get(reverse("home:home"))
         self.assertContains(response, "پرفروش فعال")
+        self.assertContains(response, "توضیح تستی زیرعنوان")
         self.assertNotContains(response, "پرفروش غیرفعال")
 
     def test_unpublished_best_seller_product_is_hidden(self):
