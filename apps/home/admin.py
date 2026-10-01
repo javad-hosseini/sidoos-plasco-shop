@@ -82,7 +82,7 @@ class BestSellerAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "product__category")
     search_fields = ("product__name", "subtitle")
     readonly_fields = ("created_at", "updated_at", "product_image_tag")
-    autocomplete_fields = ("product",)
+    raw_id_fields = ("product",)
 
     fieldsets = (
         ("محصول", {
@@ -149,7 +149,7 @@ class FeaturedCategoryAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
     search_fields = ("category__name",)
     readonly_fields = ("created_at", "updated_at", "category_image_tag")
-    autocomplete_fields = ("category",)
+    raw_id_fields = ("category",)
 
     fieldsets = (
         ("دسته‌بندی", {
@@ -211,7 +211,7 @@ class SpecialSaleFeatureAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "product__category")
     search_fields = ("product__name",)
     readonly_fields = ("created_at", "updated_at", "product_image_tag")
-    autocomplete_fields = ("product",)
+    raw_id_fields = ("product",)
 
     fieldsets = (
         ("محصول", {

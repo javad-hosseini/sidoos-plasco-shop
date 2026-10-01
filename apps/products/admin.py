@@ -205,7 +205,7 @@ class ProductImageAdmin(admin.ModelAdmin):
     list_filter = ('created_at', 'product')
     search_fields = ('product__name',)
     ordering = ('product', 'order')
-    autocomplete_fields = ('product',)
+    raw_id_fields = ('product',)
 
     def image_preview(self, obj):
         if obj.image:
