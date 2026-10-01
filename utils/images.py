@@ -88,18 +88,21 @@ def convert_imagefield_to_webp(instance, field_name):
     if not field_file or not field_file.name:
         return
 
-    # Only convert if the file is a new upload (not yet committed to storage).
-    # A committed file is one already on disk from a previous save.
-    if not getattr(field_file, 'committed', True) or (
-        hasattr(field_file, 'file')
-        and hasattr(field_file.file, 'content_type')
-    ):
+    # Only convert if the file is a new upload (not yet committed to storage or has attached in-memory _file).
+    is_new_upload = not getattr(field_file, 'committed', True) or (
+        getattr(field_file, '_file', None) is not None
+        and hasattr(getattr(field_file, '_file', None), 'content_type')
+    )
+    if is_new_upload:
         ext = os.path.splitext(field_file.name)[1].lower()
         if ext not in CONVERTIBLE_EXTENSIONS:
             return
 
-        webp_file, new_name = convert_image_to_webp(field_file)
-        if webp_file:
-            # Replace the field file with the WebP version.
-            # save=False prevents a recursive Model.save() call.
-            field_file.save(new_name, webp_file, save=False)
+        try:
+            webp_file, new_name = convert_image_to_webp(field_file)
+            if webp_file:
+                # Replace the field file with the WebP version.
+                # save=False prevents a recursive Model.save() call.
+                field_file.save(new_name, webp_file, save=False)
+        except Exception:
+            pass

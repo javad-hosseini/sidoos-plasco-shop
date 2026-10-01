@@ -244,40 +244,37 @@ class FeaturedCategoryModelTests(TestCase):
 
 
 class SpecialSaleFeatureModelTests(TestCase):
-    """Covers the core business rule: only flagged products are selectable."""
+    """Covers SpecialSaleFeature behavior: published products are accepted and auto-flagged."""
 
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="u3", password="x")
 
-    def _product(self, flagged):
+    def _product(self, published=True, flagged=False):
         return Product.objects.create(
-            name="محصول فروش ویژه" if flagged else "محصول عادی",
+            name="محصول تست",
             description="x", price=1000, cover_image=_image(),
-            published=True, creator=self.user,
+            published=published, creator=self.user,
             featured_in_special_sales=flagged,
         )
 
-    def test_flagged_product_is_accepted(self):
+    def test_published_product_is_accepted_and_auto_flagged(self):
         from apps.home.models import SpecialSaleFeature
 
-        product = self._product(flagged=True)
+        product = self._product(published=True, flagged=False)
+        self.assertFalse(product.featured_in_special_sales)
+
         entry = SpecialSaleFeature.objects.create(product=product)
         self.assertTrue(entry.pk)
 
-    def test_unflagged_product_is_rejected(self):
+        product.refresh_from_db()
+        self.assertTrue(product.featured_in_special_sales)
+
+    def test_unpublished_product_is_rejected_when_active(self):
         from apps.home.models import SpecialSaleFeature
 
-        product = self._product(flagged=False)
+        product = self._product(published=False, flagged=False)
         with self.assertRaises(ValidationError):
-            SpecialSaleFeature.objects.create(product=product)
-
-    def test_unflagged_product_rejected_even_via_full_clean_directly(self):
-        from apps.home.models import SpecialSaleFeature
-
-        product = self._product(flagged=False)
-        entry = SpecialSaleFeature(product=product)
-        with self.assertRaises(ValidationError):
-            entry.full_clean()
+            SpecialSaleFeature.objects.create(product=product, is_active=True)
 
 
 class NewsletterSubscribeViewTests(TestCase):

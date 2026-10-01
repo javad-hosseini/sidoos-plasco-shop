@@ -260,9 +260,8 @@ class SpecialSaleFeature(models.Model):
         "products.Product",
         on_delete=models.CASCADE,
         related_name="home_special_sale",
-        limit_choices_to={"featured_in_special_sales": True},
         verbose_name="محصول",
-        help_text="فقط محصولاتی که «فروش ویژه» آن‌ها فعال است قابل انتخاب هستند.",
+        help_text="محصولی که در بخش فروش ویژه صفحه اصلی نمایش داده می‌شود.",
     )
 
     display_order = models.PositiveIntegerField(
@@ -293,20 +292,22 @@ class SpecialSaleFeature(models.Model):
         return f"{self.product.name} ({status})"
 
     def clean(self):
-        """Validate that the selected product actually has the special-sale flag on."""
+        """Validate that the selected product is published."""
         super().clean()
-        if self.product_id and not self.product.featured_in_special_sales:
+        if self.is_active and self.product_id and not self.product.published:
             raise ValidationError({
                 "product": _(
-                    "فقط محصولاتی که «فروش ویژه» برای آن‌ها فعال است قابل انتخاب هستند."
+                    "فقط محصولات منتشرشده می‌توانند به‌عنوان فروش ویژه فعال نمایش داده شوند."
                 ),
             })
 
     def save(self, *args, **kwargs):
-        # Enforce the special-sale restriction even for saves that bypass a
-        # ModelForm (shell, scripts, etc.), not just admin-form validation.
         self.full_clean()
         super().save(*args, **kwargs)
+        # Ensure the underlying product has the special-sales flag set when active
+        if self.is_active and self.product and not self.product.featured_in_special_sales:
+            self.product.featured_in_special_sales = True
+            self.product.save(update_fields=["featured_in_special_sales"])
 
 
 class NewsletterSubscriber(models.Model):

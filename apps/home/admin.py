@@ -197,10 +197,8 @@ class SpecialSaleFeatureAdmin(admin.ModelAdmin):
     """
     Django admin configuration for the SpecialSaleFeature model.
 
-    The `product` field only accepts/shows products with
-    Product.featured_in_special_sales enabled - enforced by the field's
-    limit_choices_to, which the autocomplete widget and form validation
-    both honor.
+    Allows admins to search and select any published product to feature
+    in the Special Sales section of the homepage.
     """
 
     list_display = (
@@ -218,10 +216,7 @@ class SpecialSaleFeatureAdmin(admin.ModelAdmin):
     fieldsets = (
         ("محصول", {
             "fields": ("product", "product_image_tag"),
-            "description": (
-                "محصولی که می‌خواهید در بخش فروش ویژه صفحه اصلی نمایش داده شود. "
-                "فقط محصولاتی که «فروش ویژه» آن‌ها فعال است قابل انتخاب‌اند."
-            ),
+            "description": "محصولی که می‌خواهید در بخش فروش ویژه صفحه اصلی نمایش داده شود.",
         }),
         ("نمایش و ترتیب", {
             "fields": ("is_active", "display_order"),
