@@ -205,7 +205,11 @@ class ProductImageAdmin(admin.ModelAdmin):
     list_filter = ('created_at', 'product')
     search_fields = ('product__name',)
     ordering = ('product', 'order')
-    autocomplete_fields = ('product',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "product":
+            kwargs["queryset"] = Product.objects.all().order_by("name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def image_preview(self, obj):
         if obj.image:

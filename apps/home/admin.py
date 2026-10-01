@@ -10,6 +10,7 @@ from .models import (
     PriceList,
     SpecialSaleFeature,
 )
+from apps.products.models import Category, Product
 
 
 @admin.register(HeroSlide)
@@ -82,7 +83,11 @@ class BestSellerAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "product__category")
     search_fields = ("product__name", "subtitle")
     readonly_fields = ("created_at", "updated_at", "product_image_tag")
-    autocomplete_fields = ("product",)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "product":
+            kwargs["queryset"] = Product.objects.filter(published=True).order_by("name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     fieldsets = (
         ("محصول", {
@@ -149,7 +154,11 @@ class FeaturedCategoryAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
     search_fields = ("category__name",)
     readonly_fields = ("created_at", "updated_at", "category_image_tag")
-    autocomplete_fields = ("category",)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "category":
+            kwargs["queryset"] = Category.objects.all().order_by("name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     fieldsets = (
         ("دسته‌بندی", {
@@ -211,7 +220,11 @@ class SpecialSaleFeatureAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "product__category")
     search_fields = ("product__name",)
     readonly_fields = ("created_at", "updated_at", "product_image_tag")
-    autocomplete_fields = ("product",)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "product":
+            kwargs["queryset"] = Product.objects.filter(published=True).order_by("name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     fieldsets = (
         ("محصول", {

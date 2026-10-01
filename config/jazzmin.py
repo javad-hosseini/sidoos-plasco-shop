@@ -167,7 +167,6 @@ JAZZMIN_SETTINGS = {
     # language chooser above. Scoped to html[dir="rtl"], so it has no
     # effect while the interface is in English.
     "custom_css": "admin/css/rtl-polish.css",
-    "custom_js": "admin/js/admin_autocomplete.js",
 
 }
 
