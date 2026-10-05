@@ -239,6 +239,12 @@ class Product(models.Model):
     )
 
     # ========== NEW: SEO Metadata (matching Article model) ==========
+    focus_keyword = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name="کلمه کلیدی کانونی",
+        help_text="کلمه یا عبارت کلیدی اصلی که این محصول برای آن در موتورهای جستجو بهینه‌سازی می‌شود.",
+    )
     meta_title = models.CharField(
         max_length=200,
         blank=True,

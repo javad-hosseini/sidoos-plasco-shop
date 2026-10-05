@@ -21,13 +21,16 @@ if sys.version_info >= (3, 14):
         pass
 
     try:
+        import inspect
         import django.db.models
         if hasattr(django.db.models, 'CheckConstraint'):
             _orig_cc_init = django.db.models.CheckConstraint.__init__
-            def _compat_cc_init(self, *args, **kwargs):
-                if 'check' in kwargs and 'condition' not in kwargs:
-                    kwargs['condition'] = kwargs.pop('check')
-                _orig_cc_init(self, *args, **kwargs)
-            django.db.models.CheckConstraint.__init__ = _compat_cc_init
+            _sig = inspect.signature(_orig_cc_init)
+            if 'condition' in _sig.parameters and 'check' not in _sig.parameters:
+                def _compat_cc_init(self, *args, **kwargs):
+                    if 'check' in kwargs and 'condition' not in kwargs:
+                        kwargs['condition'] = kwargs.pop('check')
+                    _orig_cc_init(self, *args, **kwargs)
+                django.db.models.CheckConstraint.__init__ = _compat_cc_init
     except ImportError:
         pass

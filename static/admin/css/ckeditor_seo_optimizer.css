@@ -1,0 +1,429 @@
+/**
+ * CKEditor 5 Live SEO Optimizer Styles - Sidoos Admin
+ * Matching Jazzmin Admin Design Language (RTL Persian)
+ */
+
+/* =========================================================================
+   1. SEO Optimizer Panel Container
+   ========================================================================= */
+.sidoos-seo-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin: 20px 0 30px 0;
+    padding: 0;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    direction: rtl;
+    text-align: right;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "IRANSans", Tahoma, sans-serif;
+    color: #1e293b;
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+
+.sidoos-seo-panel:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================================================================
+   2. Header & Live Score Gauge
+   ========================================================================= */
+.sidoos-seo-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.sidoos-seo-header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.sidoos-seo-header-title h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidoos-seo-header-title .sidoos-seo-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: #e0f2fe;
+    color: #0284c7;
+    border-radius: 8px;
+}
+
+.sidoos-seo-score-widget {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.sidoos-seo-score-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    padding: 6px 14px;
+    border-radius: 24px;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Score Color Themes */
+.sidoos-seo-score-badge.score-good {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+.sidoos-seo-score-badge.score-ok {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+}
+
+.sidoos-seo-score-badge.score-bad {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+
+.sidoos-seo-score-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* Quick Action Toolbar in Header */
+.sidoos-seo-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidoos-seo-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sidoos-seo-action-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.sidoos-seo-action-btn.btn-primary-action {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+}
+
+.sidoos-seo-action-btn.btn-primary-action:hover {
+    background: #0369a1;
+    border-color: #0369a1;
+}
+
+/* =========================================================================
+   3. Quick Stats Bar
+   ========================================================================= */
+.sidoos-seo-stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    padding: 14px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.sidoos-seo-stat-item {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+}
+
+.sidoos-seo-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.sidoos-seo-stat-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* =========================================================================
+   4. Accordion Checklist Sections
+   ========================================================================= */
+.sidoos-seo-body {
+    padding: 16px 24px;
+}
+
+.sidoos-seo-section {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.sidoos-seo-section-header {
+    padding: 12px 18px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease;
+}
+
+.sidoos-seo-section-header:hover {
+    background: #f1f5f9;
+}
+
+.sidoos-seo-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidoos-seo-section-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.sidoos-seo-section-badge.badge-complete {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.sidoos-seo-section-chevron {
+    transition: transform 0.25s ease;
+    color: #64748b;
+}
+
+.sidoos-seo-section.is-open .sidoos-seo-section-chevron {
+    transform: rotate(180deg);
+}
+
+.sidoos-seo-section-content {
+    display: none;
+    padding: 12px 18px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.sidoos-seo-section.is-open .sidoos-seo-section-content {
+    display: block;
+}
+
+/* =========================================================================
+   5. Checklist Items
+   ========================================================================= */
+.sidoos-seo-rule-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidoos-seo-rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+}
+
+.sidoos-seo-rule-item:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.sidoos-seo-rule-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-top: 2px;
+}
+
+.sidoos-seo-rule-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidoos-seo-rule-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidoos-seo-rule-status-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.sidoos-seo-rule-item.status-pass .sidoos-seo-rule-status-badge {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.sidoos-seo-rule-item.status-warning .sidoos-seo-rule-status-badge {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.sidoos-seo-rule-item.status-fail .sidoos-seo-rule-status-badge {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.sidoos-seo-rule-item.status-auto .sidoos-seo-rule-status-badge {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.sidoos-seo-rule-desc {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.sidoos-seo-rule-tip {
+    font-size: 11px;
+    color: #0284c7;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* =========================================================================
+   6. Table of Contents & Alt Inspector Modals
+   ========================================================================= */
+.sidoos-seo-alt-list {
+    margin-top: 8px;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidoos-seo-alt-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.sidoos-seo-alt-item.missing-alt {
+    border-color: #fca5a5;
+    background: #fff5f5;
+}
+
+.sidoos-seo-alt-item .alt-preview-thumb {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+}
+
+/* Table of Contents Generated Block Inside Content */
+.sidoos-toc-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-right: 4px solid #0284c7;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    direction: rtl;
+    text-align: right;
+}
+
+.sidoos-toc-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 10px 0;
+}
+
+.sidoos-toc-box ul {
+    margin: 0;
+    padding-right: 20px;
+    list-style-type: decimal;
+}
+
+.sidoos-toc-box li {
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.sidoos-toc-box a {
+    color: #0284c7;
+    text-decoration: none;
+}
+
+.sidoos-toc-box a:hover {
+    text-decoration: underline;
+}

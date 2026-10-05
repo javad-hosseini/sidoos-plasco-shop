@@ -3,6 +3,7 @@ Django settings for config project.
 """
 
 import os
+import sys
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
@@ -11,8 +12,6 @@ from decouple import Config, RepositoryEnv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-MEDIA_ROOT = BASE_DIR / 'media'
 
 # Environment file selection
 ENV_FILE = BASE_DIR / (
@@ -96,7 +95,26 @@ CKEDITOR_5_CONFIGS = {
                 "undo",
                 "redo",
             ],
-            "shouldNotGroupWhenFull": True
+            "shouldNotGroupWhenFull": True,
+        },
+        "image": {
+            "toolbar": [
+                "imageTextAlternative",
+                "toggleImageCaption",
+                "imageStyle:inline",
+                "imageStyle:block",
+                "imageStyle:side",
+                "linkImage",
+            ]
+        },
+        "table": {
+            "contentToolbar": [
+                "tableColumn",
+                "tableRow",
+                "mergeTableCells",
+                "tableProperties",
+                "tableCellProperties",
+            ]
         }
     }
 }
@@ -233,7 +251,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+if 'test' in sys.argv:
+    import tempfile
+    MEDIA_ROOT = Path(tempfile.mkdtemp(prefix='sidoos_test_media_'))
+else:
+    MEDIA_ROOT = BASE_DIR / 'media'
 CKEDITOR_UPLOAD_PATH = 'content/ckeditor/'
 
 # ========== LOGIN SETTINGS ==========

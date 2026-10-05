@@ -385,3 +385,39 @@ class ArticleDetailViewTests(TestCase):
         self.assertEqual(breadcrumbs[0]["label"], "خانه")
         self.assertEqual(breadcrumbs[-1]["label"], "عنوان مسیر")
         self.assertIsNone(breadcrumbs[-1]["url"])
+
+
+class ArticleSEOAdminTests(TestCase):
+    """
+    Test suite for Article focus_keyword field and SEO Admin assets integration.
+    """
+
+    def setUp(self):
+        from apps.accounts.models import User
+        self.admin = User.objects.create_superuser(
+            username="admin_seo",
+            email="admin_seo@example.com",
+            password="password123",
+        )
+
+    def test_article_focus_keyword_persists(self):
+        article = Article.objects.create(
+            title="آموزش باغبانی",
+            slug="gardening-guide",
+            focus_keyword="گلدان سفالی",
+            summary="خلاصه آموزش",
+            content="<p>متن باغبانی</p>",
+            reading_time=3,
+        )
+        self.assertEqual(article.focus_keyword, "گلدان سفالی")
+        reloaded = Article.objects.get(pk=article.pk)
+        self.assertEqual(reloaded.focus_keyword, "گلدان سفالی")
+
+    def test_article_admin_media_contains_seo_optimizer_assets(self):
+        self.client.force_login(self.admin)
+        response = self.client.get("/sidoos-administration/blogs/article/add/")
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode("utf-8")
+        self.assertIn("admin/js/ckeditor_seo_optimizer.js", content)
+        self.assertIn("admin/css/ckeditor_seo_optimizer.css", content)
+        self.assertIn("id_focus_keyword", content)

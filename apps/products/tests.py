@@ -626,3 +626,43 @@ class SpecialSalesViewTests(TestCase):
         self.assertContains(response, 'محصول تخفیف‌دار')
         self.assertNotContains(response, 'محصول عادی')
         self.assertNotContains(response, 'تخفیف منتشرنشده')
+
+
+class ProductSEOAdminTests(TestCase):
+    """
+    Test suite for Product focus_keyword field and SEO Admin assets integration.
+    """
+
+    def setUp(self):
+        from apps.accounts.models import User
+        self.admin = User.objects.create_superuser(
+            username='admin_prod_seo',
+            email='admin_prod_seo@example.com',
+            password='password123',
+        )
+
+    def test_product_focus_keyword_persists(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        dummy_cover = SimpleUploadedFile('pot.jpg', b'fake image data', content_type='image/jpeg')
+        product = Product.objects.create(
+            name='گلدان پلاستیکی سایز ۱۰',
+            slug='plastic-pot-10',
+            focus_keyword='گلدان پلاستیکی',
+            description='توضیحات محصول',
+            price=25000,
+            cover_image=dummy_cover,
+            creator=self.admin,
+        )
+        self.assertEqual(product.focus_keyword, 'گلدان پلاستیکی')
+        reloaded = Product.objects.get(pk=product.pk)
+        self.assertEqual(reloaded.focus_keyword, 'گلدان پلاستیکی')
+
+    def test_product_admin_media_contains_seo_optimizer_assets(self):
+        self.client.force_login(self.admin)
+        response = self.client.get('/sidoos-administration/products/product/add/')
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn('admin/js/ckeditor_seo_optimizer.js', content)
+        self.assertIn('admin/css/ckeditor_seo_optimizer.css', content)
+        self.assertIn('id_focus_keyword', content)
+

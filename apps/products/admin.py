@@ -47,6 +47,8 @@ class ProductAdmin(admin.ModelAdmin):
     )
     search_fields = (
         'name',
+        'focus_keyword',
+        'slug',
         'description',
         'meta_title',
         'meta_description',
@@ -55,11 +57,21 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
     class Media:
-        js = ('admin/js/auto_prepopulate_seo.js',)
+        js = (
+            'admin/js/auto_prepopulate_seo.js',
+            'admin/js/ckeditor_internal_link.js',
+            'admin/js/ckeditor_seo_optimizer.js',
+        )
+        css = {
+            'all': (
+                'admin/css/ckeditor_internal_link.css',
+                'admin/css/ckeditor_seo_optimizer.css',
+            )
+        }
 
     fieldsets = (
         ('اطلاعات پایه و دسته‌بندی', {
-            'fields': ('name', 'slug', 'category', 'creator', 'description', 'tags'),
+            'fields': ('name', 'slug', 'focus_keyword', 'category', 'creator', 'description', 'tags'),
             'description': 'اطلاعات اصلی، دسته‌بندی، ثبت‌کننده محصول و برچسب‌های مرتبط.'
         }),
         ('تصویر شاخص', {

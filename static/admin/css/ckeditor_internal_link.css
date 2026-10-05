@@ -1,0 +1,478 @@
+/* ==========================================================================
+   CKEditor 5 Internal Link Helper Styles - Sidoos Admin
+   ========================================================================== */
+
+/* --- CKEditor Toolbar Custom Button --- */
+.ck.ck-button.ck-internal-link-btn {
+    position: relative;
+    cursor: pointer;
+    color: #0d6efd;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ck.ck-button.ck-internal-link-btn:hover {
+    background: rgba(13, 110, 253, 0.1) !important;
+    color: #0b5ed7 !important;
+}
+
+.ck.ck-button.ck-internal-link-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+/* Tooltip custom badge */
+.ck.ck-button.ck-internal-link-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #212529;
+    color: #ffffff;
+    font-size: 11px;
+    font-family: inherit;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 10000;
+}
+
+.ck.ck-button.ck-internal-link-btn:hover::after {
+    opacity: 1;
+}
+
+/* --- Modal Overlay & Dialog --- */
+.sidoos-link-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.sidoos-link-modal-overlay.is-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sidoos-link-modal {
+    width: 100%;
+    max-width: 660px;
+    max-height: 88vh;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    direction: rtl;
+    text-align: right;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transform: scale(0.96) translateY(-10px);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidoos-link-modal-overlay.is-active .sidoos-link-modal {
+    transform: scale(1) translateY(0);
+}
+
+/* Modal Header */
+.sidoos-link-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.sidoos-link-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.sidoos-link-header-title svg {
+    width: 20px;
+    height: 20px;
+    color: #0d6efd;
+}
+
+.sidoos-link-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.sidoos-link-close-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* Modal Body */
+.sidoos-link-body {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Form Groups */
+.sidoos-link-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidoos-link-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin: 0;
+}
+
+.sidoos-link-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.sidoos-link-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #1e293b;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    direction: rtl;
+}
+
+.sidoos-link-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+}
+
+.sidoos-link-input.ltr-text {
+    direction: ltr;
+    text-align: left;
+    font-family: monospace;
+}
+
+.sidoos-link-search-icon {
+    position: absolute;
+    left: 12px;
+    width: 18px;
+    height: 18px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.sidoos-link-search-input {
+    padding-left: 38px;
+}
+
+/* Type Filter Tabs */
+.sidoos-link-tabs {
+    display: flex;
+    gap: 6px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.sidoos-link-tab-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+}
+
+.sidoos-link-tab-btn:hover {
+    color: #0f172a;
+}
+
+.sidoos-link-tab-btn.is-active {
+    background: #ffffff;
+    color: #0d6efd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Results Box */
+.sidoos-link-results-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+.sidoos-link-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    background: #ffffff;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.sidoos-link-result-item:last-child {
+    border-bottom: none;
+}
+
+.sidoos-link-result-item:hover,
+.sidoos-link-result-item.is-selected {
+    background: #eff6ff;
+}
+
+.sidoos-link-result-item.is-selected {
+    border-inline-start: 4px solid #0d6efd;
+}
+
+/* Result Thumbnail / Icon */
+.sidoos-link-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #e2e8f0;
+    flex-shrink: 0;
+}
+
+.sidoos-link-thumb-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+/* Result Info */
+.sidoos-link-result-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sidoos-link-result-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidoos-link-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.sidoos-link-badge-product {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.sidoos-link-badge-article {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.sidoos-link-badge-category {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.sidoos-link-result-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidoos-link-result-meta {
+    font-size: 12px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidoos-link-result-url {
+    font-size: 11.5px;
+    color: #0d6efd;
+    direction: ltr;
+    text-align: left;
+    font-family: monospace;
+}
+
+/* Empty & Loading States */
+.sidoos-link-status-msg {
+    padding: 30px 20px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13.5px;
+}
+
+.sidoos-link-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e1;
+    border-top-color: #0d6efd;
+    border-radius: 50%;
+    animation: sidoos-spin 0.6s linear infinite;
+    margin-bottom: 8px;
+}
+
+@keyframes sidoos-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Modal Footer */
+.sidoos-link-footer {
+    padding: 14px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidoos-link-hint {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.sidoos-link-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.sidoos-link-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.sidoos-link-btn-cancel {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+.sidoos-link-btn-cancel:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.sidoos-link-btn-primary {
+    background: #0d6efd;
+    color: #ffffff;
+}
+
+.sidoos-link-btn-primary:hover {
+    background: #0b5ed7;
+}
+
+.sidoos-link-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #94a3b8;
+}
+
+/* Dark mode compatibility with Jazzmin dark theme */
+.dark-mode .sidoos-link-modal {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+.dark-mode .sidoos-link-header,
+.dark-mode .sidoos-link-footer {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.dark-mode .sidoos-link-header-title,
+.dark-mode .sidoos-link-result-title {
+    color: #f8fafc;
+}
+
+.dark-mode .sidoos-link-input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.dark-mode .sidoos-link-tabs {
+    background: #0f172a;
+}
+
+.dark-mode .sidoos-link-tab-btn {
+    color: #94a3b8;
+}
+
+.dark-mode .sidoos-link-tab-btn.is-active {
+    background: #334155;
+    color: #38bdf8;
+}
+
+.dark-mode .sidoos-link-result-item {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.dark-mode .sidoos-link-result-item:hover,
+.dark-mode .sidoos-link-result-item.is-selected {
+    background: #334155;
+}

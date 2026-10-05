@@ -72,6 +72,10 @@ class Command(BaseCommand):
             help='Keep original files after conversion.',
         )
         parser.add_argument(
+            '--subdirectory', type=str, default=None,
+            help='Limit disk conversion to a specific media subdirectory (e.g. products/covers).',
+        )
+        parser.add_argument(
             '--quality', type=int, default=80,
             help='WebP quality 1-100 (default: 80).',
         )
@@ -103,6 +107,7 @@ class Command(BaseCommand):
 
         self.execute_mode = options['execute']
         self.keep_originals = options['keep_originals']
+        self.subdirectory = options.get('subdirectory')
         self.quality = options['quality']
         self.converted_map = {}  # old_relative_path -> new_relative_path
 
@@ -116,7 +121,7 @@ class Command(BaseCommand):
             )
 
         # Phase 1: convert files on disk
-        self._phase1_convert_files(media_root)
+        self._phase1_convert_files(media_root, subdirectory=self.subdirectory)
 
         # Phase 2: update ImageField DB values
         self._phase2_update_imagefields()
@@ -137,12 +142,17 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------ #
     #  Phase 1: walk media/ and convert files on disk
     # ------------------------------------------------------------------ #
-    def _phase1_convert_files(self, media_root):
+    def _phase1_convert_files(self, media_root, subdirectory=None):
         self.log('\n--- Phase 1: Converting files on disk ---')
         count = 0
         skipped_animated = 0
 
-        for dirpath, _dirnames, filenames in os.walk(media_root):
+        target_dir = os.path.join(media_root, subdirectory.replace('/', os.sep)) if subdirectory else media_root
+        if not os.path.exists(target_dir):
+            self.log(f'Target directory does not exist: {target_dir}', self.style.WARNING)
+            return
+
+        for dirpath, _dirnames, filenames in os.walk(target_dir):
             for fname in filenames:
                 ext = os.path.splitext(fname)[1].lower()
                 if ext not in CONVERTIBLE:
@@ -209,10 +219,9 @@ class Command(BaseCommand):
                     if name in self.converted_map:
                         update_dict[fn] = self.converted_map[name]
                     elif not name.endswith('.webp'):
-                        base, _ = os.path.splitext(name)
-                        candidate = base + '.webp'
-                        if os.path.exists(os.path.join(settings.MEDIA_ROOT, candidate.replace('/', os.sep))):
-                            update_dict[fn] = candidate
+                        base, ext = os.path.splitext(name)
+                        if ext.lower() in CONVERTIBLE:
+                            update_dict[fn] = base + '.webp'
 
                 if update_dict:
                     if self.execute_mode:

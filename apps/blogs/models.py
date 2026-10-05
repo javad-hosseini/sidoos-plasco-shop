@@ -184,6 +184,13 @@ class Article(models.Model):
     # SEO Metadata
     # ============================================================
 
+    focus_keyword = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name="کلمه کلیدی کانونی",
+        help_text="کلمه یا عبارت کلیدی اصلی که این مقاله برای آن در موتورهای جستجو بهینه‌سازی می‌شود.",
+    )
+
     meta_title = models.CharField(
         max_length=200,
         blank=True,
@@ -334,27 +341,11 @@ class Article(models.Model):
             words = len(re.findall(r"[\w\u0600-\u06FF]+", plain_text))
             self.reading_time = max(1, min(60, math.ceil(words / 180))) if words > 0 else 1
 
-        # Auto-generate SEO & social fields if empty
-        if not self.meta_title and self.title:
-            self.meta_title = self.title[:200]
-
-        if not self.meta_description:
-            raw_desc = self.summary or strip_tags(self.content or "")
-            clean_desc = " ".join(raw_desc.split())
-            self.meta_description = clean_desc[:157] + "..." if len(clean_desc) > 160 else clean_desc
-
-        if not self.og_title:
-            self.og_title = (self.meta_title or self.title)[:200]
-
-        if not self.og_description:
-            self.og_description = self.meta_description or self.summary or ""
-
-        if not self.og_image and self.featured_image:
-            self.og_image = self.featured_image
-
-        # Auto-set published_at if published but timestamp is missing
+        # Validate publication date for published articles
         if self.is_published and not self.published_at:
-            self.published_at = timezone.now()
+            raise ValidationError({
+                "published_at": "برای مقالات منتشر شده، تعیین تاریخ انتشار الزامی است."
+            })
 
         # Validate slug format: only Persian/English chars, numbers,
         # hyphens, underscores, and spaces (spaces will be converted to hyphens)

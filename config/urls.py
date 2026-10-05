@@ -34,10 +34,13 @@ sitemaps = {
 # the apps.home.urls include below (it lists the site's actual private
 # paths - a separate project-level route here previously shadowed it with
 # a stale list referencing routes that don't exist in this project).
+from utils.admin_views import admin_internal_link_search
+
 urlpatterns = [
     path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'images/favicon.ico', permanent=True)),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('sidoos-administration/internal-link-search/', admin_internal_link_search, name='admin_internal_link_search'),
     path('sidoos-administration/', admin.site.urls),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
 
