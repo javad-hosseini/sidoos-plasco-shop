@@ -7,9 +7,14 @@
 <title>{% block title %}سیدوس | تولید و پخش عمده گلدان و ظروف دکوراتیو{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}سیدوس؛ تولیدکننده و پخش‌کننده عمده گلدان، ظروف دکوراتیو و لوازم خانه پلاستیکی با طراحی مدرن و کیفیت صادراتی. مناسب فروشگاه‌ها و عمده‌فروشان مشهد و سراسر کشور.{% endblock %}">
 <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
-{% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
-<link rel="alternate" hreflang="fa" href="{{ canonical_url|default:request.build_absolute_uri }}">
-<link rel="alternate" hreflang="x-default" href="{{ canonical_url|default:request.build_absolute_uri }}">
+{% if canonical_url %}
+<link rel="canonical" href="{{ canonical_url }}">
+<link rel="alternate" hreflang="fa" href="{{ canonical_url }}">
+<link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
+{% elif request %}
+<link rel="alternate" hreflang="fa" href="{{ request.build_absolute_uri }}">
+<link rel="alternate" hreflang="x-default" href="{{ request.build_absolute_uri }}">
+{% endif %}
 
 {# ========== Favicon & App Icons ========== #}
 <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon.png' %}">
@@ -23,8 +28,12 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="سیدوس | تولید و پخش عمده گلدان و ظروف دکوراتیو">
   <meta property="og:description" content="سیدوس؛ تولیدکننده و پخش‌کننده عمده گلدان، ظروف دکوراتیو و لوازم خانه پلاستیکی با طراحی مدرن و کیفیت صادراتی. مناسب فروشگاه‌ها و عمده‌فروشان مشهد و سراسر کشور.">
-  <meta property="og:url" content="{{ canonical_url|default:request.build_absolute_uri }}">
-  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}">
+  {% if canonical_url %}
+    <meta property="og:url" content="{{ canonical_url }}">
+  {% elif request %}
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  {% endif %}
+  <meta property="og:image" content="{% if request %}{{ request.scheme }}://{{ request.get_host }}{% else %}https://sidoos.ir{% endif %}{% static 'home/images/og-brand.jpg' %}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:type" content="image/jpeg">
@@ -32,7 +41,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="سیدوس | تولید و پخش عمده گلدان و ظروف دکوراتیو">
   <meta name="twitter:description" content="سیدوس؛ تولیدکننده و پخش‌کننده عمده گلدان، ظروف دکوراتیو و لوازم خانه پلاستیکی با طراحی مدرن و کیفیت صادراتی. مناسب فروشگاه‌ها و عمده‌فروشان مشهد و سراسر کشور.">
-  <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}">
+  <meta name="twitter:image" content="{% if request %}{{ request.scheme }}://{{ request.get_host }}{% else %}https://sidoos.ir{% endif %}{% static 'home/images/og-brand.jpg' %}">
 {% endblock %}
 
 <link rel="preload" href="{% static 'fonts/vazirmatn-arabic-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
@@ -1074,10 +1083,10 @@
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization",
+      "@id": "{% if request %}{{ request.scheme }}://{{ request.get_host }}{% else %}https://sidoos.ir{% endif %}/#organization",
       "name": "سیدوس",
-      "url": "{{ request.scheme }}://{{ request.get_host }}/",
-      "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}",
+      "url": "{% if request %}{{ request.scheme }}://{{ request.get_host }}{% else %}https://sidoos.ir{% endif %}/",
+      "logo": "{% if request %}{{ request.scheme }}://{{ request.get_host }}{% else %}https://sidoos.ir{% endif %}{% static 'home/images/og-brand.jpg' %}",
       "description": "تولید و پخش عمده انواع گلدان، ظروف دکوراتیو و لوازم خانه پلاستیکی و پلاسکو با کیفیت صادراتی",
       "contactPoint": {
         "@type": "ContactPoint",
@@ -1089,17 +1098,17 @@
     },
     {
       "@type": "WebSite",
-      "@id": "{{ request.scheme }}://{{ request.get_host }}/#website",
-      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "@id": "{% if request %}{{ request.scheme }}://{{ request.get_host }}{% else %}https://sidoos.ir{% endif %}/#website",
+      "url": "{% if request %}{{ request.scheme }}://{{ request.get_host }}{% else %}https://sidoos.ir{% endif %}/",
       "name": "سیدوس",
       "publisher": {
-        "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization"
+        "@id": "{% if request %}{{ request.scheme }}://{{ request.get_host }}{% else %}https://sidoos.ir{% endif %}/#organization"
       },
       "potentialAction": {
         "@type": "SearchAction",
         "target": {
           "@type": "EntryPoint",
-          "urlTemplate": "{{ request.scheme }}://{{ request.get_host }}/products/?q={search_term_string}"
+          "urlTemplate": "{% if request %}{{ request.scheme }}://{{ request.get_host }}{% else %}https://sidoos.ir{% endif %}/products/?q={search_term_string}"
         },
         "query-input": "required name=search_term_string"
       }
