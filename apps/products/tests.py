@@ -666,3 +666,76 @@ class ProductSEOAdminTests(TestCase):
         self.assertIn('admin/css/ckeditor_seo_optimizer.css', content)
         self.assertIn('id_focus_keyword', content)
 
+
+class ProductSchemaAndIRRTests(TestCase):
+    """
+    Tests verifying Toman to Rial (x10) conversion and Schema.org Rich Results compliance.
+    """
+
+    def setUp(self):
+        from apps.accounts.models import User
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        self.user = User.objects.create_user(username='schematest', password='pw')
+        self.dummy_image = SimpleUploadedFile('test.jpg', b'fakeimagecontent', content_type='image/jpeg')
+
+    def test_irr_price_multiplication_by_10(self):
+        product = Product.objects.create(
+            name='گلدان لوکس ارکیده',
+            slug='luxury-orchid-pot',
+            description='توضیحات گلدان لوکس',
+            cover_image=self.dummy_image,
+            price=150000,
+            on_sale_price=120000,
+            call_for_price=False,
+            published=True,
+            creator=self.user,
+        )
+        self.assertEqual(product.price_irr, 1500000)
+        self.assertEqual(product.on_sale_price_irr, 1200000)
+        self.assertEqual(product.effective_price_irr, 1200000)
+
+    def test_call_for_price_irr_zero(self):
+        product = Product.objects.create(
+            name='گلدان عمده صادراتی',
+            slug='export-wholesale-pot',
+            description='توضیحات گلدان عمده',
+            cover_image=self.dummy_image,
+            price=0,
+            call_for_price=True,
+            published=True,
+            creator=self.user,
+        )
+        self.assertEqual(product.price_irr, 0)
+        self.assertIsNone(product.on_sale_price_irr)
+        self.assertEqual(product.effective_price_irr, 0)
+
+    def test_product_detail_schema_contains_valid_irr_and_merchant_return_policy(self):
+        import json, re
+        product = Product.objects.create(
+            name='گلدان پلاستیکی سایز ۴',
+            slug='pot-size-4',
+            description='توضیحات گلدان پلاستیکی ۴',
+            cover_image=self.dummy_image,
+            price=80000,
+            published=True,
+            creator=self.user,
+        )
+        response = self.client.get(f'/products/{product.slug}/')
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        schemas = re.findall(r'<script type="application/ld\+json">(.*?)</script>', content, re.DOTALL)
+        product_schema = None
+        for s in schemas:
+            data = json.loads(s)
+            if data.get('@type') == 'Product':
+                product_schema = data
+                break
+
+        self.assertIsNotNone(product_schema)
+        self.assertEqual(product_schema['offers']['priceCurrency'], 'IRR')
+        self.assertEqual(product_schema['offers']['price'], '800000')
+        self.assertIn('hasMerchantReturnPolicy', product_schema['offers'])
+        self.assertIn('shippingDetails', product_schema['offers'])
+        self.assertEqual(product_schema['aggregateRating']['ratingValue'], '5.0')
+
+

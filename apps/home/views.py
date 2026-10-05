@@ -138,8 +138,59 @@ def robots_txt(request):
         "Disallow: /products/api/",
         "Disallow: /newsletter/",
         "Sitemap: " + request.build_absolute_uri("/sitemap.xml"),
+        "# LLM / Agent Documentation (llmstxt.org specification)",
+        "User-agent: GPTBot",
+        "Allow: /llms.txt",
+        "User-agent: ClaudeBot",
+        "Allow: /llms.txt",
+        "User-agent: PerplexityBot",
+        "Allow: /llms.txt",
+        "User-agent: Google-Extended",
+        "Allow: /llms.txt",
     ]
     return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")
+
+
+def llms_txt(request):
+    """
+    Serve structured Markdown site documentation for AI search crawlers (llmstxt.org).
+    Provides company context, product categories, wholesale purchasing guidelines, and site links.
+    """
+    base_url = request.build_absolute_uri("/").rstrip("/")
+    content = f"""# سیدوس | Sidoos
+
+> کارخانه و مرکز تولید و پخش عمده گلدان‌های پلاستیکی، ظروف خانه و ملزومات دکوراتیو با کیفیت صادراتی در مشهد و سراسر ایران.
+
+## درباره شرکت
+سیدوس تولیدکننده پیشرو در صنایع پلاستیک و دکوراتیو خانگی است که محصولات خود را به صورت مستقیم و بدون واسطه به مغازه‌داران، فروشگاه‌ها، عمده‌فروشان و صادرکنندگان سراسر کشور عرضه می‌کند.
+
+- وب‌سایت: {base_url}
+- دفتر مرکزی: مشهد، بلوار وکیل‌آباد
+- تلفن همراه و واتساپ: 09308743868
+- تلفن‌های ثابت: 05138944687 و 05138944715
+- ساعت پاسخگویی: شنبه تا چهارشنبه ۸:۰۰ الی ۱۸:۰۰
+
+## بخش‌های اصلی سایت
+- [صفحه اصلی]({base_url}/): معرفی محصولات منتخب، جدیدترین اقلام و پرفروش‌ها
+- [کاتالوگ فروشگاه]({base_url}/products/): کاتالوگ جامع محصولات همراه با مشخصات فنی و گالری تصاویر
+- [فروش ویژه و تخفیف‌ها]({base_url}/products/special-sales/): محصولات دارای تخفیف دوره‌ای و پیشنهادهای همکاری
+- [مجله و مقالات سیدوس]({base_url}/blogs/): راهنمای نگهداری گیاهان، انتخاب گلدان مناسب، و نکات دکوراسیون داخلی
+- [تماس با ما]({base_url}/contact/): شماره‌های تماس، موقعیت مکانی و فرم ارتباط مستقیم
+- [سوالات متداول]({base_url}/faq/): پرسش‌های پرتکرار درباره حداقل تیراژ سفارش، نحوه پرداخت و باربری
+- [شرایط و روش‌های ارسال]({base_url}/shipping/): اطلاعات ارسال سریع با باربری و بیمه مرسولات
+- [راهنمای خرید]({base_url}/guide/): مراحل سفارش عمده و استعلام قیمت
+
+## دسته‌بندی‌های محصولات
+- گلدان‌های پلاستیکی و آپارتمانی
+- آبپاش‌ها و ابزار باغبانی
+- ظروف دکوراتیو و مدرن
+- ملزومات آشپزخانه و پلاسکو
+- اتصالات و قطعات بهداشتی ساختمانی
+
+## شرایط خرید عمده و استعلام قیمت
+تمامی محصولات در کارتن‌های مادر استاندارد بسته‌بندی شده‌اند. استعلام قیمت همکاری از طریق ثبت‌نام در سایت یا تماس مستقیم با کارشناسان فروش امکان‌پذیر است.
+"""
+    return HttpResponse(content.strip() + "\n", content_type="text/plain; charset=utf-8")
 
 
 @login_required

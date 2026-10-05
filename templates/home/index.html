@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load static humanize blog_extras %}
 
-{% block title %}سیدوس | صنایع دکوراتیو و ظروف خانه{% endblock %}
-{% block meta_description %}سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر.{% endblock %}
+{% block title %}سیدوس | تولید و پخش عمده گلدان و ظروف دکوراتیو{% endblock %}
+{% block meta_description %}سیدوس؛ تولیدکننده و پخش‌کننده عمده گلدان، ظروف دکوراتیو و لوازم خانه پلاستیکی با طراحی مدرن و کیفیت صادراتی. مناسب فروشگاه‌ها و عمده‌فروشان مشهد و سراسر کشور.{% endblock %}
 {% block body_class %}is-home has-hero{% endblock %}
 
 {% block extra_meta %}
   <meta property="og:type" content="website">
-  <meta property="og:title" content="سیدوس | صنایع دکوراتیو و ظروف خانه">
-  <meta property="og:description" content="سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر برای فروشگاه‌ها و عمده‌فروشان سراسر کشور.">
+  <meta property="og:title" content="سیدوس | تولید و پخش عمده گلدان و ظروف دکوراتیو">
+  <meta property="og:description" content="سیدوس؛ تولیدکننده و پخش‌کننده عمده گلدان، ظروف دکوراتیو و لوازم خانه پلاستیکی با طراحی مدرن و کیفیت صادراتی. مناسب فروشگاه‌ها و عمده‌فروشان مشهد و سراسر کشور.">
   <meta property="og:url" content="{{ canonical_url|default:request.build_absolute_uri }}">
   <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}">
   <meta property="og:image:width" content="1200">
@@ -16,8 +16,8 @@
   <meta property="og:image:type" content="image/jpeg">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="سیدوس | صنایع دکوراتیو و ظروف خانه">
-  <meta name="twitter:description" content="سیدوس، خانه‌ی گلدان‌ها و ظروف دکوراتیو با طراحی مدرن و کیفیت بی‌نظیر برای فروشگاه‌ها و عمده‌فروشان سراسر کشور.">
+  <meta name="twitter:title" content="سیدوس | تولید و پخش عمده گلدان و ظروف دکوراتیو">
+  <meta name="twitter:description" content="سیدوس؛ تولیدکننده و پخش‌کننده عمده گلدان، ظروف دکوراتیو و لوازم خانه پلاستیکی با طراحی مدرن و کیفیت صادراتی. مناسب فروشگاه‌ها و عمده‌فروشان مشهد و سراسر کشور.">
   <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/og-brand.jpg' %}">
   {% if hero_slides and hero_slides.0.background_image %}
     <link rel="preload" as="image" href="{{ hero_slides.0.background_image.url }}" fetchpriority="high">
@@ -286,7 +286,11 @@
     <div class="hero-bg" style="background-image:url('{{ slide.background_image.url }}')"></div>
     <div class="hero-content">
       {% if slide.eyebrow %}<div class="eyebrow">{{ slide.eyebrow }}</div>{% endif %}
-      <h1 class="hero-title">{{ slide.title|linebreaksbr }}</h1>
+      {% if forloop.first %}
+        <h1 class="hero-title">{{ slide.title|linebreaksbr }}</h1>
+      {% else %}
+        <h2 class="hero-title">{{ slide.title|linebreaksbr }}</h2>
+      {% endif %}
       {% if slide.subtitle %}<p class="hero-sub">{{ slide.subtitle|linebreaksbr }}</p>{% endif %}
       {% if slide.cta_label and slide.get_cta_url %}
       <div class="hero-cta-wrap">

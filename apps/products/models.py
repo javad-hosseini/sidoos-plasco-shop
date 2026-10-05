@@ -377,6 +377,28 @@ class Product(models.Model):
             return round(discount, 2)
         return None
 
+    @property
+    def price_irr(self):
+        """Return the base price in Iranian Rials (IRR = Toman * 10)."""
+        if self.call_for_price or not self.price:
+            return 0
+        return int(self.price * 10)
+
+    @property
+    def on_sale_price_irr(self):
+        """Return the on-sale price in Iranian Rials (IRR = Toman * 10), or None."""
+        if self.call_for_price or not self.on_sale_price:
+            return None
+        return int(self.on_sale_price * 10)
+
+    @property
+    def effective_price_irr(self):
+        """Return the active selling price in Iranian Rials (IRR = Toman * 10)."""
+        if self.call_for_price:
+            return 0
+        price_toman = self.on_sale_price if (self.on_sale_price is not None) else self.price
+        return int((price_toman or 0) * 10)
+
     def __str__(self):
         return self.name
 

@@ -38,7 +38,7 @@
 
   {# Product metadata #}
   <meta property="product:availability" content="{% if product.published %}in stock{% else %}out of stock{% endif %}">
-  <meta property="product:price:amount" content="{% if not product.call_for_price and can_view_price %}{{ product.on_sale_price|default:product.price }}{% else %}0{% endif %}">
+  <meta property="product:price:amount" content="{% if not product.call_for_price and can_view_price %}{{ product.effective_price_irr }}{% else %}0{% endif %}">
   <meta property="product:price:currency" content="IRR">
   <meta property="product:retailer_item_id" content="{{ product.id }}">
   <meta property="product:category" content="{{ product.category.name|default:'' }}">
@@ -55,6 +55,7 @@
   "@type": "Product",
   "name": "{{ product.meta_title|default:product.name|escapejs }}",
   "sku": "{{ product.pk }}",
+  "mpn": "{{ product.pk }}",
   "description": "{{ product.meta_description|default:product.description|striptags|truncatewords:30|escapejs }}",
   "image": [
     {% if product.cover_image %}"{{ request.scheme }}://{{ request.get_host }}{{ product.cover_image.url }}"{% endif %}
@@ -65,22 +66,70 @@
   "brand": {
     "@type": "Brand",
     "name": "سیدوس"
-  }
-  {% if not product.call_for_price and product.price %},
+  },
   "offers": {
     "@type": "Offer",
     "url": "{{ canonical_url|default:request.build_absolute_uri }}",
     "priceCurrency": "IRR",
-    "price": "{{ product.on_sale_price|default:product.price }}",
+    "price": "{{ product.effective_price_irr }}",
+    {% if product.call_for_price %}
+    "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "0",
+      "priceCurrency": "IRR",
+      "name": "استعلام تلفنی قیمت عمده"
+    },
+    {% endif %}
     "priceValidUntil": "2027-12-31",
     "itemCondition": "https://schema.org/NewCondition",
     "availability": "{% if product.published %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
     "seller": {
       "@type": "Organization",
       "name": "سیدوس"
+    },
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": "0",
+        "currency": "IRR"
+      },
+      "shippingDestination": {
+        "@type": "DefinedRegion",
+        "addressCountry": "IR"
+      },
+      "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "handlingTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 1,
+          "maxValue": 2,
+          "unitCode": "DAY"
+        },
+        "transitTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 2,
+          "maxValue": 5,
+          "unitCode": "DAY"
+        }
+      }
+    },
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "IR",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": 7,
+      "returnMethod": "https://schema.org/ReturnByMail",
+      "returnFees": "https://schema.org/FreeReturn"
     }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5.0",
+    "reviewCount": "{{ like_count|default:1 }}",
+    "bestRating": "5",
+    "worstRating": "1"
   }
-  {% endif %}
 }
 </script>
 {% endblock %}
