@@ -293,7 +293,18 @@
   .rte ul,.rte ol{ margin:0 0 1.1em; padding-inline-start:1.4em; }
   .rte li{ margin-bottom:.5em; }
   .rte a{ color:var(--gold); text-decoration:underline; }
-  .rte img{ margin:1.2em 0; border:1px solid rgba(216,207,193,.12); }
+  .rte img{ max-width:100%; height:auto; display:block; margin:1.4em auto; border-radius:var(--radius-sm, 8px); border:1px solid rgba(216,207,193,.12); }
+  .rte figure{ margin:1.4em 0; max-width:100%; }
+  .rte figure.image{ display:table; clear:both; text-align:center; margin:1.4em auto; max-width:100%; }
+  .rte figure.image > img{ display:block; margin:0 auto; max-width:100%; min-width:50px; height:auto; border-radius:var(--radius-sm, 8px); }
+  .rte figure.image.image_resized{ display:block; max-width:100%; margin:1.4em auto; }
+  .rte figure.image.image_resized img{ width:100%; }
+  .rte figure.image.image-style-side{ float:left; max-width:50%; margin:0.5em 1.5em 1em 0; }
+  .rte figure.image.image-style-align-left{ float:left; margin:0.5em 1.5em 1em 0; }
+  .rte figure.image.image-style-align-right{ float:right; margin:0.5em 0 1em 1.5em; }
+  .rte figure.image.image-style-block-align-left{ margin-left:auto; margin-right:0; }
+  .rte figure.image.image-style-block-align-right{ margin-right:auto; margin-left:0; }
+  .rte figure.image > figcaption{ display:table-caption; caption-side:bottom; font-size:12.5px; color:var(--cream-soft); margin-top:8px; line-height:1.6; text-align:center; }
   .rte table{ width:100%; border-collapse:collapse; margin:1.2em 0; font-size:14px; }
   .rte th,.rte td{ border:1px solid rgba(216,207,193,.16); padding:10px 12px; text-align:right; }
   .rte blockquote{ border-inline-start:2px solid var(--gold); padding-inline-start:16px; margin:1.2em 0; color:var(--cream); }
