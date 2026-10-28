@@ -74,28 +74,51 @@ CKEDITOR_5_CONFIGS = {
         "toolbar": {
             "items": [
                 "heading",
+                "|",
                 "bold",
                 "italic",
                 "underline",
                 "strikethrough",
+                "|",
                 "fontColor",
                 "fontBackgroundColor",
+                "|",
                 "link",
                 "uploadImage",
                 "insertTable",
                 "mediaEmbed",
+                "htmlEmbed",
+                "|",
                 "bulletedList",
                 "numberedList",
                 "outdent",
                 "indent",
+                "|",
                 "blockQuote",
                 "code",
                 "codeBlock",
                 "alignment",
+                "|",
+                "sourceEditing",
+                "|",
                 "undo",
                 "redo",
             ],
             "shouldNotGroupWhenFull": True,
+        },
+        "htmlSupport": {
+            "allow": [
+                {
+                    "name": "/.*/",
+                    "attributes": True,
+                    "classes": True,
+                    "styles": True,
+                }
+            ]
+        },
+        "htmlEmbed": {
+            "showPreviews": True,
+            "sanitizeHtml": False,
         },
         "image": {
             "toolbar": [

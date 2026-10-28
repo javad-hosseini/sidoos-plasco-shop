@@ -29,6 +29,7 @@
         CHEVRON: `<svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>`,
         TOC: `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3 4h18v2H3V4zm0 7h12v2H3v-2zm0 7h18v2H3v-2zm16-6l4 3-4 3v-6z"/></svg>`,
         ALT: `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`,
+        PREVIEW: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
     };
 
     // =========================================================================
@@ -551,6 +552,10 @@
                 </div>
 
                 <div class="sidoos-seo-actions">
+                    <button type="button" class="sidoos-seo-action-btn sidoos-seo-btn-preview" id="sidoos-seo-live-preview-btn" title="مشاهده پیش‌نمایش واقعی متن رندر شده در فرانت‌اند سایت با استایل و فونت اختصاصی">
+                        ${ICONS.PREVIEW}
+                        <span>پیش‌نمایش زنده</span>
+                    </button>
                     <button type="button" class="sidoos-seo-action-btn" id="sidoos-seo-gen-toc-btn" title="ساخت و درج فهرست مطالب خودکار بر اساس زیرعنوان‌ها">
                         ${ICONS.TOC}
                         <span>درج فهرست مطالب</span>
@@ -670,6 +675,15 @@
                 section.classList.toggle('is-open');
             });
         });
+
+        // Setup Live Preview Button
+        const previewBtn = panel.querySelector('#sidoos-seo-live-preview-btn');
+        if (previewBtn) {
+            previewBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                openLivePreviewModal();
+            });
+        }
 
         // Setup TOC Button
         const tocBtn = panel.querySelector('#sidoos-seo-gen-toc-btn');
@@ -891,6 +905,192 @@
         }
 
         runAnalysis();
+    }
+
+    // =========================================================================
+    // 5.1. Live Rendered Preview Modal
+    // =========================================================================
+    function openLivePreviewModal() {
+        let contentHtml = '';
+        if (activeEditor && typeof activeEditor.getData === 'function') {
+            contentHtml = activeEditor.getData();
+        } else {
+            const $contentInput = document.getElementById('id_content') || document.getElementById('id_description');
+            contentHtml = ($contentInput ? $contentInput.value : '');
+        }
+
+        let modal = document.getElementById('sidoos-live-preview-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'sidoos-live-preview-modal';
+            modal.className = 'sidoos-preview-modal-overlay';
+            modal.innerHTML = `
+                <div class="sidoos-preview-modal-container">
+                    <div class="sidoos-preview-modal-header">
+                        <div class="sidoos-preview-modal-title">
+                            <span class="sidoos-preview-modal-icon">${ICONS.PREVIEW}</span>
+                            <div>
+                                <h5>پیش‌نمایش زنده در فرانت‌اند سایت (Live Rendered Preview)</h5>
+                                <span class="sidoos-preview-modal-sub">مشاهده دقیق خروجی رندر شده همراه با استایل‌ها و فونت واقعی سایت</span>
+                            </div>
+                        </div>
+
+                        <div class="sidoos-preview-modal-tools">
+                            <!-- Viewport Controls -->
+                            <div class="sidoos-preview-btn-group" role="group" aria-label="انتخاب دستگاه">
+                                <button type="button" class="sidoos-preview-tool-btn is-active" id="sidoos-preview-btn-desktop" title="نمایش در اندازه کامل دسکتاپ">
+                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                    <span>دسکتاپ</span>
+                                </button>
+                                <button type="button" class="sidoos-preview-tool-btn" id="sidoos-preview-btn-mobile" title="نمایش در کادر موبایل (۳۹۰px)">
+                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                                    <span>موبایل (۳۹۰px)</span>
+                                </button>
+                            </div>
+
+                            <!-- Theme Controls -->
+                            <div class="sidoos-preview-btn-group" role="group" aria-label="انتخاب تم">
+                                <button type="button" class="sidoos-preview-tool-btn is-active" id="sidoos-preview-theme-dark" title="تم تاریک پیش‌فرض سیدوس">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.3 2a10 10 0 0 0-.19 14 9.92 9.92 0 0 0 7.9 3.89 10.14 10.14 0 0 0 1.9-.18A10 10 0 1 1 12.3 2z"/></svg>
+                                    <span>تم دارک</span>
+                                </button>
+                                <button type="button" class="sidoos-preview-tool-btn" id="sidoos-preview-theme-light" title="تم روشن">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                                    <span>تم روشن</span>
+                                </button>
+                            </div>
+
+                            <!-- Mode Controls -->
+                            <div class="sidoos-preview-btn-group" role="group" aria-label="حالت نمایش">
+                                <button type="button" class="sidoos-preview-tool-btn is-active" id="sidoos-preview-tab-rendered">
+                                    <span>پیش‌نمایش بصری</span>
+                                </button>
+                                <button type="button" class="sidoos-preview-tool-btn" id="sidoos-preview-tab-code">
+                                    <span>کد HTML منبع</span>
+                                </button>
+                            </div>
+
+                            <button type="button" class="sidoos-preview-close-btn" id="sidoos-preview-close-btn" title="بستن (Esc)">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="sidoos-preview-modal-body">
+                        <!-- Frame Wrapper -->
+                        <div class="sidoos-preview-frame-wrapper" id="sidoos-preview-frame-wrapper">
+                            <!-- Visual Rendered Container -->
+                            <div class="sidoos-preview-rendered-box theme-dark" id="sidoos-preview-rendered-box">
+                                <div class="sidoos-preview-rendered-content rte" id="sidoos-preview-rendered-content"></div>
+                            </div>
+
+                            <!-- Raw HTML Code Inspector -->
+                            <div class="sidoos-preview-code-box" id="sidoos-preview-code-box" style="display:none;">
+                                <div class="sidoos-preview-code-bar">
+                                    <span>کد HTML ذخیره‌شده در دیتابیس:</span>
+                                    <button type="button" class="sidoos-preview-copy-btn" id="sidoos-preview-copy-btn">📋 کپی کد</button>
+                                </div>
+                                <pre><code id="sidoos-preview-code-pre"></code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Bind Event Listeners
+            const closeBtn = modal.querySelector('#sidoos-preview-close-btn');
+            closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.style.display = 'none';
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.style.display !== 'none') {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Device switch
+            const btnDesktop = modal.querySelector('#sidoos-preview-btn-desktop');
+            const btnMobile = modal.querySelector('#sidoos-preview-btn-mobile');
+            const frameWrapper = modal.querySelector('#sidoos-preview-frame-wrapper');
+
+            btnDesktop.addEventListener('click', () => {
+                btnDesktop.classList.add('is-active');
+                btnMobile.classList.remove('is-active');
+                frameWrapper.classList.remove('is-mobile');
+            });
+
+            btnMobile.addEventListener('click', () => {
+                btnMobile.classList.add('is-active');
+                btnDesktop.classList.remove('is-active');
+                frameWrapper.classList.add('is-mobile');
+            });
+
+            // Theme switch
+            const btnDark = modal.querySelector('#sidoos-preview-theme-dark');
+            const btnLight = modal.querySelector('#sidoos-preview-theme-light');
+            const renderedBox = modal.querySelector('#sidoos-preview-rendered-box');
+
+            btnDark.addEventListener('click', () => {
+                btnDark.classList.add('is-active');
+                btnLight.classList.remove('is-active');
+                renderedBox.classList.remove('theme-light');
+                renderedBox.classList.add('theme-dark');
+            });
+
+            btnLight.addEventListener('click', () => {
+                btnLight.classList.add('is-active');
+                btnDark.classList.remove('is-active');
+                renderedBox.classList.remove('theme-dark');
+                renderedBox.classList.add('theme-light');
+            });
+
+            // Mode switch
+            const tabRendered = modal.querySelector('#sidoos-preview-tab-rendered');
+            const tabCode = modal.querySelector('#sidoos-preview-tab-code');
+            const codeBox = modal.querySelector('#sidoos-preview-code-box');
+
+            tabRendered.addEventListener('click', () => {
+                tabRendered.classList.add('is-active');
+                tabCode.classList.remove('is-active');
+                renderedBox.style.display = 'block';
+                codeBox.style.display = 'none';
+            });
+
+            tabCode.addEventListener('click', () => {
+                tabCode.classList.add('is-active');
+                tabRendered.classList.remove('is-active');
+                renderedBox.style.display = 'none';
+                codeBox.style.display = 'block';
+            });
+
+            // Copy button
+            const copyBtn = modal.querySelector('#sidoos-preview-copy-btn');
+            copyBtn.addEventListener('click', () => {
+                const codePre = modal.querySelector('#sidoos-preview-code-pre');
+                if (codePre) {
+                    navigator.clipboard.writeText(codePre.textContent || '').then(() => {
+                        copyBtn.textContent = '✓ کپی شد!';
+                        setTimeout(() => { copyBtn.textContent = '📋 کپی کد'; }, 2000);
+                    });
+                }
+            });
+        }
+
+        // Populate content
+        const renderedContent = modal.querySelector('#sidoos-preview-rendered-content');
+        const codePre = modal.querySelector('#sidoos-preview-code-pre');
+
+        if (renderedContent) {
+            renderedContent.innerHTML = contentHtml || '<p style="opacity:0.6; font-style:italic;">(هنوز متنی در ادیتور نوشته نشده است)</p>';
+        }
+
+        if (codePre) {
+            codePre.textContent = contentHtml || '<!-- خالی -->';
+        }
+
+        modal.style.display = 'flex';
     }
 
     // =========================================================================
